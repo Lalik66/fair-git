@@ -41,6 +41,7 @@ const ApplicationReview: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('submittedAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
@@ -73,6 +74,11 @@ const ApplicationReview: React.FC = () => {
     // Filter by status
     if (filterStatus !== 'all') {
       result = result.filter(app => app.status === filterStatus);
+    }
+
+    // Filter by category
+    if (filterCategory !== 'all') {
+      result = result.filter(app => app.productCategory === filterCategory);
     }
 
     // Sort
@@ -111,7 +117,7 @@ const ApplicationReview: React.FC = () => {
     });
 
     return result;
-  }, [applications, filterStatus, sortField, sortOrder]);
+  }, [applications, filterStatus, filterCategory, sortField, sortOrder]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -212,10 +218,26 @@ const ApplicationReview: React.FC = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Applications</option>
+            <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div className="filter-group">
+          <label htmlFor="category-filter">Filter by Category:</label>
+          <select
+            id="category-filter"
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Categories</option>
+            <option value="food_beverages">Food & Beverages</option>
+            <option value="handicrafts">Handicrafts</option>
+            <option value="clothing">Clothing</option>
+            <option value="accessories">Accessories</option>
+            <option value="other">Other</option>
           </select>
         </div>
         <div className="results-count">
@@ -227,9 +249,9 @@ const ApplicationReview: React.FC = () => {
       {filteredAndSortedApplications.length === 0 ? (
         <div className="no-applications">
           <p>No applications found.</p>
-          {filterStatus !== 'all' && (
-            <button className="btn btn-secondary btn-sm" onClick={() => setFilterStatus('all')}>
-              Clear Filter
+          {(filterStatus !== 'all' || filterCategory !== 'all') && (
+            <button className="btn btn-secondary btn-sm" onClick={() => { setFilterStatus('all'); setFilterCategory('all'); }}>
+              Clear Filters
             </button>
           )}
         </div>
