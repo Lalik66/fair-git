@@ -194,6 +194,137 @@ router.get('/logs', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// ==================== APPLICATION MANAGEMENT ====================
+
+// Get all applications with vendor and fair details
+router.get('/applications', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status, fairId, sortBy, sortOrder } = req.query;
+
+    // Build filter conditions
+    const where: any = {};
+    if (status && status !== 'all') {
+      where.status = status;
+    }
+    if (fairId && fairId !== 'all') {
+      where.fairId = fairId;
+    }
+
+    // Determine sort order
+    let orderBy: any = { submittedAt: 'desc' };
+    if (sortBy) {
+      const order = sortOrder === 'asc' ? 'asc' : 'desc';
+      switch (sortBy) {
+        case 'submittedAt':
+          orderBy = { submittedAt: order };
+          break;
+        case 'status':
+          orderBy = { status: order };
+          break;
+        case 'companyName':
+          orderBy = { vendorProfile: { companyName: order } };
+          break;
+        default:
+          orderBy = { submittedAt: 'desc' };
+      }
+    }
+
+    const applications = await prisma.application.findMany({
+      where,
+      include: {
+        vendorProfile: {
+          include: {
+            user: {
+              select: {
+                email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+              },
+            },
+          },
+        },
+        fair: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+          },
+        },
+        vendorHouse: {
+          select: {
+            id: true,
+            houseNumber: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      orderBy,
+    });
+
+    // Format applications for frontend
+    const formattedApplications = applications.map(app => ({
+      id: app.id,
+      submittedAt: app.submittedAt,
+      status: app.status,
+      adminNotes: app.adminNotes,
+      rejectionReason: app.rejectionReason,
+      reviewedAt: app.reviewedAt,
+      // Vendor info
+      companyName: app.vendorProfile.companyName,
+      productCategory: app.vendorProfile.productCategory,
+      businessDescription: app.vendorProfile.businessDescription,
+      contactName: `${app.vendorProfile.user.firstName || ''} ${app.vendorProfile.user.lastName || ''}`.trim(),
+      contactEmail: app.vendorProfile.user.email,
+      contactPhone: app.vendorProfile.user.phone,
+      // Fair info
+      fairId: app.fair.id,
+      fairName: app.fair.name,
+      fairStatus: app.fair.status,
+      // House info
+      vendorHouseId: app.vendorHouse.id,
+      houseNumber: app.vendorHouse.houseNumber,
+      // Reviewer info
+      reviewedBy: app.reviewedBy ?
+        `${app.reviewedBy.firstName || ''} ${app.reviewedBy.lastName || ''}`.trim() || app.reviewedBy.email
+        : null,
+    }));
+
+    res.json({ applications: formattedApplications });
+  } catch (error) {
+    console.error('Get applications error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get application statistics
+router.get('/applications/stats', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const [total, pending, approved, rejected] = await Promise.all([
+      prisma.application.count(),
+      prisma.application.count({ where: { status: 'pending' } }),
+      prisma.application.count({ where: { status: 'approved' } }),
+      prisma.application.count({ where: { status: 'rejected' } }),
+    ]);
+
+    res.json({
+      total,
+      pending,
+      approved,
+      rejected,
+    });
+  } catch (error) {
+    console.error('Get application stats error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ==================== FAIR MANAGEMENT ====================
 
 // Get archived/past fairs - MUST be before /fairs/:fairId to avoid route conflict
@@ -759,5 +890,145 @@ router.delete('/fairs/:fairId/test-booking', async (req: Request, res: Response)
   }
 });
 
+// ==================== TEST DATA (Development Only) ====================
+// Create test applications for testing Application Review feature
+router.post('/test-applications', async (req: Request, res: Response): Promise<void> => {
+  try {
+    // First, ensure we have a fair
+    let fair = await prisma.fair.findFirst({
+      where: { status: { in: ['active', 'upcoming'] } },
+    });
+
+    if (!fair) {
+      fair = await prisma.fair.create({
+        data: {
+          name: 'Winter Fair 2026',
+          startDate: new Date('2026-02-01'),
+          endDate: new Date('2026-02-28'),
+          status: 'upcoming',
+        },
+      });
+    }
+
+    // Create test vendor houses if they don't exist
+    const houseNumbers = ['H-101', 'H-102', 'H-103'];
+    for (const houseNumber of houseNumbers) {
+      const existing = await prisma.vendorHouse.findUnique({
+        where: { houseNumber },
+      });
+      if (!existing) {
+        await prisma.vendorHouse.create({
+          data: {
+            houseNumber,
+            areaSqm: 25 + Math.random() * 25,
+            price: 500 + Math.random() * 500,
+            description: `Test vendor house ${houseNumber}`,
+            latitude: 40.4093 + Math.random() * 0.01,
+            longitude: 49.8671 + Math.random() * 0.01,
+            isEnabled: true,
+          },
+        });
+      }
+    }
+
+    const houses = await prisma.vendorHouse.findMany({
+      where: { houseNumber: { in: houseNumbers } },
+    });
+
+    // Create test vendors and applications
+    const testVendors = [
+      { company: 'Artisan Crafts Co', category: 'handicrafts', status: 'pending' },
+      { company: 'Fresh Bites Kitchen', category: 'food_beverages', status: 'approved' },
+      { company: 'Fashion Forward', category: 'clothing', status: 'rejected' },
+    ];
+
+    const createdApplications = [];
+    for (let i = 0; i < testVendors.length; i++) {
+      const vendor = testVendors[i];
+      const house = houses[i % houses.length];
+
+      // Create test vendor user
+      const email = `test-vendor-${Date.now()}-${i}@test.com`;
+      const user = await prisma.user.create({
+        data: {
+          email,
+          firstName: vendor.company.split(' ')[0],
+          lastName: 'Vendor',
+          role: 'vendor',
+          isActive: true,
+        },
+      });
+
+      // Create vendor profile
+      const profile = await prisma.vendorProfile.create({
+        data: {
+          userId: user.id,
+          companyName: vendor.company,
+          businessDescription: `${vendor.company} is a quality provider of ${vendor.category.replace('_', ' ')} products.`,
+          productCategory: vendor.category,
+        },
+      });
+
+      // Create application
+      const application = await prisma.application.create({
+        data: {
+          vendorProfileId: profile.id,
+          fairId: fair.id,
+          vendorHouseId: house.id,
+          status: vendor.status,
+          submittedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random date in last 7 days
+          reviewedAt: vendor.status !== 'pending' ? new Date() : null,
+          reviewedById: vendor.status !== 'pending' ? req.user!.id : null,
+          rejectionReason: vendor.status === 'rejected' ? 'Incomplete documentation' : null,
+        },
+      });
+
+      createdApplications.push({
+        id: application.id,
+        company: vendor.company,
+        status: vendor.status,
+      });
+    }
+
+    res.status(201).json({
+      message: `Created ${createdApplications.length} test applications`,
+      applications: createdApplications,
+    });
+  } catch (error) {
+    console.error('Create test applications error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete test applications
+router.delete('/test-applications', async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Find all test vendor users
+    const testUsers = await prisma.user.findMany({
+      where: {
+        email: { contains: 'test-vendor-' },
+      },
+    });
+
+    // Delete them (cascade will clean up profiles and applications)
+    for (const user of testUsers) {
+      await prisma.user.delete({
+        where: { id: user.id },
+      });
+    }
+
+    // Clean up test houses
+    await prisma.vendorHouse.deleteMany({
+      where: {
+        houseNumber: { in: ['H-101', 'H-102', 'H-103'] },
+      },
+    });
+
+    res.json({ message: `Cleaned up ${testUsers.length} test vendors and their data` });
+  } catch (error) {
+    console.error('Delete test applications error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;
-// Force reload

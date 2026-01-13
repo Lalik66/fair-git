@@ -153,6 +153,22 @@ export const adminApi = {
     const response = await api.get(`/admin/fairs/${fairId}/details`);
     return response.data;
   },
+
+  // Application management
+  getApplications: async (params?: {
+    status?: string;
+    fairId?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    const response = await api.get('/admin/applications', { params });
+    return response.data;
+  },
+
+  getApplicationStats: async () => {
+    const response = await api.get('/admin/applications/stats');
+    return response.data;
+  },
 };
 
 export default api;

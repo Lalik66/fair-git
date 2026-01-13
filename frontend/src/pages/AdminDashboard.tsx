@@ -5,6 +5,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from 'react-router-dom'
 import UserManagement from './UserManagement';
 import AdminLogs from './AdminLogs';
 import FairManagement from './FairManagement';
+import ApplicationReview from './ApplicationReview';
 import './AdminDashboard.css';
 
 // Admin home/overview component
@@ -38,8 +39,11 @@ const AdminHome: React.FC = () => {
         <div className="admin-card">
           <h3>{t('admin.applicationReview')}</h3>
           <p>Review and approve vendor applications.</p>
-          <button className="btn btn-primary" disabled>
-            Coming Soon
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate('/admin/applications')}
+          >
+            {t('Review Applications', { defaultValue: 'Review Applications' })}
           </button>
         </div>
 
@@ -121,6 +125,7 @@ const AdminDashboard: React.FC = () => {
           <Route path="/users" element={<UserManagement />} />
           <Route path="/logs" element={<AdminLogs />} />
           <Route path="/fairs" element={<FairManagement />} />
+          <Route path="/applications" element={<ApplicationReview />} />
         </Routes>
       </main>
     </div>
