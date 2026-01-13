@@ -20,6 +20,44 @@ interface Fair {
   updatedAt: string;
 }
 
+interface ParticipatingVendor {
+  vendorId: string;
+  companyName: string | null;
+  productCategory: string | null;
+  contactEmail: string;
+  contactName: string;
+  contactPhone: string | null;
+  houseNumber: string;
+  houseArea: number | null;
+  housePrice: number | null;
+  bookingStatus: string;
+  bookingStartDate: string;
+  bookingEndDate: string;
+}
+
+interface RentedHouse {
+  id: string;
+  houseNumber: string;
+  areaSqm: number | null;
+  price: number | null;
+  vendorCompany: string | null;
+}
+
+interface ApplicationStats {
+  total: number;
+  approved: number;
+  rejected: number;
+  pending: number;
+}
+
+interface FairDetails {
+  fair: Fair;
+  applicationStats: ApplicationStats;
+  participatingVendors: ParticipatingVendor[];
+  rentedHouses: RentedHouse[];
+  totalRevenue: number;
+}
+
 interface FairFormData {
   name: string;
   descriptionAz: string;
@@ -60,6 +98,9 @@ const FairManagement: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
   const [showPastEvents, setShowPastEvents] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [fairDetails, setFairDetails] = useState<FairDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
     fetchFairs();
@@ -89,6 +130,25 @@ const FairManagement: React.FC = () => {
     } catch (err) {
       console.error('Error fetching past fairs:', err);
     }
+  };
+
+  const fetchFairDetails = async (fairId: string) => {
+    try {
+      setLoadingDetails(true);
+      const data = await adminApi.getFairDetails(fairId);
+      setFairDetails(data);
+      setShowDetailsModal(true);
+    } catch (err) {
+      console.error('Error fetching fair details:', err);
+      setError('Failed to load fair details');
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const closeDetailsModal = () => {
+    setShowDetailsModal(false);
+    setFairDetails(null);
   };
 
   const handleArchiveFairs = async () => {
@@ -421,16 +481,11 @@ const FairManagement: React.FC = () => {
                       <td>{formatDateTime(fair.archivedAt)}</td>
                       <td className="actions-cell">
                         <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => openEditModal(fair)}
+                          className="btn btn-primary btn-sm"
+                          onClick={() => fetchFairDetails(fair.id)}
+                          disabled={loadingDetails}
                         >
-                          {t('Edit', { defaultValue: 'Edit' })}
-                        </button>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDeleteFair(fair)}
-                        >
-                          {t('Delete', { defaultValue: 'Delete' })}
+                          {loadingDetails ? 'Loading...' : t('View Details', { defaultValue: 'View Details' })}
                         </button>
                       </td>
                     </tr>
@@ -735,6 +790,158 @@ const FairManagement: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Fair Details Modal (Read-only) */}
+      {showDetailsModal && fairDetails && (
+        <div className="modal-overlay" onClick={closeDetailsModal}>
+          <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{t('Fair Details', { defaultValue: 'Fair Details' })} - {fairDetails.fair.name}</h2>
+              <button className="modal-close" onClick={closeDetailsModal}>&times;</button>
+            </div>
+            <div className="fair-details-content">
+              {/* Fair Info Section */}
+              <div className="details-section">
+                <h3>{t('Fair Information', { defaultValue: 'Fair Information' })}</h3>
+                <div className="details-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">{t('Name', { defaultValue: 'Name' })}:</span>
+                    <span className="detail-value">{fairDetails.fair.name}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">{t('Location', { defaultValue: 'Location' })}:</span>
+                    <span className="detail-value">{fairDetails.fair.locationAddress || '-'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">{t('Start Date', { defaultValue: 'Start Date' })}:</span>
+                    <span className="detail-value">{formatDate(fairDetails.fair.startDate)}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">{t('End Date', { defaultValue: 'End Date' })}:</span>
+                    <span className="detail-value">{formatDate(fairDetails.fair.endDate)}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">{t('Status', { defaultValue: 'Status' })}:</span>
+                    <span className={`badge ${getStatusBadgeClass(fairDetails.fair.status)}`}>
+                      {getStatusLabel(fairDetails.fair.status)}
+                    </span>
+                  </div>
+                  {fairDetails.fair.archivedAt && (
+                    <div className="detail-item">
+                      <span className="detail-label">{t('Archived At', { defaultValue: 'Archived At' })}:</span>
+                      <span className="detail-value">{formatDateTime(fairDetails.fair.archivedAt)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Application Statistics Section */}
+              <div className="details-section">
+                <h3>{t('Application Statistics', { defaultValue: 'Application Statistics' })}</h3>
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <span className="stat-value">{fairDetails.applicationStats.total}</span>
+                    <span className="stat-label">{t('Total Applications', { defaultValue: 'Total Applications' })}</span>
+                  </div>
+                  <div className="stat-card stat-approved">
+                    <span className="stat-value">{fairDetails.applicationStats.approved}</span>
+                    <span className="stat-label">{t('Approved', { defaultValue: 'Approved' })}</span>
+                  </div>
+                  <div className="stat-card stat-rejected">
+                    <span className="stat-value">{fairDetails.applicationStats.rejected}</span>
+                    <span className="stat-label">{t('Rejected', { defaultValue: 'Rejected' })}</span>
+                  </div>
+                  <div className="stat-card stat-pending">
+                    <span className="stat-value">{fairDetails.applicationStats.pending}</span>
+                    <span className="stat-label">{t('Pending', { defaultValue: 'Pending' })}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Revenue Section */}
+              <div className="details-section">
+                <h3>{t('Revenue Summary', { defaultValue: 'Revenue Summary' })}</h3>
+                <div className="revenue-summary">
+                  <span className="revenue-label">{t('Total Revenue', { defaultValue: 'Total Revenue' })}:</span>
+                  <span className="revenue-value">${fairDetails.totalRevenue.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Rented Houses Section */}
+              <div className="details-section">
+                <h3>{t('Rented Houses', { defaultValue: 'Rented Houses' })} ({fairDetails.rentedHouses.length})</h3>
+                {fairDetails.rentedHouses.length === 0 ? (
+                  <p className="no-data">{t('No houses were rented for this fair.', { defaultValue: 'No houses were rented for this fair.' })}</p>
+                ) : (
+                  <table className="details-table">
+                    <thead>
+                      <tr>
+                        <th>{t('House Number', { defaultValue: 'House Number' })}</th>
+                        <th>{t('Area (sqm)', { defaultValue: 'Area (sqm)' })}</th>
+                        <th>{t('Price', { defaultValue: 'Price' })}</th>
+                        <th>{t('Vendor', { defaultValue: 'Vendor' })}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fairDetails.rentedHouses.map((house) => (
+                        <tr key={house.id}>
+                          <td>{house.houseNumber}</td>
+                          <td>{house.areaSqm || '-'}</td>
+                          <td>{house.price ? `$${house.price}` : '-'}</td>
+                          <td>{house.vendorCompany || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {/* Participating Vendors Section */}
+              <div className="details-section">
+                <h3>{t('Participating Vendors', { defaultValue: 'Participating Vendors' })} ({fairDetails.participatingVendors.length})</h3>
+                {fairDetails.participatingVendors.length === 0 ? (
+                  <p className="no-data">{t('No vendors participated in this fair.', { defaultValue: 'No vendors participated in this fair.' })}</p>
+                ) : (
+                  <table className="details-table">
+                    <thead>
+                      <tr>
+                        <th>{t('Company', { defaultValue: 'Company' })}</th>
+                        <th>{t('Category', { defaultValue: 'Category' })}</th>
+                        <th>{t('Contact', { defaultValue: 'Contact' })}</th>
+                        <th>{t('House', { defaultValue: 'House' })}</th>
+                        <th>{t('Booking Status', { defaultValue: 'Booking Status' })}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fairDetails.participatingVendors.map((vendor) => (
+                        <tr key={vendor.vendorId}>
+                          <td>{vendor.companyName || '-'}</td>
+                          <td>{vendor.productCategory || '-'}</td>
+                          <td>
+                            <div>{vendor.contactName || '-'}</div>
+                            <div className="contact-email">{vendor.contactEmail}</div>
+                          </td>
+                          <td>{vendor.houseNumber}</td>
+                          <td>
+                            <span className={`badge ${vendor.bookingStatus === 'approved' ? 'badge-success' : 'badge-secondary'}`}>
+                              {vendor.bookingStatus}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={closeDetailsModal}>
+                {t('Close', { defaultValue: 'Close' })}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -147,6 +147,12 @@ export const adminApi = {
     const response = await api.get('/admin/fairs/past');
     return response.data;
   },
+
+  // Get detailed fair information with vendor participation data
+  getFairDetails: async (fairId: string) => {
+    const response = await api.get(`/admin/fairs/${fairId}/details`);
+    return response.data;
+  },
 };
 
 export default api;

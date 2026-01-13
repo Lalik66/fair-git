@@ -356,6 +356,167 @@
   background-color: #b91c1c;
 }
 
+/* Large Modal */
+.modal-large {
+  max-width: 900px;
+}
+
+/* Fair Details Modal Styles */
+.fair-details-content {
+  padding: 1.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.details-section {
+  margin-bottom: 2rem;
+}
+
+.details-section:last-child {
+  margin-bottom: 0;
+}
+
+.details-section h3 {
+  font-size: 1.1rem;
+  color: var(--color-text);
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #6b7280);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  background-color: var(--color-surface, #f9fafb);
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid var(--color-border, #e5e7eb);
+}
+
+.stat-card.stat-approved {
+  background-color: var(--color-success-light, #dcfce7);
+  border-color: var(--color-success, #16a34a);
+}
+
+.stat-card.stat-rejected {
+  background-color: var(--color-danger-light, #fee2e2);
+  border-color: var(--color-danger, #dc2626);
+}
+
+.stat-card.stat-pending {
+  background-color: var(--color-warning-light, #fef3c7);
+  border-color: var(--color-warning, #d97706);
+}
+
+.stat-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Revenue Summary */
+.revenue-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-primary-light, #dbeafe);
+  padding: 1.25rem 1.5rem;
+  border-radius: 8px;
+}
+
+.revenue-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.revenue-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary, #2563eb);
+}
+
+/* Details Table */
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.details-table thead {
+  background-color: var(--color-surface, #f9fafb);
+}
+
+.details-table th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-border, #e5e7eb);
+}
+
+.details-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  vertical-align: middle;
+}
+
+.details-table tbody tr:hover {
+  background-color: var(--color-surface, #f9fafb);
+}
+
+.contact-email {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.no-data {
+  text-align: center;
+  color: var(--color-text-secondary, #6b7280);
+  font-style: italic;
+  padding: 1rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .fair-management-container {
@@ -393,5 +554,23 @@
   .modal-content {
     max-width: 100%;
     margin: 0.5rem;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .revenue-summary {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
   }
 }

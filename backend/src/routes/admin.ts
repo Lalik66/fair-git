@@ -304,6 +304,98 @@ router.get('/fairs/:fairId', async (req: Request, res: Response): Promise<void> 
   }
 });
 
+// Get detailed fair information with vendor participation data (for archived fairs)
+router.get('/fairs/:fairId/details', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fairId } = req.params;
+
+    // Get fair info
+    const fair = await prisma.fair.findUnique({
+      where: { id: fairId },
+    });
+
+    if (!fair) {
+      res.status(404).json({ error: 'Fair not found' });
+      return;
+    }
+
+    // Get application statistics
+    const applications = await prisma.application.findMany({
+      where: { fairId },
+    });
+
+    const applicationStats = {
+      total: applications.length,
+      approved: applications.filter(a => a.status === 'approved').length,
+      rejected: applications.filter(a => a.status === 'rejected').length,
+      pending: applications.filter(a => a.status === 'pending').length,
+    };
+
+    // Get bookings with vendor and house details
+    const bookings = await prisma.booking.findMany({
+      where: { fairId },
+      include: {
+        vendorProfile: {
+          include: {
+            user: {
+              select: {
+                email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+              },
+            },
+          },
+        },
+        vendorHouse: {
+          select: {
+            id: true,
+            houseNumber: true,
+            areaSqm: true,
+            price: true,
+          },
+        },
+      },
+    });
+
+    // Format participating vendors
+    const participatingVendors = bookings.map(booking => ({
+      vendorId: booking.vendorProfile.id,
+      companyName: booking.vendorProfile.companyName,
+      productCategory: booking.vendorProfile.productCategory,
+      contactEmail: booking.vendorProfile.user.email,
+      contactName: `${booking.vendorProfile.user.firstName || ''} ${booking.vendorProfile.user.lastName || ''}`.trim(),
+      contactPhone: booking.vendorProfile.user.phone,
+      houseNumber: booking.vendorHouse.houseNumber,
+      houseArea: booking.vendorHouse.areaSqm,
+      housePrice: booking.vendorHouse.price,
+      bookingStatus: booking.bookingStatus,
+      bookingStartDate: booking.startDate,
+      bookingEndDate: booking.endDate,
+    }));
+
+    // Get list of rented houses
+    const rentedHouses = bookings.map(booking => ({
+      id: booking.vendorHouse.id,
+      houseNumber: booking.vendorHouse.houseNumber,
+      areaSqm: booking.vendorHouse.areaSqm,
+      price: booking.vendorHouse.price,
+      vendorCompany: booking.vendorProfile.companyName,
+    }));
+
+    res.json({
+      fair,
+      applicationStats,
+      participatingVendors,
+      rentedHouses,
+      totalRevenue: rentedHouses.reduce((sum, h) => sum + (h.price || 0), 0),
+    });
+  } catch (error) {
+    console.error('Get fair details error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Create new fair
 router.post('/fairs', async (req: Request, res: Response): Promise<void> => {
   try {
