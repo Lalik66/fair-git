@@ -42,6 +42,8 @@ const ApplicationReview: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterDateFrom, setFilterDateFrom] = useState<string>('');
+  const [filterDateTo, setFilterDateTo] = useState<string>('');
   const [sortField, setSortField] = useState<SortField>('submittedAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
@@ -81,6 +83,18 @@ const ApplicationReview: React.FC = () => {
       result = result.filter(app => app.productCategory === filterCategory);
     }
 
+    // Filter by date range
+    if (filterDateFrom) {
+      const fromDate = new Date(filterDateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      result = result.filter(app => new Date(app.submittedAt) >= fromDate);
+    }
+    if (filterDateTo) {
+      const toDate = new Date(filterDateTo);
+      toDate.setHours(23, 59, 59, 999);
+      result = result.filter(app => new Date(app.submittedAt) <= toDate);
+    }
+
     // Sort
     result.sort((a, b) => {
       let aValue: any;
@@ -117,7 +131,7 @@ const ApplicationReview: React.FC = () => {
     });
 
     return result;
-  }, [applications, filterStatus, filterCategory, sortField, sortOrder]);
+  }, [applications, filterStatus, filterCategory, filterDateFrom, filterDateTo, sortField, sortOrder]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -240,6 +254,26 @@ const ApplicationReview: React.FC = () => {
             <option value="other">Other</option>
           </select>
         </div>
+        <div className="filter-group">
+          <label htmlFor="date-from">From:</label>
+          <input
+            type="date"
+            id="date-from"
+            value={filterDateFrom}
+            onChange={(e) => setFilterDateFrom(e.target.value)}
+            className="filter-date"
+          />
+        </div>
+        <div className="filter-group">
+          <label htmlFor="date-to">To:</label>
+          <input
+            type="date"
+            id="date-to"
+            value={filterDateTo}
+            onChange={(e) => setFilterDateTo(e.target.value)}
+            className="filter-date"
+          />
+        </div>
         <div className="results-count">
           Showing {filteredAndSortedApplications.length} of {applications.length} applications
         </div>
@@ -249,8 +283,8 @@ const ApplicationReview: React.FC = () => {
       {filteredAndSortedApplications.length === 0 ? (
         <div className="no-applications">
           <p>No applications found.</p>
-          {(filterStatus !== 'all' || filterCategory !== 'all') && (
-            <button className="btn btn-secondary btn-sm" onClick={() => { setFilterStatus('all'); setFilterCategory('all'); }}>
+          {(filterStatus !== 'all' || filterCategory !== 'all' || filterDateFrom || filterDateTo) && (
+            <button className="btn btn-secondary btn-sm" onClick={() => { setFilterStatus('all'); setFilterCategory('all'); setFilterDateFrom(''); setFilterDateTo(''); }}>
               Clear Filters
             </button>
           )}
