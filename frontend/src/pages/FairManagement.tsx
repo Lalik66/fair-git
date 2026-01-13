@@ -15,6 +15,7 @@ interface Fair {
   mapCenterLng: number | null;
   bannerImageUrl: string | null;
   status: string;
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,6 +49,7 @@ const initialFormData: FairFormData = {
 const FairManagement: React.FC = () => {
   const { t } = useTranslation();
   const [fairs, setFairs] = useState<Fair[]>([]);
+  const [pastFairs, setPastFairs] = useState<Fair[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -56,22 +58,63 @@ const FairManagement: React.FC = () => {
   const [formData, setFormData] = useState<FairFormData>(initialFormData);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [archiving, setArchiving] = useState(false);
+  const [showPastEvents, setShowPastEvents] = useState(false);
 
   useEffect(() => {
     fetchFairs();
+    fetchPastFairs();
   }, []);
 
   const fetchFairs = async () => {
     try {
       setLoading(true);
       const data = await adminApi.getFairs();
-      setFairs(data.fairs);
+      // Filter out archived fairs from the main list
+      const activeFairs = data.fairs.filter((fair: Fair) => fair.status !== 'archived' && fair.status !== 'completed');
+      setFairs(activeFairs);
       setError(null);
     } catch (err) {
       setError('Failed to load fairs');
       console.error('Error fetching fairs:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPastFairs = async () => {
+    try {
+      const data = await adminApi.getPastFairs();
+      setPastFairs(data.fairs);
+    } catch (err) {
+      console.error('Error fetching past fairs:', err);
+    }
+  };
+
+  const handleArchiveFairs = async () => {
+    if (!window.confirm('This will archive all fairs that ended more than 30 days ago. Continue?')) {
+      return;
+    }
+
+    try {
+      setArchiving(true);
+      const result = await adminApi.archiveFairs();
+
+      if (result.archivedCount > 0) {
+        setSuccessMessage(`Successfully archived ${result.archivedCount} fair(s)!`);
+      } else {
+        setSuccessMessage('No fairs needed to be archived.');
+      }
+
+      setTimeout(() => setSuccessMessage(null), 3000);
+
+      // Refresh both lists
+      fetchFairs();
+      fetchPastFairs();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to archive fairs');
+    } finally {
+      setArchiving(false);
     }
   };
 
@@ -137,6 +180,7 @@ const FairManagement: React.FC = () => {
       setTimeout(() => setSuccessMessage(null), 3000);
       closeModals();
       fetchFairs();
+      fetchPastFairs();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create fair');
     } finally {
@@ -169,6 +213,7 @@ const FairManagement: React.FC = () => {
       setTimeout(() => setSuccessMessage(null), 3000);
       closeModals();
       fetchFairs();
+      fetchPastFairs();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update fair');
     } finally {
@@ -186,6 +231,7 @@ const FairManagement: React.FC = () => {
       setSuccessMessage('Fair deleted successfully!');
       setTimeout(() => setSuccessMessage(null), 3000);
       fetchFairs();
+      fetchPastFairs();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to delete fair');
     }
@@ -197,6 +243,18 @@ const FairManagement: React.FC = () => {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+    });
+  };
+
+  const formatDateTime = (dateStr: string | null): string => {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleString('az-AZ', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -247,14 +305,23 @@ const FairManagement: React.FC = () => {
 
       <div className="fair-header">
         <h1>{t('admin.fairManagement', { defaultValue: 'Fair Management' })}</h1>
-        <button className="btn btn-primary" onClick={openCreateModal}>
-          {t('Create Fair', { defaultValue: 'Create Fair' })}
-        </button>
+        <div className="header-actions">
+          <button
+            className="btn btn-secondary"
+            onClick={handleArchiveFairs}
+            disabled={archiving}
+          >
+            {archiving ? 'Archiving...' : 'Run Archive'}
+          </button>
+          <button className="btn btn-primary" onClick={openCreateModal}>
+            {t('Create Fair', { defaultValue: 'Create Fair' })}
+          </button>
+        </div>
       </div>
 
       {fairs.length === 0 ? (
         <div className="no-fairs">
-          <p>{t('No fairs found. Create your first fair!', { defaultValue: 'No fairs found. Create your first fair!' })}</p>
+          <p>{t('No active fairs found. Create your first fair!', { defaultValue: 'No active fairs found. Create your first fair!' })}</p>
         </div>
       ) : (
         <div className="fairs-table-container">
@@ -306,6 +373,74 @@ const FairManagement: React.FC = () => {
           </table>
         </div>
       )}
+
+      {/* Past Events Section */}
+      <div className="past-events-section">
+        <div className="past-events-header">
+          <h2 onClick={() => setShowPastEvents(!showPastEvents)} style={{ cursor: 'pointer' }}>
+            {showPastEvents ? '▼' : '►'} Past Events ({pastFairs.length})
+          </h2>
+        </div>
+
+        {showPastEvents && (
+          pastFairs.length === 0 ? (
+            <div className="no-fairs">
+              <p>No past events found.</p>
+            </div>
+          ) : (
+            <div className="fairs-table-container past-fairs-table">
+              <table className="fairs-table">
+                <thead>
+                  <tr>
+                    <th>{t('Name', { defaultValue: 'Name' })}</th>
+                    <th>{t('Start Date', { defaultValue: 'Start Date' })}</th>
+                    <th>{t('End Date', { defaultValue: 'End Date' })}</th>
+                    <th>{t('Location', { defaultValue: 'Location' })}</th>
+                    <th>{t('Status', { defaultValue: 'Status' })}</th>
+                    <th>{t('Archived At', { defaultValue: 'Archived At' })}</th>
+                    <th>{t('Actions', { defaultValue: 'Actions' })}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pastFairs.map((fair) => (
+                    <tr key={fair.id} className="past-fair-row">
+                      <td className="name-cell">
+                        <strong>{fair.name}</strong>
+                        {fair.descriptionAz && (
+                          <span className="description-preview">{fair.descriptionAz.substring(0, 50)}...</span>
+                        )}
+                      </td>
+                      <td>{formatDate(fair.startDate)}</td>
+                      <td>{formatDate(fair.endDate)}</td>
+                      <td>{fair.locationAddress || '-'}</td>
+                      <td>
+                        <span className={`badge ${getStatusBadgeClass(fair.status)}`}>
+                          {getStatusLabel(fair.status)}
+                        </span>
+                      </td>
+                      <td>{formatDateTime(fair.archivedAt)}</td>
+                      <td className="actions-cell">
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => openEditModal(fair)}
+                        >
+                          {t('Edit', { defaultValue: 'Edit' })}
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDeleteFair(fair)}
+                        >
+                          {t('Delete', { defaultValue: 'Delete' })}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+      </div>
 
       {/* Create Fair Modal */}
       {showCreateModal && (

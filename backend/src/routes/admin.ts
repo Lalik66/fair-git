@@ -196,6 +196,79 @@ router.get('/logs', async (req: Request, res: Response): Promise<void> => {
 
 // ==================== FAIR MANAGEMENT ====================
 
+// Get archived/past fairs - MUST be before /fairs/:fairId to avoid route conflict
+router.get('/fairs/past', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const pastFairs = await prisma.fair.findMany({
+      where: {
+        OR: [
+          { status: 'archived' },
+          { status: 'completed' },
+        ],
+      },
+      orderBy: { endDate: 'desc' },
+    });
+
+    res.json({ fairs: pastFairs });
+  } catch (error) {
+    console.error('Get past fairs error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Archive fairs that ended 30+ days ago - MUST be before /fairs/:fairId to avoid route conflict
+router.post('/fairs/archive', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Find fairs that ended 30+ days ago and aren't already archived
+    const fairsToArchive = await prisma.fair.findMany({
+      where: {
+        endDate: { lte: thirtyDaysAgo },
+        status: { not: 'archived' },
+      },
+    });
+
+    if (fairsToArchive.length === 0) {
+      res.json({ message: 'No fairs to archive', archivedCount: 0 });
+      return;
+    }
+
+    // Archive each fair
+    const archivedFairs = [];
+    for (const fair of fairsToArchive) {
+      const archivedFair = await prisma.fair.update({
+        where: { id: fair.id },
+        data: {
+          status: 'archived',
+          archivedAt: new Date(),
+        },
+      });
+      archivedFairs.push(archivedFair);
+
+      // Log each archival
+      await prisma.adminLog.create({
+        data: {
+          adminId: req.user!.id,
+          action: 'archive_fair',
+          details: `Archived fair: ${fair.name} (ended ${fair.endDate.toISOString().split('T')[0]})`,
+          ipAddress: req.ip || req.socket.remoteAddress,
+        },
+      });
+    }
+
+    res.json({
+      message: `Successfully archived ${archivedFairs.length} fair(s)`,
+      archivedCount: archivedFairs.length,
+      archivedFairs,
+    });
+  } catch (error) {
+    console.error('Archive fairs error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get all fairs
 router.get('/fairs', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -445,3 +518,4 @@ router.delete('/fairs/:fairId', async (req: Request, res: Response): Promise<voi
 });
 
 export default router;
+// Force reload

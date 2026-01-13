@@ -15,6 +15,11 @@
   color: var(--color-text);
 }
 
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
 .loading-spinner {
   display: flex;
   justify-content: center;
@@ -142,6 +147,42 @@
 .badge-dark {
   background-color: #374151;
   color: white;
+}
+
+/* Past Events Section */
+.past-events-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--color-border, #e5e7eb);
+}
+
+.past-events-header {
+  margin-bottom: 1rem;
+}
+
+.past-events-header h2 {
+  font-size: 1.25rem;
+  color: var(--color-text);
+  margin: 0;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.past-events-header h2:hover {
+  background-color: var(--color-surface, #f9fafb);
+}
+
+.past-fairs-table {
+  background-color: var(--color-surface, #f9fafb);
+}
+
+.past-fair-row {
+  opacity: 0.85;
+}
+
+.past-fair-row:hover {
+  opacity: 1;
 }
 
 /* Modal Styles */
@@ -297,8 +338,13 @@
   border: 1px solid var(--color-border, #d1d5db);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background-color: #e5e7eb;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-danger {
@@ -324,6 +370,15 @@
 
   .fair-header h1 {
     font-size: 1.5rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    width: 100%;
   }
 
   .form-row {

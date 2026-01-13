@@ -135,6 +135,18 @@ export const adminApi = {
     const response = await api.delete(`/admin/fairs/${fairId}`);
     return response.data;
   },
+
+  // Archive fairs that ended 30+ days ago
+  archiveFairs: async () => {
+    const response = await api.post('/admin/fairs/archive');
+    return response.data;
+  },
+
+  // Get past/archived fairs
+  getPastFairs: async () => {
+    const response = await api.get('/admin/fairs/past');
+    return response.data;
+  },
 };
 
 export default api;
