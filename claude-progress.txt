@@ -159,10 +159,35 @@ REGRESSION TESTS PASSED
 - Feature 8: Admin deactivates another admin - PASSED
 - Feature 10: Admin activity logging - PASSED
 
+Feature 17: Cannot delete fair with bookings
+- ✅ Updated backend DELETE /api/admin/fairs/:fairId endpoint
+  - Added check for approved bookings before deletion
+  - Returns 400 error with message if fair has approved bookings
+  - Error message includes count of approved bookings
+- ✅ Frontend already handles error display correctly
+  - Error message shown in red banner above the fair list
+- ✅ Added test endpoints for verification (development only):
+  - POST /api/admin/fairs/:fairId/test-booking - creates test booking data
+  - DELETE /api/admin/fairs/:fairId/test-booking - cleans up test data
+
+VERIFICATION COMPLETED
+----------------------
+All 6 steps from feature specification verified:
+1. Created fair with approved booking (Winter 2026 with test vendor/booking)
+2. Logged in as admin
+3. Navigated to Fair Management
+4. Attempted to delete the fair
+5. Verified error message: "Cannot delete fair with approved bookings. This fair has 1 approved booking(s). Please cancel or complete the bookings first."
+6. Verified fair still exists in database
+
+Screenshots saved:
+- fair_with_booking_before_delete.png
+- fair_delete_blocked_by_booking.png
+
 CURRENT STATUS
 --------------
-Features passing: 12/240 (5.0%)
-Features marked as passing this session: 1 (Feature 16)
+Features passing: 13/240 (5.4%)
+Features marked as passing this session: 2 (Features 16, 17)
 
 ISSUES ENCOUNTERED
 ------------------
@@ -175,7 +200,7 @@ NEXT STEPS FOR FUTURE SESSIONS
 ------------------------------
 1. Continue with feature_get_next to get next feature to implement
 2. If backend port 3001 is still in use, may need to restart or use different port
-3. Consider implementing Feature 17+ (next priority features)
+3. Consider implementing Feature 18+ (next priority features)
 
 NOTES FOR FUTURE AGENTS
 -----------------------
@@ -184,9 +209,10 @@ NOTES FOR FUTURE AGENTS
 - Features are ordered by priority ID
 - Always run regression tests before implementing new features
 - Test data should be cleaned up after verification
+- Test booking endpoints available for creating/cleaning test data
 
 ================================================================================
 STATUS: IN PROGRESS
 Session ended: January 13, 2026
-Features: 12/240 passing (5.0%)
+Features: 13/240 passing (5.4%)
 ================================================================================

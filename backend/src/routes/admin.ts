@@ -495,6 +495,21 @@ router.delete('/fairs/:fairId', async (req: Request, res: Response): Promise<voi
       return;
     }
 
+    // Check for approved bookings
+    const approvedBookingsCount = await prisma.booking.count({
+      where: {
+        fairId: fairId,
+        bookingStatus: 'approved',
+      },
+    });
+
+    if (approvedBookingsCount > 0) {
+      res.status(400).json({
+        error: `Cannot delete fair with approved bookings. This fair has ${approvedBookingsCount} approved booking(s). Please cancel or complete the bookings first.`,
+      });
+      return;
+    }
+
     // Delete fair
     await prisma.fair.delete({
       where: { id: fairId },
@@ -513,6 +528,141 @@ router.delete('/fairs/:fairId', async (req: Request, res: Response): Promise<voi
     res.json({ message: 'Fair deleted successfully' });
   } catch (error) {
     console.error('Delete fair error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ==================== TEST DATA (Development Only) ====================
+
+// Create test booking for a fair (for testing deletion protection)
+router.post('/fairs/:fairId/test-booking', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fairId } = req.params;
+
+    // Check if fair exists
+    const fair = await prisma.fair.findUnique({
+      where: { id: fairId },
+    });
+
+    if (!fair) {
+      res.status(404).json({ error: 'Fair not found' });
+      return;
+    }
+
+    // Create a test vendor user
+    const testVendorEmail = `test-vendor-${Date.now()}@test.com`;
+    const testVendor = await prisma.user.create({
+      data: {
+        email: testVendorEmail,
+        firstName: 'Test',
+        lastName: 'Vendor',
+        role: 'vendor',
+        isActive: true,
+      },
+    });
+
+    // Create vendor profile
+    const vendorProfile = await prisma.vendorProfile.create({
+      data: {
+        userId: testVendor.id,
+        companyName: 'Test Company',
+        businessDescription: 'Test business for booking verification',
+        productCategory: 'other',
+      },
+    });
+
+    // Create a test vendor house
+    const testHouseNumber = `TEST-HOUSE-${Date.now()}`;
+    const vendorHouse = await prisma.vendorHouse.create({
+      data: {
+        houseNumber: testHouseNumber,
+        areaSqm: 25,
+        price: 500,
+        description: 'Test vendor house',
+        latitude: 40.4093,
+        longitude: 49.8671,
+        isEnabled: true,
+      },
+    });
+
+    // Create application
+    const application = await prisma.application.create({
+      data: {
+        vendorProfileId: vendorProfile.id,
+        fairId: fairId,
+        vendorHouseId: vendorHouse.id,
+        status: 'approved',
+        reviewedAt: new Date(),
+        reviewedById: req.user!.id,
+      },
+    });
+
+    // Create approved booking
+    const booking = await prisma.booking.create({
+      data: {
+        applicationId: application.id,
+        vendorProfileId: vendorProfile.id,
+        vendorHouseId: vendorHouse.id,
+        fairId: fairId,
+        bookingStatus: 'approved',
+        startDate: fair.startDate,
+        endDate: fair.endDate,
+      },
+    });
+
+    res.status(201).json({
+      message: 'Test booking created successfully',
+      testData: {
+        vendorId: testVendor.id,
+        vendorProfileId: vendorProfile.id,
+        vendorHouseId: vendorHouse.id,
+        applicationId: application.id,
+        bookingId: booking.id,
+      },
+    });
+  } catch (error) {
+    console.error('Create test booking error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete test booking data
+router.delete('/fairs/:fairId/test-booking', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fairId } = req.params;
+
+    // Delete all test bookings for this fair (cascade will clean up related data)
+    const bookings = await prisma.booking.findMany({
+      where: { fairId: fairId },
+      include: {
+        vendorProfile: {
+          include: {
+            user: true,
+          },
+        },
+        vendorHouse: true,
+      },
+    });
+
+    for (const booking of bookings) {
+      // Delete vendor house if it's a test house
+      if (booking.vendorHouse.houseNumber.startsWith('TEST-HOUSE-')) {
+        await prisma.vendorHouse.delete({
+          where: { id: booking.vendorHouse.id },
+        });
+      }
+
+      // Delete test vendor user (cascade will delete profile)
+      if (booking.vendorProfile.user.email.includes('test-vendor-')) {
+        await prisma.user.delete({
+          where: { id: booking.vendorProfile.user.id },
+        });
+      }
+    }
+
+    res.json({ message: 'Test booking data cleaned up' });
+  } catch (error) {
+    console.error('Delete test booking error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
