@@ -174,6 +174,16 @@ export const adminApi = {
     const response = await api.get(`/admin/applications/${applicationId}`);
     return response.data.application;
   },
+
+  approveApplication: async (applicationId: string, adminNotes?: string) => {
+    const response = await api.put(`/admin/applications/${applicationId}/approve`, { adminNotes });
+    return response.data;
+  },
+
+  rejectApplication: async (applicationId: string, rejectionReason: string) => {
+    const response = await api.put(`/admin/applications/${applicationId}/reject`, { rejectionReason });
+    return response.data;
+  },
 };
 
 export default api;

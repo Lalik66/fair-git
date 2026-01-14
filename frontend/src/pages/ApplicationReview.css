@@ -33,6 +33,15 @@
   text-align: center;
 }
 
+.success-message {
+  background-color: var(--color-success-light, #dcfce7);
+  color: var(--color-success, #16a34a);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
 /* Statistics Row */
 .stats-row {
   display: grid;
@@ -409,6 +418,29 @@
   background-color: #e5e7eb;
 }
 
+.btn-success {
+  background-color: var(--color-success, #16a34a);
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: #15803d;
+}
+
+.btn-danger {
+  background-color: var(--color-danger, #dc2626);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .stats-row {
@@ -447,6 +479,10 @@
   max-width: 800px;
 }
 
+.modal-content.modal-small {
+  max-width: 480px;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -483,6 +519,15 @@
   padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  background-color: var(--color-surface, #f9fafb);
 }
 
 /* Application Details Content */
@@ -600,6 +645,56 @@
 
 .rejection-reason {
   color: var(--color-danger, #dc2626);
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  box-sizing: border-box;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-textarea::placeholder {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+.approve-confirmation-text,
+.reject-confirmation-text {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+/* Actions cell spacing */
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {

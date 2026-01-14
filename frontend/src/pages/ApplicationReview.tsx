@@ -85,6 +85,15 @@ const ApplicationReview: React.FC = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approveApplicationId, setApproveApplicationId] = useState<string | null>(null);
+  const [approveNotes, setApproveNotes] = useState('');
+  const [approving, setApproving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectApplicationId, setRejectApplicationId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejecting, setRejecting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -125,6 +134,74 @@ const ApplicationReview: React.FC = () => {
   const closeDetailsModal = () => {
     setShowDetailsModal(false);
     setApplicationDetails(null);
+  };
+
+  const openApproveModal = (applicationId: string) => {
+    setApproveApplicationId(applicationId);
+    setApproveNotes('');
+    setShowApproveModal(true);
+  };
+
+  const closeApproveModal = () => {
+    setShowApproveModal(false);
+    setApproveApplicationId(null);
+    setApproveNotes('');
+  };
+
+  const handleApprove = async () => {
+    if (!approveApplicationId) return;
+
+    try {
+      setApproving(true);
+      setError(null);
+      await adminApi.approveApplication(approveApplicationId, approveNotes || undefined);
+      setSuccessMessage('Application approved successfully! Booking has been created.');
+      closeApproveModal();
+      // Refresh data
+      await fetchData();
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: any) {
+      console.error('Error approving application:', err);
+      setError(err.response?.data?.error || 'Failed to approve application');
+      closeApproveModal();
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  const openRejectModal = (applicationId: string) => {
+    setRejectApplicationId(applicationId);
+    setRejectReason('');
+    setShowRejectModal(true);
+  };
+
+  const closeRejectModal = () => {
+    setShowRejectModal(false);
+    setRejectApplicationId(null);
+    setRejectReason('');
+  };
+
+  const handleReject = async () => {
+    if (!rejectApplicationId || !rejectReason.trim()) return;
+
+    try {
+      setRejecting(true);
+      setError(null);
+      await adminApi.rejectApplication(rejectApplicationId, rejectReason);
+      setSuccessMessage('Application rejected successfully.');
+      closeRejectModal();
+      // Refresh data
+      await fetchData();
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: any) {
+      console.error('Error rejecting application:', err);
+      setError(err.response?.data?.error || 'Failed to reject application');
+      closeRejectModal();
+    } finally {
+      setRejecting(false);
+    }
   };
 
   // Filter and sort applications
@@ -292,6 +369,7 @@ const ApplicationReview: React.FC = () => {
       </div>
 
       {error && <div className="error-message">{error}</div>}
+      {successMessage && <div className="success-message">{successMessage}</div>}
 
       {/* Statistics Cards */}
       <div className="stats-row">
@@ -503,6 +581,26 @@ const ApplicationReview: React.FC = () => {
                     >
                       {loadingDetails ? '...' : 'View'}
                     </button>
+                    {app.status === 'pending' && (
+                      <>
+                        <button
+                          className="btn btn-success btn-sm"
+                          title="Approve Application"
+                          onClick={() => openApproveModal(app.id)}
+                          disabled={approving || rejecting}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          title="Reject Application"
+                          onClick={() => openRejectModal(app.id)}
+                          disabled={approving || rejecting}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -665,6 +763,97 @@ const ApplicationReview: React.FC = () => {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Confirmation Modal */}
+      {showApproveModal && (
+        <div className="modal-overlay" onClick={closeApproveModal}>
+          <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Approve Application</h2>
+              <button className="modal-close" onClick={closeApproveModal}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <p className="approve-confirmation-text">
+                Are you sure you want to approve this application?
+                This will automatically create a booking for the vendor.
+              </p>
+              <div className="form-group">
+                <label htmlFor="admin-notes">Admin Notes (Optional)</label>
+                <textarea
+                  id="admin-notes"
+                  value={approveNotes}
+                  onChange={(e) => setApproveNotes(e.target.value)}
+                  placeholder="Add any notes for this approval..."
+                  rows={3}
+                  className="form-textarea"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={closeApproveModal}
+                disabled={approving}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-success"
+                onClick={handleApprove}
+                disabled={approving}
+              >
+                {approving ? 'Approving...' : 'Confirm Approval'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Confirmation Modal */}
+      {showRejectModal && (
+        <div className="modal-overlay" onClick={closeRejectModal}>
+          <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Reject Application</h2>
+              <button className="modal-close" onClick={closeRejectModal}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <p className="reject-confirmation-text">
+                Are you sure you want to reject this application?
+                The vendor will be notified with the reason provided.
+              </p>
+              <div className="form-group">
+                <label htmlFor="rejection-reason">Rejection Reason (Required)</label>
+                <textarea
+                  id="rejection-reason"
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="Please provide a reason for rejection..."
+                  rows={3}
+                  className="form-textarea"
+                  required
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={closeRejectModal}
+                disabled={rejecting}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleReject}
+                disabled={rejecting || !rejectReason.trim()}
+              >
+                {rejecting ? 'Rejecting...' : 'Confirm Rejection'}
+              </button>
             </div>
           </div>
         </div>

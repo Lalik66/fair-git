@@ -325,6 +325,207 @@ router.get('/applications/stats', async (req: Request, res: Response): Promise<v
   }
 });
 
+// Approve application
+router.put('/applications/:applicationId/approve', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { applicationId } = req.params;
+    const { adminNotes } = req.body;
+
+    // Get the application with related data
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        vendorProfile: {
+          include: {
+            user: true,
+          },
+        },
+        fair: true,
+        vendorHouse: true,
+      },
+    });
+
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    if (application.status !== 'pending') {
+      res.status(400).json({ error: `Application is already ${application.status}` });
+      return;
+    }
+
+    // Check if house is already booked for this fair
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        vendorHouseId: application.vendorHouseId,
+        fairId: application.fairId,
+        bookingStatus: 'approved',
+      },
+    });
+
+    if (existingBooking) {
+      res.status(400).json({
+        error: 'This house is already booked for this fair. Please reject this application or choose a different house.',
+      });
+      return;
+    }
+
+    // Update application status
+    const updatedApplication = await prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        status: 'approved',
+        reviewedAt: new Date(),
+        reviewedById: req.user!.id,
+        adminNotes: adminNotes || null,
+      },
+    });
+
+    // Create booking automatically
+    const booking = await prisma.booking.create({
+      data: {
+        applicationId: application.id,
+        vendorProfileId: application.vendorProfileId,
+        vendorHouseId: application.vendorHouseId,
+        fairId: application.fairId,
+        bookingStatus: 'approved',
+        startDate: application.fair.startDate,
+        endDate: application.fair.endDate,
+      },
+    });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'approve_application',
+        details: `Approved application from ${application.vendorProfile.companyName || 'Unknown Vendor'} for fair ${application.fair.name}`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    // Log email (in production this would send an actual email)
+    console.log('='.repeat(60));
+    console.log('EMAIL NOTIFICATION (Development Mode)');
+    console.log('='.repeat(60));
+    console.log(`To: ${application.vendorProfile.user.email}`);
+    console.log(`Subject: Your Application Has Been Approved!`);
+    console.log('');
+    console.log(`Dear ${application.vendorProfile.user.firstName || 'Vendor'},`);
+    console.log('');
+    console.log(`Congratulations! Your application for ${application.fair.name} has been approved.`);
+    console.log('');
+    console.log(`Details:`);
+    console.log(`  - Fair: ${application.fair.name}`);
+    console.log(`  - House Number: ${application.vendorHouse.houseNumber}`);
+    console.log(`  - Fair Dates: ${application.fair.startDate.toISOString().split('T')[0]} to ${application.fair.endDate.toISOString().split('T')[0]}`);
+    console.log('');
+    console.log('Thank you for participating in our fair!');
+    console.log('='.repeat(60));
+
+    res.json({
+      message: 'Application approved successfully',
+      application: updatedApplication,
+      booking: {
+        id: booking.id,
+        status: booking.bookingStatus,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+      },
+    });
+  } catch (error) {
+    console.error('Approve application error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Reject application
+router.put('/applications/:applicationId/reject', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { applicationId } = req.params;
+    const { rejectionReason } = req.body;
+
+    if (!rejectionReason || rejectionReason.trim().length === 0) {
+      res.status(400).json({ error: 'Rejection reason is required' });
+      return;
+    }
+
+    // Get the application with related data
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        vendorProfile: {
+          include: {
+            user: true,
+          },
+        },
+        fair: true,
+        vendorHouse: true,
+      },
+    });
+
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    if (application.status !== 'pending') {
+      res.status(400).json({ error: `Application is already ${application.status}` });
+      return;
+    }
+
+    // Update application status to rejected
+    const updatedApplication = await prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        status: 'rejected',
+        reviewedAt: new Date(),
+        reviewedById: req.user!.id,
+        rejectionReason: rejectionReason.trim(),
+      },
+    });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'reject_application',
+        details: `Rejected application from ${application.vendorProfile.companyName || 'Unknown Vendor'} for fair ${application.fair.name}`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    // Log email (in production this would send an actual email)
+    console.log('='.repeat(60));
+    console.log('EMAIL NOTIFICATION (Development Mode)');
+    console.log('='.repeat(60));
+    console.log(`To: ${application.vendorProfile.user.email}`);
+    console.log(`Subject: Your Application Status Update`);
+    console.log('');
+    console.log(`Dear ${application.vendorProfile.user.firstName || 'Vendor'},`);
+    console.log('');
+    console.log(`We regret to inform you that your application for ${application.fair.name} has been rejected.`);
+    console.log('');
+    console.log(`Reason: ${rejectionReason}`);
+    console.log('');
+    console.log(`Details:`);
+    console.log(`  - Fair: ${application.fair.name}`);
+    console.log(`  - House Number: ${application.vendorHouse.houseNumber}`);
+    console.log('');
+    console.log('If you have any questions, please contact our support team.');
+    console.log('='.repeat(60));
+
+    res.json({
+      message: 'Application rejected successfully',
+      application: updatedApplication,
+    });
+  } catch (error) {
+    console.error('Reject application error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get single application details (for modal)
 router.get('/applications/:applicationId', async (req: Request, res: Response): Promise<void> => {
   try {
