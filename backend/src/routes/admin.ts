@@ -894,24 +894,46 @@ router.delete('/fairs/:fairId/test-booking', async (req: Request, res: Response)
 // Create test applications for testing Application Review feature
 router.post('/test-applications', async (req: Request, res: Response): Promise<void> => {
   try {
-    // First, ensure we have a fair
-    let fair = await prisma.fair.findFirst({
+    // Get all active/upcoming fairs
+    const fairs = await prisma.fair.findMany({
       where: { status: { in: ['active', 'upcoming'] } },
+      take: 2,
     });
 
-    if (!fair) {
-      fair = await prisma.fair.create({
+    // If no fairs exist, create two
+    if (fairs.length === 0) {
+      const winterFair = await prisma.fair.create({
         data: {
-          name: 'Winter Fair 2026',
-          startDate: new Date('2026-02-01'),
-          endDate: new Date('2026-02-28'),
+          name: 'Winter 2026',
+          startDate: new Date('2026-12-10'),
+          endDate: new Date('2027-01-01'),
           status: 'upcoming',
         },
       });
+      const springFair = await prisma.fair.create({
+        data: {
+          name: 'Spring Festival 2026',
+          startDate: new Date('2026-03-01'),
+          endDate: new Date('2026-04-15'),
+          status: 'active',
+        },
+      });
+      fairs.push(winterFair, springFair);
+    } else if (fairs.length === 1) {
+      // Create a second fair if only one exists
+      const springFair = await prisma.fair.create({
+        data: {
+          name: 'Spring Festival 2026',
+          startDate: new Date('2026-03-01'),
+          endDate: new Date('2026-04-15'),
+          status: 'active',
+        },
+      });
+      fairs.push(springFair);
     }
 
     // Create test vendor houses if they don't exist
-    const houseNumbers = ['H-101', 'H-102', 'H-103'];
+    const houseNumbers = ['H-101', 'H-102', 'H-103', 'H-104'];
     for (const houseNumber of houseNumbers) {
       const existing = await prisma.vendorHouse.findUnique({
         where: { houseNumber },
@@ -935,17 +957,20 @@ router.post('/test-applications', async (req: Request, res: Response): Promise<v
       where: { houseNumber: { in: houseNumbers } },
     });
 
-    // Create test vendors and applications
+    // Create test vendors and applications - spread across fairs with diverse combinations
     const testVendors = [
-      { company: 'Artisan Crafts Co', category: 'handicrafts', status: 'pending' },
-      { company: 'Fresh Bites Kitchen', category: 'food_beverages', status: 'approved' },
-      { company: 'Fashion Forward', category: 'clothing', status: 'rejected' },
+      { company: 'Artisan Crafts Co', category: 'handicrafts', status: 'pending', fairIndex: 0 },
+      { company: 'Fresh Bites Kitchen', category: 'food_beverages', status: 'approved', fairIndex: 0 },
+      { company: 'Fashion Forward', category: 'clothing', status: 'rejected', fairIndex: 0 },
+      { company: 'Spring Delights', category: 'food_beverages', status: 'pending', fairIndex: 1 },
+      { company: 'Winter Food Vendor', category: 'food_beverages', status: 'pending', fairIndex: 0 }, // Matches: Pending + Food & Beverages + Winter
     ];
 
     const createdApplications = [];
     for (let i = 0; i < testVendors.length; i++) {
       const vendor = testVendors[i];
       const house = houses[i % houses.length];
+      const fair = fairs[vendor.fairIndex % fairs.length];
 
       // Create test vendor user
       const email = `test-vendor-${Date.now()}-${i}@test.com`;
@@ -987,6 +1012,7 @@ router.post('/test-applications', async (req: Request, res: Response): Promise<v
         id: application.id,
         company: vendor.company,
         status: vendor.status,
+        fair: fair.name,
       });
     }
 
@@ -1020,7 +1046,7 @@ router.delete('/test-applications', async (req: Request, res: Response): Promise
     // Clean up test houses
     await prisma.vendorHouse.deleteMany({
       where: {
-        houseNumber: { in: ['H-101', 'H-102', 'H-103'] },
+        houseNumber: { in: ['H-101', 'H-102', 'H-103', 'H-104'] },
       },
     });
 

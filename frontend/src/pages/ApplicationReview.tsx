@@ -44,6 +44,8 @@ const ApplicationReview: React.FC = () => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterDateFrom, setFilterDateFrom] = useState<string>('');
   const [filterDateTo, setFilterDateTo] = useState<string>('');
+  const [filterHouse, setFilterHouse] = useState<string>('all');
+  const [filterFair, setFilterFair] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('submittedAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
@@ -95,6 +97,16 @@ const ApplicationReview: React.FC = () => {
       result = result.filter(app => new Date(app.submittedAt) <= toDate);
     }
 
+    // Filter by house
+    if (filterHouse !== 'all') {
+      result = result.filter(app => app.houseNumber === filterHouse);
+    }
+
+    // Filter by fair
+    if (filterFair !== 'all') {
+      result = result.filter(app => app.fairName === filterFair);
+    }
+
     // Sort
     result.sort((a, b) => {
       let aValue: any;
@@ -131,7 +143,19 @@ const ApplicationReview: React.FC = () => {
     });
 
     return result;
-  }, [applications, filterStatus, filterCategory, filterDateFrom, filterDateTo, sortField, sortOrder]);
+  }, [applications, filterStatus, filterCategory, filterDateFrom, filterDateTo, filterHouse, filterFair, sortField, sortOrder]);
+
+  // Get unique house numbers for filter dropdown
+  const uniqueHouses = useMemo(() => {
+    const houses = new Set(applications.map(app => app.houseNumber));
+    return Array.from(houses).sort();
+  }, [applications]);
+
+  // Get unique fair names for filter dropdown
+  const uniqueFairs = useMemo(() => {
+    const fairs = new Set(applications.map(app => app.fairName));
+    return Array.from(fairs).sort();
+  }, [applications]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -274,6 +298,38 @@ const ApplicationReview: React.FC = () => {
             className="filter-date"
           />
         </div>
+        <div className="filter-group">
+          <label htmlFor="house-filter">Filter by House:</label>
+          <select
+            id="house-filter"
+            value={filterHouse}
+            onChange={(e) => setFilterHouse(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Houses</option>
+            {uniqueHouses.map((house) => (
+              <option key={house} value={house}>
+                {house}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label htmlFor="fair-filter">Filter by Fair:</label>
+          <select
+            id="fair-filter"
+            value={filterFair}
+            onChange={(e) => setFilterFair(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Fairs</option>
+            {uniqueFairs.map((fair) => (
+              <option key={fair} value={fair}>
+                {fair}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="results-count">
           Showing {filteredAndSortedApplications.length} of {applications.length} applications
         </div>
@@ -283,8 +339,8 @@ const ApplicationReview: React.FC = () => {
       {filteredAndSortedApplications.length === 0 ? (
         <div className="no-applications">
           <p>No applications found.</p>
-          {(filterStatus !== 'all' || filterCategory !== 'all' || filterDateFrom || filterDateTo) && (
-            <button className="btn btn-secondary btn-sm" onClick={() => { setFilterStatus('all'); setFilterCategory('all'); setFilterDateFrom(''); setFilterDateTo(''); }}>
+          {(filterStatus !== 'all' || filterCategory !== 'all' || filterDateFrom || filterDateTo || filterHouse !== 'all' || filterFair !== 'all') && (
+            <button className="btn btn-secondary btn-sm" onClick={() => { setFilterStatus('all'); setFilterCategory('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterHouse('all'); setFilterFair('all'); }}>
               Clear Filters
             </button>
           )}
