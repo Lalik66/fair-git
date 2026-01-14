@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { adminApi } from '../services/api';
 import './ApplicationReview.css';
 
@@ -479,6 +481,104 @@ const ApplicationReview: React.FC = () => {
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
+  const exportToPDF = () => {
+    if (filteredAndSortedApplications.length === 0) {
+      setError('No applications to export');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    // Create PDF document in landscape mode for better table fit
+    const doc = new jsPDF('landscape');
+
+    // Add title
+    const dateStr = new Date().toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+    doc.setFontSize(18);
+    doc.text('Application Report', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Generated: ${dateStr}`, 14, 22);
+
+    // Add filter info
+    let filterInfo = '';
+    if (filterStatus !== 'all') filterInfo += `Status: ${filterStatus}  `;
+    if (filterFair !== 'all') filterInfo += `Fair: ${filterFair}  `;
+    if (filterCategory !== 'all') filterInfo += `Category: ${getCategoryLabel(filterCategory)}  `;
+    if (filterInfo) {
+      doc.text(`Filters: ${filterInfo}`, 14, 28);
+    }
+    doc.text(`Total Applications: ${filteredAndSortedApplications.length}`, 14, filterInfo ? 34 : 28);
+
+    // Define table columns
+    const tableColumns = [
+      { header: 'Company', dataKey: 'company' },
+      { header: 'Contact', dataKey: 'contact' },
+      { header: 'Category', dataKey: 'category' },
+      { header: 'Fair', dataKey: 'fair' },
+      { header: 'House', dataKey: 'house' },
+      { header: 'Status', dataKey: 'status' },
+      { header: 'Submitted', dataKey: 'submitted' },
+      { header: 'Reviewed By', dataKey: 'reviewedBy' },
+    ];
+
+    // Prepare table data
+    const tableData = filteredAndSortedApplications.map(app => ({
+      company: app.companyName || 'N/A',
+      contact: `${app.contactName}\n${app.contactEmail}`,
+      category: getCategoryLabel(app.productCategory),
+      fair: app.fairName,
+      house: app.houseNumber,
+      status: app.status.charAt(0).toUpperCase() + app.status.slice(1),
+      submitted: formatDate(app.submittedAt).split(',')[0],
+      reviewedBy: app.reviewedBy || '-',
+    }));
+
+    // Generate table
+    autoTable(doc, {
+      columns: tableColumns,
+      body: tableData,
+      startY: filterInfo ? 40 : 34,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [37, 99, 235],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251],
+      },
+      columnStyles: {
+        company: { cellWidth: 35 },
+        contact: { cellWidth: 45 },
+        category: { cellWidth: 30 },
+        fair: { cellWidth: 35 },
+        house: { cellWidth: 20 },
+        status: { cellWidth: 20 },
+        submitted: { cellWidth: 25 },
+        reviewedBy: { cellWidth: 30 },
+      },
+    });
+
+    // Generate filename
+    const fileDateStr = new Date().toISOString().split('T')[0];
+    let filename = `applications_${fileDateStr}`;
+    if (filterStatus !== 'all') filename += `_${filterStatus}`;
+    if (filterFair !== 'all') filename += `_${filterFair.replace(/\s+/g, '_')}`;
+    filename += '.pdf';
+
+    // Save PDF
+    doc.save(filename);
+
+    setSuccessMessage(`Exported ${filteredAndSortedApplications.length} applications to PDF`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
   if (loading) {
     return (
       <div className="application-review-container">
@@ -494,6 +594,9 @@ const ApplicationReview: React.FC = () => {
         <div className="header-actions">
           <button className="btn btn-primary" onClick={exportToCSV}>
             Export CSV
+          </button>
+          <button className="btn btn-primary" onClick={exportToPDF}>
+            Export PDF
           </button>
           <button className="btn btn-secondary" onClick={fetchData}>
             Refresh
