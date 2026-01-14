@@ -325,6 +325,108 @@ router.get('/applications/stats', async (req: Request, res: Response): Promise<v
   }
 });
 
+// Get single application details (for modal)
+router.get('/applications/:applicationId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        vendorProfile: {
+          include: {
+            user: {
+              select: {
+                email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+              },
+            },
+            productImages: {
+              orderBy: { orderIndex: 'asc' },
+            },
+          },
+        },
+        fair: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            startDate: true,
+            endDate: true,
+          },
+        },
+        vendorHouse: {
+          select: {
+            id: true,
+            houseNumber: true,
+            areaSqm: true,
+            price: true,
+            description: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    // Format application for frontend
+    const formattedApplication = {
+      id: application.id,
+      submittedAt: application.submittedAt,
+      status: application.status,
+      adminNotes: application.adminNotes,
+      rejectionReason: application.rejectionReason,
+      reviewedAt: application.reviewedAt,
+      // Vendor info
+      companyName: application.vendorProfile.companyName,
+      productCategory: application.vendorProfile.productCategory,
+      businessDescription: application.vendorProfile.businessDescription,
+      logoUrl: application.vendorProfile.logoUrl,
+      productImages: application.vendorProfile.productImages.map(img => ({
+        id: img.id,
+        imageUrl: img.imageUrl,
+        orderIndex: img.orderIndex,
+      })),
+      contactName: `${application.vendorProfile.user.firstName || ''} ${application.vendorProfile.user.lastName || ''}`.trim(),
+      contactEmail: application.vendorProfile.user.email,
+      contactPhone: application.vendorProfile.user.phone,
+      // Fair info
+      fairId: application.fair.id,
+      fairName: application.fair.name,
+      fairStatus: application.fair.status,
+      fairStartDate: application.fair.startDate,
+      fairEndDate: application.fair.endDate,
+      // House info
+      vendorHouseId: application.vendorHouse.id,
+      houseNumber: application.vendorHouse.houseNumber,
+      houseAreaSqm: application.vendorHouse.areaSqm,
+      housePrice: application.vendorHouse.price,
+      houseDescription: application.vendorHouse.description,
+      // Reviewer info
+      reviewedBy: application.reviewedBy ?
+        `${application.reviewedBy.firstName || ''} ${application.reviewedBy.lastName || ''}`.trim() || application.reviewedBy.email
+        : null,
+    };
+
+    res.json({ application: formattedApplication });
+  } catch (error) {
+    console.error('Get application details error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ==================== FAIR MANAGEMENT ====================
 
 // Get archived/past fairs - MUST be before /fairs/:fairId to avoid route conflict

@@ -24,6 +24,39 @@ interface Application {
   reviewedBy: string | null;
 }
 
+interface ProductImage {
+  id: string;
+  imageUrl: string;
+  orderIndex: number;
+}
+
+interface ApplicationDetails {
+  id: string;
+  submittedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  adminNotes: string | null;
+  rejectionReason: string | null;
+  reviewedAt: string | null;
+  companyName: string | null;
+  productCategory: string | null;
+  businessDescription: string | null;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  fairId: string;
+  fairName: string;
+  fairStartDate: string;
+  fairEndDate: string;
+  vendorHouseId: string;
+  houseNumber: string;
+  houseAreaSqm: number | null;
+  housePrice: number | null;
+  houseDescription: string | null;
+  reviewedBy: string | null;
+  logoUrl: string | null;
+  productImages: ProductImage[];
+}
+
 interface Stats {
   total: number;
   pending: number;
@@ -49,6 +82,9 @@ const ApplicationReview: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<SortField>('submittedAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -70,6 +106,25 @@ const ApplicationReview: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchApplicationDetails = async (applicationId: string) => {
+    try {
+      setLoadingDetails(true);
+      const details = await adminApi.getApplicationDetails(applicationId);
+      setApplicationDetails(details);
+      setShowDetailsModal(true);
+    } catch (err: any) {
+      console.error('Error fetching application details:', err);
+      setError(err.response?.data?.error || 'Failed to load application details');
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const closeDetailsModal = () => {
+    setShowDetailsModal(false);
+    setApplicationDetails(null);
   };
 
   // Filter and sort applications
@@ -440,14 +495,178 @@ const ApplicationReview: React.FC = () => {
                     )}
                   </td>
                   <td className="actions-cell">
-                    <button className="btn btn-secondary btn-sm" title="View Details">
-                      View
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      title="View Details"
+                      onClick={() => fetchApplicationDetails(app.id)}
+                      disabled={loadingDetails}
+                    >
+                      {loadingDetails ? '...' : 'View'}
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Application Details Modal */}
+      {showDetailsModal && applicationDetails && (
+        <div className="modal-overlay" onClick={closeDetailsModal}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Application Details</h2>
+              <button className="modal-close" onClick={closeDetailsModal}>&times;</button>
+            </div>
+            <div className="modal-body application-details-content">
+              {/* Status Badge */}
+              <div className="detail-section">
+                <span className={getStatusBadgeClass(applicationDetails.status)}>
+                  {applicationDetails.status.charAt(0).toUpperCase() + applicationDetails.status.slice(1)}
+                </span>
+                <span className="submission-date">
+                  Submitted: {formatDate(applicationDetails.submittedAt)}
+                </span>
+              </div>
+
+              {/* Vendor Information */}
+              <div className="detail-section">
+                <h3>Vendor Information</h3>
+                <div className="detail-grid">
+                  {applicationDetails.logoUrl && (
+                    <div className="logo-section">
+                      <label>Company Logo</label>
+                      <img
+                        src={applicationDetails.logoUrl}
+                        alt="Company Logo"
+                        className="vendor-logo"
+                      />
+                    </div>
+                  )}
+                  <div className="detail-item">
+                    <label>Company Name</label>
+                    <span>{applicationDetails.companyName || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Category</label>
+                    <span>{getCategoryLabel(applicationDetails.productCategory)}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Contact Name</label>
+                    <span>{applicationDetails.contactName || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Email</label>
+                    <span>{applicationDetails.contactEmail}</span>
+                  </div>
+                  {applicationDetails.contactPhone && (
+                    <div className="detail-item">
+                      <label>Phone</label>
+                      <span>{applicationDetails.contactPhone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Business Description */}
+              <div className="detail-section">
+                <h3>Business Description</h3>
+                <p className="business-description">
+                  {applicationDetails.businessDescription || 'No description provided.'}
+                </p>
+              </div>
+
+              {/* Product Images */}
+              {applicationDetails.productImages && applicationDetails.productImages.length > 0 && (
+                <div className="detail-section">
+                  <h3>Product Images</h3>
+                  <div className="product-images-grid">
+                    {applicationDetails.productImages.map((img) => (
+                      <img
+                        key={img.id}
+                        src={img.imageUrl}
+                        alt={`Product ${img.orderIndex + 1}`}
+                        className="product-image"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Fair & House Information */}
+              <div className="detail-section">
+                <h3>Fair & House Details</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Fair</label>
+                    <span>{applicationDetails.fairName}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Fair Dates</label>
+                    <span>
+                      {new Date(applicationDetails.fairStartDate).toLocaleDateString()} - {new Date(applicationDetails.fairEndDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <label>House Number</label>
+                    <span className="house-number">{applicationDetails.houseNumber}</span>
+                  </div>
+                  {applicationDetails.houseAreaSqm && (
+                    <div className="detail-item">
+                      <label>House Area</label>
+                      <span>{applicationDetails.houseAreaSqm} m²</span>
+                    </div>
+                  )}
+                  {applicationDetails.housePrice && (
+                    <div className="detail-item">
+                      <label>House Price</label>
+                      <span>{applicationDetails.housePrice.toLocaleString()} AZN</span>
+                    </div>
+                  )}
+                  {applicationDetails.houseDescription && (
+                    <div className="detail-item full-width">
+                      <label>House Description</label>
+                      <span>{applicationDetails.houseDescription}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Review Information */}
+              {(applicationDetails.reviewedAt || applicationDetails.adminNotes || applicationDetails.rejectionReason) && (
+                <div className="detail-section">
+                  <h3>Review Information</h3>
+                  <div className="detail-grid">
+                    {applicationDetails.reviewedAt && (
+                      <div className="detail-item">
+                        <label>Reviewed At</label>
+                        <span>{formatDate(applicationDetails.reviewedAt)}</span>
+                      </div>
+                    )}
+                    {applicationDetails.reviewedBy && (
+                      <div className="detail-item">
+                        <label>Reviewed By</label>
+                        <span>{applicationDetails.reviewedBy}</span>
+                      </div>
+                    )}
+                    {applicationDetails.adminNotes && (
+                      <div className="detail-item full-width">
+                        <label>Admin Notes</label>
+                        <span>{applicationDetails.adminNotes}</span>
+                      </div>
+                    )}
+                    {applicationDetails.rejectionReason && (
+                      <div className="detail-item full-width">
+                        <label>Rejection Reason</label>
+                        <span className="rejection-reason">{applicationDetails.rejectionReason}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

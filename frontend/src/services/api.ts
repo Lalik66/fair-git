@@ -169,6 +169,11 @@ export const adminApi = {
     const response = await api.get('/admin/applications/stats');
     return response.data;
   },
+
+  getApplicationDetails: async (applicationId: string) => {
+    const response = await api.get(`/admin/applications/${applicationId}`);
+    return response.data.application;
+  },
 };
 
 export default api;
