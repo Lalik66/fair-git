@@ -392,6 +392,93 @@ const ApplicationReview: React.FC = () => {
     return labels[category] || category;
   };
 
+  const exportToCSV = () => {
+    if (filteredAndSortedApplications.length === 0) {
+      setError('No applications to export');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    // Define CSV headers
+    const headers = [
+      'ID',
+      'Submitted At',
+      'Status',
+      'Company Name',
+      'Product Category',
+      'Business Description',
+      'Contact Name',
+      'Contact Email',
+      'Contact Phone',
+      'Fair Name',
+      'Fair Status',
+      'House Number',
+      'Reviewed By',
+      'Reviewed At',
+      'Rejection Reason',
+      'Admin Notes',
+    ];
+
+    // Helper function to escape CSV values
+    const escapeCSVValue = (value: string | null | undefined): string => {
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      // If value contains comma, newline, or double quote, wrap in quotes and escape quotes
+      if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('"')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
+    // Convert applications to CSV rows
+    const rows = filteredAndSortedApplications.map(app => [
+      escapeCSVValue(app.id),
+      escapeCSVValue(formatDate(app.submittedAt)),
+      escapeCSVValue(app.status),
+      escapeCSVValue(app.companyName),
+      escapeCSVValue(getCategoryLabel(app.productCategory)),
+      escapeCSVValue(app.businessDescription),
+      escapeCSVValue(app.contactName),
+      escapeCSVValue(app.contactEmail),
+      escapeCSVValue(app.contactPhone),
+      escapeCSVValue(app.fairName),
+      escapeCSVValue(app.fairStatus),
+      escapeCSVValue(app.houseNumber),
+      escapeCSVValue(app.reviewedBy),
+      escapeCSVValue(app.reviewedAt ? formatDate(app.reviewedAt) : ''),
+      escapeCSVValue(app.rejectionReason),
+      escapeCSVValue(app.adminNotes),
+    ]);
+
+    // Build CSV content
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(',')),
+    ].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    // Generate filename with current date and filter info
+    const dateStr = new Date().toISOString().split('T')[0];
+    let filename = `applications_${dateStr}`;
+    if (filterStatus !== 'all') filename += `_${filterStatus}`;
+    if (filterFair !== 'all') filename += `_${filterFair.replace(/\s+/g, '_')}`;
+    filename += '.csv';
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setSuccessMessage(`Exported ${filteredAndSortedApplications.length} applications to CSV`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
   if (loading) {
     return (
       <div className="application-review-container">
@@ -404,9 +491,14 @@ const ApplicationReview: React.FC = () => {
     <div className="application-review-container">
       <div className="page-header">
         <h1>{t('admin.applicationReview', { defaultValue: 'Application Review' })}</h1>
-        <button className="btn btn-secondary" onClick={fetchData}>
-          Refresh
-        </button>
+        <div className="header-actions">
+          <button className="btn btn-primary" onClick={exportToCSV}>
+            Export CSV
+          </button>
+          <button className="btn btn-secondary" onClick={fetchData}>
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error && <div className="error-message">{error}</div>}
