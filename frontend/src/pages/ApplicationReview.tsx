@@ -94,6 +94,9 @@ const ApplicationReview: React.FC = () => {
   const [rejectApplicationId, setRejectApplicationId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [rejecting, setRejecting] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesText, setNotesText] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -134,6 +137,44 @@ const ApplicationReview: React.FC = () => {
   const closeDetailsModal = () => {
     setShowDetailsModal(false);
     setApplicationDetails(null);
+    setEditingNotes(false);
+    setNotesText('');
+  };
+
+  const startEditingNotes = () => {
+    setNotesText(applicationDetails?.adminNotes || '');
+    setEditingNotes(true);
+  };
+
+  const cancelEditingNotes = () => {
+    setEditingNotes(false);
+    setNotesText('');
+  };
+
+  const handleSaveNotes = async () => {
+    if (!applicationDetails) return;
+
+    try {
+      setSavingNotes(true);
+      setError(null);
+      await adminApi.updateApplicationNotes(applicationDetails.id, notesText);
+      // Update the local state
+      setApplicationDetails({
+        ...applicationDetails,
+        adminNotes: notesText || null,
+      });
+      setEditingNotes(false);
+      setSuccessMessage('Admin notes updated successfully.');
+      // Refresh data to update table
+      await fetchData();
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: any) {
+      console.error('Error saving admin notes:', err);
+      setError(err.response?.data?.error || 'Failed to save admin notes');
+    } finally {
+      setSavingNotes(false);
+    }
   };
 
   const openApproveModal = (applicationId: string) => {
@@ -732,7 +773,7 @@ const ApplicationReview: React.FC = () => {
               </div>
 
               {/* Review Information */}
-              {(applicationDetails.reviewedAt || applicationDetails.adminNotes || applicationDetails.rejectionReason) && (
+              {(applicationDetails.reviewedAt || applicationDetails.rejectionReason) && (
                 <div className="detail-section">
                   <h3>Review Information</h3>
                   <div className="detail-grid">
@@ -748,12 +789,6 @@ const ApplicationReview: React.FC = () => {
                         <span>{applicationDetails.reviewedBy}</span>
                       </div>
                     )}
-                    {applicationDetails.adminNotes && (
-                      <div className="detail-item full-width">
-                        <label>Admin Notes</label>
-                        <span>{applicationDetails.adminNotes}</span>
-                      </div>
-                    )}
                     {applicationDetails.rejectionReason && (
                       <div className="detail-item full-width">
                         <label>Rejection Reason</label>
@@ -763,6 +798,56 @@ const ApplicationReview: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Admin Notes Section - Editable */}
+              <div className="detail-section admin-notes-section">
+                <h3>
+                  Internal Admin Notes
+                  <span className="admin-only-label">(Admin Only)</span>
+                </h3>
+                {editingNotes ? (
+                  <div className="notes-edit-container">
+                    <textarea
+                      value={notesText}
+                      onChange={(e) => setNotesText(e.target.value)}
+                      placeholder="Add internal notes for this application..."
+                      rows={4}
+                      className="form-textarea notes-textarea"
+                      disabled={savingNotes}
+                    />
+                    <div className="notes-actions">
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={cancelEditingNotes}
+                        disabled={savingNotes}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={handleSaveNotes}
+                        disabled={savingNotes}
+                      >
+                        {savingNotes ? 'Saving...' : 'Save Notes'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="notes-display-container">
+                    {applicationDetails.adminNotes ? (
+                      <p className="admin-notes-text">{applicationDetails.adminNotes}</p>
+                    ) : (
+                      <p className="no-notes-text">No admin notes yet.</p>
+                    )}
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={startEditingNotes}
+                    >
+                      {applicationDetails.adminNotes ? 'Edit Notes' : 'Add Notes'}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

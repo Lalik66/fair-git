@@ -697,6 +697,76 @@
   white-space: nowrap;
 }
 
+/* Admin Notes Section */
+.admin-notes-section {
+  background-color: var(--color-surface, #f9fafb);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.admin-notes-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-only-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--color-warning, #d97706);
+  background-color: var(--color-warning-light, #fef3c7);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.notes-edit-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.notes-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.notes-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.notes-display-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.admin-notes-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  padding: 0.75rem;
+  background-color: white;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border, #e5e7eb);
+}
+
+.no-notes-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #6b7280);
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .application-review-container {
     padding: 1rem;

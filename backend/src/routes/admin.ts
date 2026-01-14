@@ -526,6 +526,54 @@ router.put('/applications/:applicationId/reject', async (req: Request, res: Resp
   }
 });
 
+// Update application admin notes
+router.put('/applications/:applicationId/notes', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { applicationId } = req.params;
+    const { adminNotes } = req.body;
+
+    // Get the application
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        vendorProfile: true,
+        fair: true,
+      },
+    });
+
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    // Update admin notes
+    const updatedApplication = await prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        adminNotes: adminNotes ? adminNotes.trim() : null,
+      },
+    });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'update_application_notes',
+        details: `Updated admin notes for application from ${application.vendorProfile.companyName || 'Unknown Vendor'} for fair ${application.fair.name}`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    res.json({
+      message: 'Admin notes updated successfully',
+      application: updatedApplication,
+    });
+  } catch (error) {
+    console.error('Update application notes error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get single application details (for modal)
 router.get('/applications/:applicationId', async (req: Request, res: Response): Promise<void> => {
   try {
