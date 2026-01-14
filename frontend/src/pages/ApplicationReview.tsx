@@ -46,6 +46,7 @@ const ApplicationReview: React.FC = () => {
   const [filterDateTo, setFilterDateTo] = useState<string>('');
   const [filterHouse, setFilterHouse] = useState<string>('all');
   const [filterFair, setFilterFair] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<SortField>('submittedAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
@@ -107,6 +108,17 @@ const ApplicationReview: React.FC = () => {
       result = result.filter(app => app.fairName === filterFair);
     }
 
+    // Search filter (real-time search by vendor name, business name, or email)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(app =>
+        (app.companyName && app.companyName.toLowerCase().includes(query)) ||
+        (app.contactName && app.contactName.toLowerCase().includes(query)) ||
+        (app.contactEmail && app.contactEmail.toLowerCase().includes(query)) ||
+        (app.businessDescription && app.businessDescription.toLowerCase().includes(query))
+      );
+    }
+
     // Sort
     result.sort((a, b) => {
       let aValue: any;
@@ -143,7 +155,7 @@ const ApplicationReview: React.FC = () => {
     });
 
     return result;
-  }, [applications, filterStatus, filterCategory, filterDateFrom, filterDateTo, filterHouse, filterFair, sortField, sortOrder]);
+  }, [applications, filterStatus, filterCategory, filterDateFrom, filterDateTo, filterHouse, filterFair, searchQuery, sortField, sortOrder]);
 
   // Get unique house numbers for filter dropdown
   const uniqueHouses = useMemo(() => {
@@ -246,6 +258,28 @@ const ApplicationReview: React.FC = () => {
         </div>
       </div>
 
+      {/* Search Box */}
+      <div className="search-box">
+        <label htmlFor="search-input">Search:</label>
+        <input
+          type="text"
+          id="search-input"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by vendor name, business name, or email..."
+          className="search-input"
+        />
+        {searchQuery && (
+          <button
+            className="clear-search-btn"
+            onClick={() => setSearchQuery('')}
+            title="Clear search"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
       {/* Filter Controls */}
       <div className="filter-controls">
         <div className="filter-group">
@@ -339,8 +373,8 @@ const ApplicationReview: React.FC = () => {
       {filteredAndSortedApplications.length === 0 ? (
         <div className="no-applications">
           <p>No applications found.</p>
-          {(filterStatus !== 'all' || filterCategory !== 'all' || filterDateFrom || filterDateTo || filterHouse !== 'all' || filterFair !== 'all') && (
-            <button className="btn btn-secondary btn-sm" onClick={() => { setFilterStatus('all'); setFilterCategory('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterHouse('all'); setFilterFair('all'); }}>
+          {(filterStatus !== 'all' || filterCategory !== 'all' || filterDateFrom || filterDateTo || filterHouse !== 'all' || filterFair !== 'all' || searchQuery) && (
+            <button className="btn btn-secondary btn-sm" onClick={() => { setFilterStatus('all'); setFilterCategory('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterHouse('all'); setFilterFair('all'); setSearchQuery(''); }}>
               Clear Filters
             </button>
           )}
