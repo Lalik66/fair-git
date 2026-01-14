@@ -572,7 +572,85 @@ NOTES FOR FUTURE AGENTS
 - Map-dependent features (20-39) still pending Mapbox integration
 
 ================================================================================
+                    SESSION 7 PROGRESS REPORT
+                    Coding Agent - January 14, 2026 (Continued)
+================================================================================
+
+COMPLETED FEATURES THIS SESSION
+-------------------------------
+
+Feature 49: Admin approves application
+- ✅ Verified approval flow works end-to-end
+- ✅ Clicked 'Approve' button on pending application (Artisan Crafts Co)
+- ✅ Added admin notes in confirmation modal
+- ✅ Verified status changed from 'Pending' to 'Approved by Admin User'
+- ✅ Verified booking automatically created in database (tested via delete protection)
+- ✅ Verified email notification logged to console with approval details
+- ✅ Verified admin activity logged in Admin Logs
+
+Feature 50: Admin rejects application with reason
+- ✅ Added backend endpoint PUT /api/admin/applications/:id/reject
+  - Validates rejection reason is provided
+  - Updates application status to 'rejected'
+  - Saves rejection reason to database
+  - Creates admin log entry
+  - Logs email notification with rejection reason
+- ✅ Added frontend rejectApplication API function
+- ✅ Added Reject button next to Approve button for pending applications
+- ✅ Added Reject modal with required rejection reason textarea
+- ✅ Added btn-danger CSS class for reject button styling
+- ✅ Verified rejection workflow:
+  - Clicked 'Reject' on Winter Food Vendor application
+  - Entered rejection reason in modal
+  - Confirmed rejection
+  - Verified status changed to 'Rejected by Admin User'
+  - Verified rejection reason saved (visible in Application Details modal)
+  - Verified email notification logged with rejection reason
+
+REGRESSION TESTS PASSED
+-----------------------
+- Feature 9: Admin views admin list with last login - PASSED
+- Feature 45: Admin filters applications by fair - PASSED
+
+TECHNICAL CHANGES MADE
+----------------------
+1. backend/src/routes/admin.ts:
+   - Added PUT /applications/:applicationId/reject endpoint
+   - Validates rejection reason is required
+   - Updates application status and saves rejection reason
+   - Creates admin log entry
+   - Logs email notification to console
+
+2. frontend/src/services/api.ts:
+   - Added rejectApplication() function
+
+3. frontend/src/pages/ApplicationReview.tsx:
+   - Added showRejectModal, rejectApplicationId, rejectReason, rejecting state variables
+   - Added openRejectModal(), closeRejectModal(), handleReject() functions
+   - Added Reject button next to Approve button for pending applications
+   - Added Reject confirmation modal with required rejection reason
+
+4. frontend/src/pages/ApplicationReview.css:
+   - Added .btn-danger styling for reject button
+   - Updated confirmation text class to include reject-confirmation-text
+
+CURRENT STATUS
+--------------
+Features passing: 26/240 (10.8%)
+Features marked as passing this session: 2 (Features 49, 50)
+
+NOTES FOR FUTURE AGENTS
+-----------------------
+- Backend: port 3001, Frontend: port 3000
+- Default admin: admin@fairmarketplace.com / AdminPass123!
+- Test data endpoints create diverse data across fairs/categories
+- Application Review now has full approve/reject functionality
+- Map-dependent features (20-39) still pending Mapbox integration
+- All current pending applications have been processed (0 pending)
+- To test approve/reject again, need to create new test applications via POST /api/admin/test-applications
+
+================================================================================
 STATUS: IN PROGRESS
 Session ended: January 14, 2026
-Features: 24/240 passing (10.0%)
+Features: 26/240 passing (10.8%)
 ================================================================================
