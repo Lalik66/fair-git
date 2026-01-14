@@ -191,4 +191,22 @@ export const adminApi = {
   },
 };
 
+// Vendor API
+export const vendorApi = {
+  getBookings: async () => {
+    const response = await api.get('/vendor/bookings');
+    return response.data;
+  },
+
+  getProfile: async () => {
+    const response = await api.get('/vendor/profile');
+    return response.data;
+  },
+
+  getApplications: async () => {
+    const response = await api.get('/vendor/applications');
+    return response.data;
+  },
+};
+
 export default api;

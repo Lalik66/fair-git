@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ChangePassword from './pages/ChangePassword';
+import VendorBookings from './pages/VendorBookings';
 
 // Navigation component
 const Navigation: React.FC = () => {
@@ -91,14 +92,81 @@ const AboutPage: React.FC = () => {
 const VendorDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
+  const location = useLocation();
+
+  // Check if we're on a sub-route
+  const isOnSubRoute = location.pathname !== '/vendor' && location.pathname !== '/vendor/';
 
   return (
-    <div className="vendor-dashboard">
-      <h1>{t('vendor.dashboard', 'Vendor Dashboard')}</h1>
-      <p>Welcome, {user?.firstName || user?.email}!</p>
-      <button onClick={() => logout()} className="btn btn-secondary">
-        {t('auth.logout')}
-      </button>
+    <div className="vendor-layout">
+      <aside className="vendor-sidebar">
+        <div className="vendor-sidebar-header">
+          <h2>Vendor Portal</h2>
+          <Link to="/" className="back-link">← Back to Home</Link>
+        </div>
+        <nav className="vendor-nav">
+          <Link
+            to="/vendor"
+            className={`vendor-nav-link ${location.pathname === '/vendor' ? 'active' : ''}`}
+          >
+            Dashboard
+          </Link>
+          <Link
+            to="/vendor/bookings"
+            className={`vendor-nav-link ${location.pathname.includes('/vendor/bookings') ? 'active' : ''}`}
+          >
+            My Bookings
+          </Link>
+          <Link
+            to="/vendor/applications"
+            className={`vendor-nav-link ${location.pathname.includes('/vendor/applications') ? 'active' : ''}`}
+          >
+            My Applications
+          </Link>
+        </nav>
+        <div className="vendor-sidebar-footer">
+          <div className="vendor-user-info">
+            <div className="vendor-user-name">{user?.firstName} {user?.lastName}</div>
+            <div className="vendor-user-email">{user?.email}</div>
+          </div>
+          <button onClick={() => logout()} className="btn btn-secondary btn-logout">
+            {t('auth.logout')}
+          </button>
+        </div>
+      </aside>
+      <main className="vendor-main">
+        <Routes>
+          <Route
+            index
+            element={
+              <div className="vendor-dashboard-home">
+                <h1>{t('vendor.dashboard', 'Vendor Dashboard')}</h1>
+                <p>Welcome back, {user?.firstName || user?.email}!</p>
+                <div className="dashboard-cards">
+                  <Link to="/vendor/bookings" className="dashboard-card">
+                    <h3>My Bookings</h3>
+                    <p>View your approved fair bookings</p>
+                  </Link>
+                  <Link to="/vendor/applications" className="dashboard-card">
+                    <h3>My Applications</h3>
+                    <p>Track your application status</p>
+                  </Link>
+                </div>
+              </div>
+            }
+          />
+          <Route path="bookings" element={<VendorBookings />} />
+          <Route
+            path="applications"
+            element={
+              <div className="vendor-applications">
+                <h1>My Applications</h1>
+                <p>Application tracking page coming soon...</p>
+              </div>
+            }
+          />
+        </Routes>
+      </main>
     </div>
   );
 };

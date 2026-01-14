@@ -59,9 +59,11 @@ app.get('/api', (req: Request, res: Response) => {
 // Import and use route modules
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
+import vendorRoutes from './routes/vendor';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/vendor', vendorRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
