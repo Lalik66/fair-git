@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ChangePassword from './pages/ChangePassword';
 import VendorBookings from './pages/VendorBookings';
+import VendorProfile from './pages/VendorProfile';
+import HomePage from './pages/HomePage';
 
 // Navigation component
 const Navigation: React.FC = () => {
@@ -51,24 +53,6 @@ const Navigation: React.FC = () => {
 };
 
 // Placeholder components - to be implemented
-const HomePage: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="home-page">
-      <h1>{t('welcome.title', 'Welcome to Fair Marketplace')}</h1>
-      <p>{t('welcome.subtitle', 'Discover amazing fairs and vendors')}</p>
-      <div className="home-actions">
-        <Link to="/map" className="btn btn-primary">
-          {t('welcome.cta.browseMap')}
-        </Link>
-        <Link to="/login" className="btn btn-outline">
-          {t('welcome.cta.applyVendor')}
-        </Link>
-      </div>
-    </div>
-  );
-};
-
 const MapPage: React.FC = () => {
   const { t } = useTranslation();
   return (
@@ -123,6 +107,12 @@ const VendorDashboard: React.FC = () => {
           >
             My Applications
           </Link>
+          <Link
+            to="/vendor/profile"
+            className={`vendor-nav-link ${location.pathname.includes('/vendor/profile') ? 'active' : ''}`}
+          >
+            My Profile
+          </Link>
         </nav>
         <div className="vendor-sidebar-footer">
           <div className="vendor-user-info">
@@ -151,6 +141,10 @@ const VendorDashboard: React.FC = () => {
                     <h3>My Applications</h3>
                     <p>Track your application status</p>
                   </Link>
+                  <Link to="/vendor/profile" className="dashboard-card">
+                    <h3>My Profile</h3>
+                    <p>Update your contact and business info</p>
+                  </Link>
                 </div>
               </div>
             }
@@ -165,6 +159,7 @@ const VendorDashboard: React.FC = () => {
               </div>
             }
           />
+          <Route path="profile" element={<VendorProfile />} />
         </Routes>
       </main>
     </div>

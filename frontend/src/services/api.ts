@@ -189,6 +189,18 @@ export const adminApi = {
     const response = await api.put(`/admin/applications/${applicationId}/notes`, { adminNotes });
     return response.data;
   },
+
+  // Booking management
+  getBookings: async (params?: { fairId?: string; isArchived?: boolean }) => {
+    const response = await api.get('/admin/bookings', { params });
+    return response.data;
+  },
+
+  // Archive bookings for a specific fair
+  archiveFairBookings: async (fairId: string) => {
+    const response = await api.post(`/admin/fairs/${fairId}/archive-bookings`);
+    return response.data;
+  },
 };
 
 // Vendor API
@@ -203,8 +215,66 @@ export const vendorApi = {
     return response.data;
   },
 
+  updateProfile: async (data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
+    companyName?: string;
+    businessDescription?: string;
+    productCategory?: string;
+  }) => {
+    const response = await api.put('/vendor/profile', data);
+    return response.data;
+  },
+
   getApplications: async () => {
     const response = await api.get('/vendor/applications');
+    return response.data;
+  },
+
+  uploadLogo: async (file: File) => {
+    const formData = new FormData();
+    formData.append('logo', file);
+    const response = await api.post('/vendor/logo', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteLogo: async () => {
+    const response = await api.delete('/vendor/logo');
+    return response.data;
+  },
+
+  uploadProductImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post('/vendor/product-images', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteProductImage: async (imageId: string) => {
+    const response = await api.delete(`/vendor/product-images/${imageId}`);
+    return response.data;
+  },
+};
+
+// Public API (no authentication required)
+export const publicApi = {
+  getNextFair: async () => {
+    const response = await api.get('/public/next-fair');
+    return response.data;
+  },
+
+  getFairs: async () => {
+    const response = await api.get('/public/fairs');
     return response.data;
   },
 };

@@ -713,13 +713,16 @@ router.post('/fairs/archive', async (req: Request, res: Response): Promise<void>
     });
 
     if (fairsToArchive.length === 0) {
-      res.json({ message: 'No fairs to archive', archivedCount: 0 });
+      res.json({ message: 'No fairs to archive', archivedCount: 0, archivedBookingsCount: 0 });
       return;
     }
 
-    // Archive each fair
+    // Archive each fair and its bookings
     const archivedFairs = [];
+    let totalArchivedBookings = 0;
+
     for (const fair of fairsToArchive) {
+      // Archive the fair
       const archivedFair = await prisma.fair.update({
         where: { id: fair.id },
         data: {
@@ -729,24 +732,174 @@ router.post('/fairs/archive', async (req: Request, res: Response): Promise<void>
       });
       archivedFairs.push(archivedFair);
 
-      // Log each archival
+      // Archive all bookings for this fair
+      const archivedBookings = await prisma.booking.updateMany({
+        where: {
+          fairId: fair.id,
+          isArchived: false,
+        },
+        data: {
+          isArchived: true,
+          bookingStatus: 'archived',
+        },
+      });
+      totalArchivedBookings += archivedBookings.count;
+
+      // Log fair archival
       await prisma.adminLog.create({
         data: {
           adminId: req.user!.id,
           action: 'archive_fair',
-          details: `Archived fair: ${fair.name} (ended ${fair.endDate.toISOString().split('T')[0]})`,
+          details: `Archived fair: ${fair.name} (ended ${fair.endDate.toISOString().split('T')[0]}) with ${archivedBookings.count} booking(s)`,
           ipAddress: req.ip || req.socket.remoteAddress,
         },
       });
     }
 
     res.json({
-      message: `Successfully archived ${archivedFairs.length} fair(s)`,
+      message: `Successfully archived ${archivedFairs.length} fair(s) and ${totalArchivedBookings} booking(s)`,
       archivedCount: archivedFairs.length,
+      archivedBookingsCount: totalArchivedBookings,
       archivedFairs,
     });
   } catch (error) {
     console.error('Archive fairs error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Archive bookings for a specific fair (manual archive) - MUST be before /fairs/:fairId to avoid route conflict
+router.post('/fairs/:fairId/archive-bookings', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fairId } = req.params;
+
+    // Check if fair exists
+    const fair = await prisma.fair.findUnique({
+      where: { id: fairId },
+    });
+
+    if (!fair) {
+      res.status(404).json({ error: 'Fair not found' });
+      return;
+    }
+
+    // Check if fair has ended
+    const now = new Date();
+    if (fair.endDate > now) {
+      res.status(400).json({ error: 'Cannot archive bookings for a fair that has not ended yet' });
+      return;
+    }
+
+    // Archive all bookings for this fair
+    const archivedBookings = await prisma.booking.updateMany({
+      where: {
+        fairId: fairId,
+        isArchived: false,
+      },
+      data: {
+        isArchived: true,
+        bookingStatus: 'archived',
+      },
+    });
+
+    if (archivedBookings.count === 0) {
+      res.json({ message: 'No bookings to archive for this fair', archivedCount: 0 });
+      return;
+    }
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'archive_bookings',
+        details: `Archived ${archivedBookings.count} booking(s) for fair: ${fair.name}`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    res.json({
+      message: `Successfully archived ${archivedBookings.count} booking(s)`,
+      archivedCount: archivedBookings.count,
+      fairName: fair.name,
+    });
+  } catch (error) {
+    console.error('Archive bookings error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get bookings with their archive status
+router.get('/bookings', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fairId, isArchived } = req.query;
+
+    const where: any = {};
+    if (fairId) {
+      where.fairId = fairId;
+    }
+    if (isArchived !== undefined) {
+      where.isArchived = isArchived === 'true';
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where,
+      include: {
+        vendorProfile: {
+          include: {
+            user: {
+              select: {
+                email: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+        fair: {
+          select: {
+            id: true,
+            name: true,
+            startDate: true,
+            endDate: true,
+            status: true,
+          },
+        },
+        vendorHouse: {
+          select: {
+            id: true,
+            houseNumber: true,
+            areaSqm: true,
+            price: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const formattedBookings = bookings.map(booking => ({
+      id: booking.id,
+      bookingStatus: booking.bookingStatus,
+      isArchived: booking.isArchived,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      createdAt: booking.createdAt,
+      // Vendor info
+      vendorCompany: booking.vendorProfile.companyName,
+      vendorEmail: booking.vendorProfile.user.email,
+      vendorName: `${booking.vendorProfile.user.firstName || ''} ${booking.vendorProfile.user.lastName || ''}`.trim(),
+      // Fair info
+      fairId: booking.fair.id,
+      fairName: booking.fair.name,
+      fairStatus: booking.fair.status,
+      // House info
+      houseNumber: booking.vendorHouse.houseNumber,
+      houseAreaSqm: booking.vendorHouse.areaSqm,
+      housePrice: booking.vendorHouse.price,
+    }));
+
+    res.json({ bookings: formattedBookings });
+  } catch (error) {
+    console.error('Get bookings error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
