@@ -357,6 +357,176 @@ router.get('/applications', async (req: Request, res: Response): Promise<void> =
   }
 });
 
+// Submit a new application
+router.post('/applications', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fairId, vendorHouseId } = req.body;
+
+    if (!fairId || !vendorHouseId) {
+      res.status(400).json({ error: 'Fair ID and Vendor House ID are required' });
+      return;
+    }
+
+    // Get vendor profile
+    const vendorProfile = await prisma.vendorProfile.findUnique({
+      where: { userId: req.user!.id },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!vendorProfile) {
+      res.status(404).json({ error: 'Vendor profile not found' });
+      return;
+    }
+
+    // Verify fair exists and is active/upcoming
+    const fair = await prisma.fair.findUnique({
+      where: { id: fairId },
+    });
+
+    if (!fair) {
+      res.status(404).json({ error: 'Fair not found' });
+      return;
+    }
+
+    if (fair.status !== 'active' && fair.status !== 'upcoming') {
+      res.status(400).json({ error: 'Applications can only be submitted for active or upcoming fairs' });
+      return;
+    }
+
+    // Verify vendor house exists
+    const vendorHouse = await prisma.vendorHouse.findUnique({
+      where: { id: vendorHouseId },
+    });
+
+    if (!vendorHouse) {
+      res.status(404).json({ error: 'Vendor house not found' });
+      return;
+    }
+
+    if (!vendorHouse.isEnabled) {
+      res.status(400).json({ error: 'This house is currently not available for applications' });
+      return;
+    }
+
+    // Check if vendor already has an application for this fair and house
+    const existingApplication = await prisma.application.findFirst({
+      where: {
+        vendorProfileId: vendorProfile.id,
+        fairId: fairId,
+        vendorHouseId: vendorHouseId,
+      },
+    });
+
+    if (existingApplication) {
+      res.status(400).json({ error: 'You have already submitted an application for this house at this fair' });
+      return;
+    }
+
+    // Check if the house is already booked for this fair
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        vendorHouseId: vendorHouseId,
+        fairId: fairId,
+        bookingStatus: { in: ['pending', 'approved'] },
+      },
+    });
+
+    if (existingBooking) {
+      res.status(400).json({ error: 'This house is already booked for this fair' });
+      return;
+    }
+
+    // Create the application
+    const application = await prisma.application.create({
+      data: {
+        vendorProfileId: vendorProfile.id,
+        fairId: fairId,
+        vendorHouseId: vendorHouseId,
+        status: 'pending',
+        submittedAt: new Date(),
+      },
+      include: {
+        fair: true,
+        vendorHouse: true,
+      },
+    });
+
+    // Send email notification (logged to console in development)
+    const userLang = vendorProfile.user.preferredLanguage || 'az';
+    const vendorName = vendorProfile.user.firstName || 'Vendor';
+    const companyName = vendorProfile.companyName || 'Your Company';
+    const fairName = fair.name;
+    const houseNumber = vendorHouse.houseNumber;
+    const fairStartDate = fair.startDate.toISOString().split('T')[0];
+    const fairEndDate = fair.endDate.toISOString().split('T')[0];
+
+    console.log('='.repeat(60));
+    console.log(`EMAIL NOTIFICATION (Development Mode) - Language: ${userLang.toUpperCase()}`);
+    console.log('='.repeat(60));
+    console.log(`To: ${vendorProfile.user.email}`);
+
+    if (userLang === 'en') {
+      console.log(`Subject: Application Received - ${fairName}`);
+      console.log('');
+      console.log(`Dear ${vendorName},`);
+      console.log('');
+      console.log(`Thank you for submitting your application for ${fairName}!`);
+      console.log('');
+      console.log('Application Details:');
+      console.log(`  - Company: ${companyName}`);
+      console.log(`  - Fair: ${fairName}`);
+      console.log(`  - House Number: ${houseNumber}`);
+      console.log(`  - Fair Dates: ${fairStartDate} to ${fairEndDate}`);
+      console.log('');
+      console.log('Your application is now being reviewed by our team. You will receive');
+      console.log('an email notification once your application has been processed.');
+      console.log('');
+      console.log('Thank you for your interest in participating in our fair!');
+    } else {
+      // Azerbaijani
+      console.log(`Mövzu: Müraciət Qəbul Edildi - ${fairName}`);
+      console.log('');
+      console.log(`Hörmətli ${vendorName},`);
+      console.log('');
+      console.log(`${fairName} üçün müraciətinizi göndərdiyiniz üçün təşəkkür edirik!`);
+      console.log('');
+      console.log('Müraciət Detalları:');
+      console.log(`  - Şirkət: ${companyName}`);
+      console.log(`  - Yarmarka: ${fairName}`);
+      console.log(`  - Ev Nömrəsi: ${houseNumber}`);
+      console.log(`  - Yarmarka Tarixləri: ${fairStartDate} - ${fairEndDate}`);
+      console.log('');
+      console.log('Müraciətiniz hazırda komandamız tərəfindən nəzərdən keçirilir.');
+      console.log('Müraciətiniz işləndikdən sonra e-poçt bildirişi alacaqsınız.');
+      console.log('');
+      console.log('Yarmarkamızda iştirak etmək marağınıza görə təşəkkür edirik!');
+    }
+    console.log('='.repeat(60));
+
+    res.status(201).json({
+      message: 'Application submitted successfully',
+      application: {
+        id: application.id,
+        status: application.status,
+        submittedAt: application.submittedAt,
+        fairId: application.fair.id,
+        fairName: application.fair.name,
+        fairStartDate: application.fair.startDate,
+        fairEndDate: application.fair.endDate,
+        houseId: application.vendorHouse.id,
+        houseNumber: application.vendorHouse.houseNumber,
+        houseArea: application.vendorHouse.areaSqm,
+        housePrice: application.vendorHouse.price,
+      },
+    });
+  } catch (error) {
+    console.error('Submit application error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Upload or replace vendor logo
 router.post('/logo', logoUpload.single('logo'), async (req: Request, res: Response): Promise<void> => {
   try {

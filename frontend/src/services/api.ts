@@ -238,6 +238,11 @@ export const vendorApi = {
     return response.data;
   },
 
+  submitApplication: async (fairId: string, vendorHouseId: string) => {
+    const response = await api.post('/vendor/applications', { fairId, vendorHouseId });
+    return response.data;
+  },
+
   uploadLogo: async (file: File) => {
     const formData = new FormData();
     formData.append('logo', file);

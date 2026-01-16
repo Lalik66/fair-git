@@ -8,6 +8,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ChangePassword from './pages/ChangePassword';
 import VendorBookings from './pages/VendorBookings';
 import VendorProfile from './pages/VendorProfile';
+import VendorApplications from './pages/VendorApplications';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import { authApi } from './services/api';
@@ -153,15 +154,7 @@ const VendorDashboard: React.FC = () => {
             }
           />
           <Route path="bookings" element={<VendorBookings />} />
-          <Route
-            path="applications"
-            element={
-              <div className="vendor-applications">
-                <h1>My Applications</h1>
-                <p>Application tracking page coming soon...</p>
-              </div>
-            }
-          />
+          <Route path="applications" element={<VendorApplications />} />
           <Route path="profile" element={<VendorProfile />} />
         </Routes>
       </main>
