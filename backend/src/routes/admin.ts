@@ -406,22 +406,47 @@ router.put('/applications/:applicationId/approve', async (req: Request, res: Res
     });
 
     // Log email (in production this would send an actual email)
+    // Use user's preferred language for email content
+    const userLang = application.vendorProfile.user.preferredLanguage || 'az';
+    const vendorName = application.vendorProfile.user.firstName || 'Vendor';
+    const fairName = application.fair.name;
+    const houseNumber = application.vendorHouse.houseNumber;
+    const startDate = application.fair.startDate.toISOString().split('T')[0];
+    const endDate = application.fair.endDate.toISOString().split('T')[0];
+
     console.log('='.repeat(60));
-    console.log('EMAIL NOTIFICATION (Development Mode)');
+    console.log(`EMAIL NOTIFICATION (Development Mode) - Language: ${userLang.toUpperCase()}`);
     console.log('='.repeat(60));
     console.log(`To: ${application.vendorProfile.user.email}`);
-    console.log(`Subject: Your Application Has Been Approved!`);
-    console.log('');
-    console.log(`Dear ${application.vendorProfile.user.firstName || 'Vendor'},`);
-    console.log('');
-    console.log(`Congratulations! Your application for ${application.fair.name} has been approved.`);
-    console.log('');
-    console.log(`Details:`);
-    console.log(`  - Fair: ${application.fair.name}`);
-    console.log(`  - House Number: ${application.vendorHouse.houseNumber}`);
-    console.log(`  - Fair Dates: ${application.fair.startDate.toISOString().split('T')[0]} to ${application.fair.endDate.toISOString().split('T')[0]}`);
-    console.log('');
-    console.log('Thank you for participating in our fair!');
+
+    if (userLang === 'en') {
+      console.log(`Subject: Your Application Has Been Approved!`);
+      console.log('');
+      console.log(`Dear ${vendorName},`);
+      console.log('');
+      console.log(`Congratulations! Your application for ${fairName} has been approved.`);
+      console.log('');
+      console.log(`Details:`);
+      console.log(`  - Fair: ${fairName}`);
+      console.log(`  - House Number: ${houseNumber}`);
+      console.log(`  - Fair Dates: ${startDate} to ${endDate}`);
+      console.log('');
+      console.log('Thank you for participating in our fair!');
+    } else {
+      // Azerbaijani
+      console.log(`Mövzu: Müraciətiniz Təsdiqləndi!`);
+      console.log('');
+      console.log(`Hörmətli ${vendorName},`);
+      console.log('');
+      console.log(`Təbrik edirik! ${fairName} üçün müraciətiniz təsdiqləndi.`);
+      console.log('');
+      console.log(`Təfərrüatlar:`);
+      console.log(`  - Yarmarka: ${fairName}`);
+      console.log(`  - Ev Nömrəsi: ${houseNumber}`);
+      console.log(`  - Yarmarka Tarixləri: ${startDate} - ${endDate}`);
+      console.log('');
+      console.log('Yarmarkamızda iştirak etdiyiniz üçün təşəkkür edirik!');
+    }
     console.log('='.repeat(60));
 
     res.json({
@@ -497,23 +522,47 @@ router.put('/applications/:applicationId/reject', async (req: Request, res: Resp
     });
 
     // Log email (in production this would send an actual email)
+    // Use user's preferred language for email content
+    const userLang = application.vendorProfile.user.preferredLanguage || 'az';
+    const vendorName = application.vendorProfile.user.firstName || 'Vendor';
+    const fairName = application.fair.name;
+    const houseNumber = application.vendorHouse.houseNumber;
+
     console.log('='.repeat(60));
-    console.log('EMAIL NOTIFICATION (Development Mode)');
+    console.log(`EMAIL NOTIFICATION (Development Mode) - Language: ${userLang.toUpperCase()}`);
     console.log('='.repeat(60));
     console.log(`To: ${application.vendorProfile.user.email}`);
-    console.log(`Subject: Your Application Status Update`);
-    console.log('');
-    console.log(`Dear ${application.vendorProfile.user.firstName || 'Vendor'},`);
-    console.log('');
-    console.log(`We regret to inform you that your application for ${application.fair.name} has been rejected.`);
-    console.log('');
-    console.log(`Reason: ${rejectionReason}`);
-    console.log('');
-    console.log(`Details:`);
-    console.log(`  - Fair: ${application.fair.name}`);
-    console.log(`  - House Number: ${application.vendorHouse.houseNumber}`);
-    console.log('');
-    console.log('If you have any questions, please contact our support team.');
+
+    if (userLang === 'en') {
+      console.log(`Subject: Your Application Status Update`);
+      console.log('');
+      console.log(`Dear ${vendorName},`);
+      console.log('');
+      console.log(`We regret to inform you that your application for ${fairName} has been rejected.`);
+      console.log('');
+      console.log(`Reason: ${rejectionReason}`);
+      console.log('');
+      console.log(`Details:`);
+      console.log(`  - Fair: ${fairName}`);
+      console.log(`  - House Number: ${houseNumber}`);
+      console.log('');
+      console.log('If you have any questions, please contact our support team.');
+    } else {
+      // Azerbaijani
+      console.log(`Mövzu: Müraciət Statusu Yeniləndi`);
+      console.log('');
+      console.log(`Hörmətli ${vendorName},`);
+      console.log('');
+      console.log(`Təəssüflə bildiririk ki, ${fairName} üçün müraciətiniz rədd edildi.`);
+      console.log('');
+      console.log(`Səbəb: ${rejectionReason}`);
+      console.log('');
+      console.log(`Təfərrüatlar:`);
+      console.log(`  - Yarmarka: ${fairName}`);
+      console.log(`  - Ev Nömrəsi: ${houseNumber}`);
+      console.log('');
+      console.log('Suallarınız varsa, dəstək komandamızla əlaqə saxlayın.');
+    }
     console.log('='.repeat(60));
 
     res.json({
@@ -1557,6 +1606,70 @@ router.delete('/test-applications', async (req: Request, res: Response): Promise
     res.json({ message: `Cleaned up ${testUsers.length} test vendors and their data` });
   } catch (error) {
     console.error('Delete test applications error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ============================================
+// About Us Management
+// ============================================
+
+// Get all About Us content for editing
+router.get('/about-us', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const content = await prisma.aboutUsContent.findMany({
+      include: {
+        updatedBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    res.json({ content });
+  } catch (error) {
+    console.error('Get about us content error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update or create About Us content section
+router.put('/about-us/:sectionKey', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { sectionKey } = req.params;
+    const { contentAz, contentEn } = req.body;
+
+    // Upsert the content
+    const content = await prisma.aboutUsContent.upsert({
+      where: { sectionKey },
+      update: {
+        contentAz,
+        contentEn,
+        updatedById: req.user!.id,
+      },
+      create: {
+        sectionKey,
+        contentAz,
+        contentEn,
+        updatedById: req.user!.id,
+      },
+    });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'update_about_us',
+        details: `Updated About Us section: ${sectionKey}`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    res.json({ content, message: 'Content updated successfully' });
+  } catch (error) {
+    console.error('Update about us content error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

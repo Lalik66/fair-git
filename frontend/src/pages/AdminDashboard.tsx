@@ -6,6 +6,7 @@ import UserManagement from './UserManagement';
 import AdminLogs from './AdminLogs';
 import FairManagement from './FairManagement';
 import ApplicationReview from './ApplicationReview';
+import AboutUsEditor from './AboutUsEditor';
 import './AdminDashboard.css';
 
 // Admin home/overview component
@@ -76,6 +77,17 @@ const AdminHome: React.FC = () => {
             {t('View Logs', { defaultValue: 'View Logs' })}
           </button>
         </div>
+
+        <div className="admin-card">
+          <h3>{t('admin.aboutUs', { defaultValue: 'About Us Page' })}</h3>
+          <p>Edit the About Us page content.</p>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate('/admin/about-us')}
+          >
+            {t('Edit Content', { defaultValue: 'Edit Content' })}
+          </button>
+        </div>
       </div>
     </>
   );
@@ -126,6 +138,7 @@ const AdminDashboard: React.FC = () => {
           <Route path="/logs" element={<AdminLogs />} />
           <Route path="/fairs" element={<FairManagement />} />
           <Route path="/applications" element={<ApplicationReview />} />
+          <Route path="/about-us" element={<AboutUsEditor />} />
         </Routes>
       </main>
     </div>

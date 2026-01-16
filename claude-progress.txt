@@ -766,7 +766,149 @@ NOTES FOR FUTURE AGENTS
 - 360° tour feature (56) skipped - needs panorama assets
 
 ================================================================================
+                    SESSION 9 PROGRESS REPORT
+                    Coding Agent - January 16, 2026
+================================================================================
+
+COMPLETED FEATURES THIS SESSION
+-------------------------------
+
+Features 73-77: Welcome Page Enhancements
+- ✅ Feature 73: "Fair is Live!" message when fair is active
+- ✅ Feature 74: Snowflake particle effects animation on homepage
+- ✅ Feature 75: Animated train element at bottom of homepage
+- ✅ Feature 76: "Browse Map" button navigates to /map
+- ✅ Feature 77: "Apply as Vendor" button navigates to /login
+
+Features 78-80: About Us Page
+- ✅ Feature 78: Mission statement section (editable by admin)
+  - Created public API GET /public/about-us
+  - Created admin APIs GET/PUT /admin/about-us
+  - Created AboutPage.tsx with sections for mission, history, team, contact
+  - Created AboutUsEditor.tsx for admin to edit content
+  - Added AboutUsContent table in Prisma schema
+- ✅ Feature 79: Past events with vendor participation
+  - Created GET /public/past-events API with vendor counts
+  - Added expandable past events section with vendor details
+- ✅ Feature 80: Upcoming events section
+  - Shows active/upcoming fairs with "Live Now" or "Coming Soon" badges
+  - Displays fair name, dates, location, description
+
+Features 81-84: Multi-language Support
+- ✅ Feature 81: Switch UI to Azerbaijani
+- ✅ Feature 82: Switch UI to English
+- ✅ Feature 83: Language preference saved in localStorage (visitors)
+- ✅ Feature 84: Language preference saved in user account (logged-in users)
+  - Added PUT /auth/language API endpoint
+  - Updated AuthContext to restore language on login
+  - Language syncs to database when user changes it
+
+TECHNICAL CHANGES MADE
+----------------------
+1. backend/src/routes/public.ts:
+   - Added GET /about-us endpoint
+   - Added GET /past-events endpoint with vendor participation data
+
+2. backend/src/routes/admin.ts:
+   - Added GET/PUT /admin/about-us endpoints
+   - Fixed adminLog userId -> adminId field name
+
+3. backend/src/routes/auth.ts:
+   - Added PUT /auth/language endpoint for updating user language preference
+
+4. frontend/src/pages/HomePage.tsx:
+   - Added snowflake elements with CSS animation
+   - Added animated train container
+   - Fixed translation keys for countdown
+
+5. frontend/src/pages/HomePage.css:
+   - Added snowflake animation keyframes (15 snowflakes)
+   - Added train animation (moves left to right)
+   - Added track styling
+
+6. frontend/src/pages/AboutPage.tsx (NEW):
+   - Public About Us page with sections
+   - Upcoming events section with status badges
+   - Past events section with expandable vendor lists
+
+7. frontend/src/pages/AboutUsEditor.tsx (NEW):
+   - Admin editor for About Us content
+   - Edit forms for mission, history, team, contact sections
+
+8. frontend/src/contexts/AuthContext.tsx:
+   - Added applyUserLanguage helper
+   - Restores language preference from database on login
+
+9. frontend/src/App.tsx:
+   - Updated toggleLanguage to save to database for logged-in users
+
+REGRESSION TESTS PASSED
+-----------------------
+- Application Review page functionality
+- Homepage countdown timer
+- Admin dashboard navigation
+
+CURRENT STATUS
+--------------
+Features passing: 51/240 (21.2%)
+Features marked as passing this session: 12 (Features 73-84)
+
+NOTES FOR FUTURE AGENTS
+-----------------------
+- Backend: port 3002, Frontend: port 3000
+- Default admin: admin@fairmarketplace.com / AdminPass123!
+- About Us page content editable via Admin Dashboard > About Us Page
+- Language preference stored in:
+  - localStorage for visitors (key: 'language')
+  - database for logged-in users (preferred_language column)
+- Map-dependent features (20-39) still pending Mapbox integration
+
+================================================================================
 STATUS: IN PROGRESS
-Session ended: January 14, 2026
-Features: 33/240 passing (13.8%)
+Session ended: January 16, 2026
+Features: 51/240 passing (21.2%)
+================================================================================
+
+================================================================================
+                    SESSION 10 PROGRESS REPORT
+                    Coding Agent - January 16, 2026 (Continued)
+================================================================================
+
+COMPLETED FEATURES THIS SESSION
+-------------------------------
+
+Feature 85: Email notifications in user's language
+- Verified existing implementation in backend/src/routes/admin.ts
+- Email notifications use user's preferredLanguage field from database
+- Default language is Azerbaijani ('az') if not set
+- Tested with English user (test-email-lang-1768564560253@test.com)
+- Tested with Azerbaijani user (test-email-lang-1768564576565@test.com)
+- Both approval and rejection emails support multi-language
+
+HELPER SCRIPTS CREATED
+----------------------
+1. backend/scripts/update-vendor-language.ts
+2. backend/scripts/create-test-application.ts
+
+CURRENT STATUS
+--------------
+Features passing: 52/240 (21.7%)
+Features marked as passing this session: 1 (Feature 85)
+
+NEXT FEATURE TO IMPLEMENT
+-------------------------
+Feature 86: Email sent - Application Received
+- Need to add POST /vendor/applications endpoint
+- Need to add email notification in vendor routes
+
+NOTES FOR FUTURE AGENTS
+-----------------------
+- Backend: port 3002, Frontend: port 3000
+- Email notifications logged to console in development mode
+- All emails use preferredLanguage from user table
+
+================================================================================
+STATUS: COMPLETED
+Session ended: January 16, 2026
+Features: 52/240 passing (21.7%)
 ================================================================================

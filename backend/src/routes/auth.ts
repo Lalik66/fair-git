@@ -127,6 +127,28 @@ router.post('/logout', authenticateToken, async (req: Request, res: Response): P
   }
 });
 
+// Update language preference
+router.put('/language', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { language } = req.body;
+
+    if (!language || !['az', 'en'].includes(language)) {
+      res.status(400).json({ error: 'Invalid language. Must be "az" or "en"' });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { preferredLanguage: language },
+    });
+
+    res.json({ message: 'Language preference updated', preferredLanguage: language });
+  } catch (error) {
+    console.error('Update language error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Change password
 router.post('/change-password', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {

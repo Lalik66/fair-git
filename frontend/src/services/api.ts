@@ -59,6 +59,11 @@ export const authApi = {
     });
     return response.data;
   },
+
+  updateLanguage: async (language: string) => {
+    const response = await api.put('/auth/language', { language });
+    return response.data;
+  },
 };
 
 // Admin API
@@ -275,6 +280,29 @@ export const publicApi = {
 
   getFairs: async () => {
     const response = await api.get('/public/fairs');
+    return response.data;
+  },
+
+  getAboutUs: async () => {
+    const response = await api.get('/public/about-us');
+    return response.data;
+  },
+
+  getPastEvents: async () => {
+    const response = await api.get('/public/past-events');
+    return response.data;
+  },
+};
+
+// Admin About Us API
+export const adminAboutUsApi = {
+  getContent: async () => {
+    const response = await api.get('/admin/about-us');
+    return response.data;
+  },
+
+  updateSection: async (sectionKey: string, contentAz: string, contentEn: string) => {
+    const response = await api.put(`/admin/about-us/${sectionKey}`, { contentAz, contentEn });
     return response.data;
   },
 };

@@ -9,16 +9,27 @@ import ChangePassword from './pages/ChangePassword';
 import VendorBookings from './pages/VendorBookings';
 import VendorProfile from './pages/VendorProfile';
 import HomePage from './pages/HomePage';
+import AboutPage from './pages/AboutPage';
+import { authApi } from './services/api';
 
 // Navigation component
 const Navigation: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
 
-  const toggleLanguage = () => {
+  const toggleLanguage = async () => {
     const newLang = i18n.language === 'az' ? 'en' : 'az';
     i18n.changeLanguage(newLang);
     localStorage.setItem('language', newLang);
+
+    // If user is logged in, also save to database
+    if (user) {
+      try {
+        await authApi.updateLanguage(newLang);
+      } catch (error) {
+        console.error('Failed to save language preference to server:', error);
+      }
+    }
   };
 
   return (
@@ -63,15 +74,7 @@ const MapPage: React.FC = () => {
   );
 };
 
-const AboutPage: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="about-page">
-      <h1>{t('about.title', 'About Us')}</h1>
-      <p>About page content will be implemented here.</p>
-    </div>
-  );
-};
+// AboutPage imported from pages/AboutPage.tsx
 
 const VendorDashboard: React.FC = () => {
   const { t } = useTranslation();

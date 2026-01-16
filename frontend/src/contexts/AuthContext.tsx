@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '../services/api';
 
 export interface User {
@@ -38,6 +39,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { i18n } = useTranslation();
+
+  // Helper to apply user's language preference
+  const applyUserLanguage = (preferredLanguage: string) => {
+    if (preferredLanguage && ['az', 'en'].includes(preferredLanguage)) {
+      i18n.changeLanguage(preferredLanguage);
+      localStorage.setItem('language', preferredLanguage);
+    }
+  };
 
   // Check for existing session on mount
   useEffect(() => {
@@ -51,6 +61,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const { user: currentUser } = await authApi.getMe();
           setUser(currentUser);
           localStorage.setItem('user', JSON.stringify(currentUser));
+          // Apply user's language preference from database
+          applyUserLanguage(currentUser.preferredLanguage);
         } catch (err) {
           // Token is invalid, clear storage
           localStorage.removeItem('token');
@@ -72,6 +84,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(loggedInUser));
       setUser(loggedInUser);
+      // Apply user's language preference from database after login
+      applyUserLanguage(loggedInUser.preferredLanguage);
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || 'Login failed. Please try again.';
       setError(errorMessage);
