@@ -1,0 +1,79 @@
+================================================================================
+                    SESSION 11 PROGRESS REPORT
+                    Coding Agent - January 16, 2026 (Evening)
+================================================================================
+
+COMPLETED FEATURES THIS SESSION
+-------------------------------
+
+Feature 97: Invalid/expired tokens rejected
+- Changed status code from 403 to 401 for invalid/expired tokens
+- Tested malformed token (e.g., "malformed-token-123") - returns 401
+- Tested expired JWT token - returns 401
+- Error message is clear but not revealing: "Invalid or expired token"
+
+Feature 98: Role-specific menu items
+- Admin sees: Dashboard, Fair Management, Applications, User Management, Logs, About Us
+- Vendor sees: Dashboard, My Bookings, My Applications, My Profile
+- Visitor sees: Home, Browse Map, About Us, Sign In
+
+Feature 99: Failed login - no information leakage
+- Non-existent email returns: "Invalid email or password"
+- Wrong password returns: "Invalid email or password"
+- Both errors are identical - prevents email enumeration
+
+Feature 100: SQL injection prevention
+- Tested SQL injection in search field: "'; DROP TABLE users; --"
+- No error, search returned "No applications found"
+- Database intact - all 16 applications still present
+- Prisma ORM provides parameterized queries
+
+Feature 101: XSS prevention in user inputs
+- Entered script tag in vendor profile
+- Script displayed as plain text, NOT executed
+- React's automatic escaping prevents XSS
+
+Feature 102: Sidebar navigation - all links work
+- Dashboard: /admin
+- Fair Management: /admin/fairs
+- Application Review: /admin/applications
+- User Management: /admin/users
+- Activity Logs: /admin/logs
+- About Us Editor: /admin/about-us
+- Map Management: Disabled (Coming Soon)
+
+TECHNICAL CHANGES MADE
+----------------------
+1. backend/src/middleware/auth.ts:
+   - Changed status code from 403 to 401 for invalid/expired tokens
+
+2. backend/scripts/generate-expired-token.js (NEW):
+   - Script to generate expired JWT tokens for testing
+
+3. backend/scripts/test-sql-injection.js (NEW):
+   - Script to test SQL injection via API
+
+REGRESSION TESTS PASSED
+-----------------------
+- Homepage snowflake animation - PASSED
+- API returns 401 for unauthenticated requests - PASSED
+- Admin login and dashboard access - PASSED
+
+CURRENT STATUS
+--------------
+Features passing: 69/240 (28.7%)
+Features marked as passing this session: 6 (Features 97-102)
+
+NOTES FOR FUTURE AGENTS
+-----------------------
+- Backend: port 3001, Frontend: port 3000
+- Default admin: admin@fairmarketplace.com / AdminPass123!
+- Test vendor: test-vendor-1768374646124-0@test.com / vendor123
+- Security features verified: token validation, role menus, login security, SQL injection, XSS
+- Map-dependent features (20-39) still pending Mapbox integration
+
+================================================================================
+STATUS: COMPLETED
+Session ended: January 16, 2026
+Features: 69/240 passing (28.7%)
+================================================================================
