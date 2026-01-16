@@ -88,8 +88,18 @@ const HomePage: React.FC = () => {
     });
   };
 
+  // Generate snowflake elements
+  const snowflakes = Array.from({ length: 15 }, (_, i) => (
+    <span key={i} className="snowflake">❄</span>
+  ));
+
   return (
     <div className="home-page">
+      {/* Snowflake Animation */}
+      <div className="snowflakes-container">
+        {snowflakes}
+      </div>
+
       <div className="hero-section">
         <h1>{t('welcome.title', 'Welcome to Fair Marketplace')}</h1>
         <p className="hero-subtitle">{t('welcome.subtitle', 'Discover amazing fairs and vendors')}</p>
@@ -110,8 +120,8 @@ const HomePage: React.FC = () => {
           <div className="countdown-container">
             <h2 className="countdown-title">
               {nextFair.status === 'active'
-                ? t('countdown.fairActive', 'Fair is happening now!')
-                : t('countdown.upcomingFair', 'Next Fair')}
+                ? t('welcome.countdown.fairIsLive', 'Fair is Live!')
+                : t('welcome.countdown.upcomingFair', 'Next Fair')}
             </h2>
             <h3 className="fair-name">{nextFair.name}</h3>
 
@@ -119,22 +129,22 @@ const HomePage: React.FC = () => {
               <div className="countdown-timer">
                 <div className="countdown-item">
                   <span className="countdown-value">{timeRemaining.days}</span>
-                  <span className="countdown-label">{t('countdown.days', 'Days')}</span>
+                  <span className="countdown-label">{t('welcome.countdown.days', 'Days')}</span>
                 </div>
                 <div className="countdown-separator">:</div>
                 <div className="countdown-item">
                   <span className="countdown-value">{String(timeRemaining.hours).padStart(2, '0')}</span>
-                  <span className="countdown-label">{t('countdown.hours', 'Hours')}</span>
+                  <span className="countdown-label">{t('welcome.countdown.hours', 'Hours')}</span>
                 </div>
                 <div className="countdown-separator">:</div>
                 <div className="countdown-item">
                   <span className="countdown-value">{String(timeRemaining.minutes).padStart(2, '0')}</span>
-                  <span className="countdown-label">{t('countdown.minutes', 'Minutes')}</span>
+                  <span className="countdown-label">{t('welcome.countdown.minutes', 'Minutes')}</span>
                 </div>
                 <div className="countdown-separator">:</div>
                 <div className="countdown-item">
                   <span className="countdown-value">{String(timeRemaining.seconds).padStart(2, '0')}</span>
-                  <span className="countdown-label">{t('countdown.seconds', 'Seconds')}</span>
+                  <span className="countdown-label">{t('welcome.countdown.seconds', 'Seconds')}</span>
                 </div>
               </div>
             )}
@@ -154,7 +164,7 @@ const HomePage: React.FC = () => {
             </div>
 
             <Link to="/map" className="btn btn-primary">
-              {t('countdown.viewOnMap', 'View on Map')}
+              {t('welcome.countdown.viewOnMap', 'View on Map')}
             </Link>
           </div>
         </div>
@@ -162,9 +172,21 @@ const HomePage: React.FC = () => {
 
       {!loading && !nextFair && (
         <div className="no-fairs-section">
-          <p>{t('countdown.noUpcoming', 'No upcoming fairs scheduled at this time.')}</p>
+          <p>{t('welcome.countdown.noUpcoming', 'No upcoming fairs scheduled at this time.')}</p>
         </div>
       )}
+
+      {/* Animated Train */}
+      <div className="train-container">
+        <div className="train-track"></div>
+        <div className="train">
+          <span className="train-smoke">💨</span>
+          <span className="train-engine">🚂</span>
+          <span className="train-car">🚃</span>
+          <span className="train-car">🚃</span>
+          <span className="train-car">🚃</span>
+        </div>
+      </div>
     </div>
   );
 };
