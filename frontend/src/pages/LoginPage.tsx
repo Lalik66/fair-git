@@ -41,12 +41,24 @@ const LoginPage: React.FC = () => {
         // Check if user must change password first
         if (user.mustChangePassword) {
           navigate('/change-password');
+        } else if (from && from !== '/') {
+          // If there's a specific destination, check if user has access
+          if (user.role === 'admin') {
+            // Admin can access any route, use the intended destination
+            navigate(from);
+          } else if (user.role === 'vendor' && from.startsWith('/vendor')) {
+            // Vendor can access vendor routes
+            navigate(from);
+          } else {
+            // For other cases, use role-based default
+            navigate(user.role === 'admin' ? '/admin' : user.role === 'vendor' ? '/vendor' : '/');
+          }
         } else if (user.role === 'admin') {
           navigate('/admin');
         } else if (user.role === 'vendor') {
           navigate('/vendor');
         } else {
-          navigate(from || '/');
+          navigate('/');
         }
       } else {
         navigate(from || '/');
