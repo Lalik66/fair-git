@@ -144,7 +144,14 @@ const ChangePassword: React.FC = () => {
                 {t('auth.logout')}
               </button>
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? t('common.loading') : t('Change Password', { defaultValue: 'Change Password' })}
+                {loading ? (
+                  <>
+                    <span className="spinner"></span>
+                    {t('common.loading')}
+                  </>
+                ) : (
+                  t('Change Password', { defaultValue: 'Change Password' })
+                )}
               </button>
             </div>
           </form>

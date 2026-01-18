@@ -101,8 +101,8 @@ const UserManagement: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="user-management loading">
-        <p>{t('common.loading')}</p>
+      <div className="user-management">
+        <div className="loading-spinner">{t('common.loading')}</div>
       </div>
     );
   }

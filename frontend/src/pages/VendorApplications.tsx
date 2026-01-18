@@ -78,7 +78,7 @@ const VendorApplications: React.FC = () => {
     return (
       <div className="vendor-applications">
         <h1>{t('vendor.myApplications', 'My Applications')}</h1>
-        <div className="loading-message">Loading applications...</div>
+        <div className="loading-spinner">{t('common.loading', 'Loading...')}</div>
       </div>
     );
   }

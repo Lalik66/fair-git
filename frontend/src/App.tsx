@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -17,6 +17,38 @@ import { authApi } from './services/api';
 const Navigation: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (mobileMenuOpen && !target.closest('.main-nav')) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [mobileMenuOpen]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   const toggleLanguage = async () => {
     const newLang = i18n.language === 'az' ? 'en' : 'az';
@@ -33,29 +65,60 @@ const Navigation: React.FC = () => {
     }
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleNavLinkClick = () => {
+    setMobileMenuOpen(false);
+  };
+
   return (
     <nav className="main-nav">
       <div className="nav-brand">
         <Link to="/">Fair Marketplace</Link>
       </div>
-      <div className="nav-links">
-        <Link to="/">{t('nav.home')}</Link>
-        <Link to="/map">{t('nav.browseMap')}</Link>
-        <Link to="/about">{t('nav.aboutUs')}</Link>
+
+      {/* Hamburger menu button - visible only on mobile */}
+      <button
+        className={`hamburger-btn ${mobileMenuOpen ? 'open' : ''}`}
+        onClick={toggleMobileMenu}
+        aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+        aria-expanded={mobileMenuOpen}
+      >
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
+      </button>
+
+      {/* Overlay for mobile menu */}
+      <div
+        className={`nav-overlay ${mobileMenuOpen ? 'open' : ''}`}
+        onClick={() => setMobileMenuOpen(false)}
+      ></div>
+
+      {/* Navigation links */}
+      <div className={`nav-links ${mobileMenuOpen ? 'open' : ''}`}>
+        <Link to="/" onClick={handleNavLinkClick}>{t('nav.home')}</Link>
+        <Link to="/map" onClick={handleNavLinkClick}>{t('nav.browseMap')}</Link>
+        <Link to="/about" onClick={handleNavLinkClick}>{t('nav.aboutUs')}</Link>
         <button onClick={toggleLanguage} className="btn-language">
           {i18n.language === 'az' ? 'EN' : 'AZ'}
         </button>
         {user ? (
           <>
-            <Link to={user.role === 'admin' ? '/admin' : user.role === 'vendor' ? '/vendor' : '/'}>
+            <Link
+              to={user.role === 'admin' ? '/admin' : user.role === 'vendor' ? '/vendor' : '/'}
+              onClick={handleNavLinkClick}
+            >
               {t('nav.dashboard')}
             </Link>
-            <button onClick={() => logout()} className="btn btn-secondary btn-nav">
+            <button onClick={() => { logout(); handleNavLinkClick(); }} className="btn btn-secondary btn-nav">
               {t('auth.logout')}
             </button>
           </>
         ) : (
-          <Link to="/login" className="btn btn-primary btn-nav">
+          <Link to="/login" className="btn btn-primary btn-nav" onClick={handleNavLinkClick}>
             {t('auth.login')}
           </Link>
         )}
