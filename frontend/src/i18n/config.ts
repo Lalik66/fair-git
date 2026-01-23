@@ -44,6 +44,7 @@ const resources = {
           seconds: 'Seconds',
           fairIsLive: 'Fair is Live!',
           upcomingFair: 'Upcoming Fair',
+          viewOnMap: 'View on Map',
         },
         cta: {
           browseMap: 'Browse Map',
@@ -55,6 +56,7 @@ const resources = {
       auth: {
         login: 'Sign In',
         logout: 'Sign Out',
+        password: 'Password',
         googleLogin: 'Sign in with Google',
         selectRole: 'Select Your Role',
         roleVisitor: 'Visitor',
@@ -155,6 +157,7 @@ const resources = {
       // About
       about: {
         title: 'About Us',
+        subtitle: 'Learn more about Fair Marketplace',
         mission: 'Our Mission',
         history: 'Our History',
         team: 'Our Team',
@@ -163,6 +166,14 @@ const resources = {
         upcomingEvents: 'Upcoming Events',
         vendors: 'Vendors',
         vendor: 'vendor',
+        status: {
+          live: 'Live Now',
+          upcoming: 'Coming Soon',
+          completed: 'Completed',
+        },
+        expand: 'Expand',
+        collapse: 'Collapse',
+        participatingVendors: 'Participating Vendors',
       },
 
       // Errors
@@ -229,6 +240,7 @@ const resources = {
           seconds: 'Saniyə',
           fairIsLive: 'Yarmarka Başladı!',
           upcomingFair: 'Gələcək Yarmarka',
+          viewOnMap: 'Xəritədə Bax',
         },
         cta: {
           browseMap: 'Xəritəyə Bax',
@@ -240,6 +252,7 @@ const resources = {
       auth: {
         login: 'Daxil ol',
         logout: 'Çıxış',
+        password: 'Şifrə',
         googleLogin: 'Google ilə daxil ol',
         selectRole: 'Rolunuzu seçin',
         roleVisitor: 'Ziyarətçi',
@@ -340,6 +353,7 @@ const resources = {
       // About
       about: {
         title: 'Haqqımızda',
+        subtitle: 'Fair Marketplace haqqında ətraflı məlumat',
         mission: 'Missiyamız',
         history: 'Tariximiz',
         team: 'Komandamız',
@@ -348,6 +362,14 @@ const resources = {
         upcomingEvents: 'Gələcək Tədbirlər',
         vendors: 'Satıcılar',
         vendor: 'satıcı',
+        status: {
+          live: 'Canlı',
+          upcoming: 'Tezliklə',
+          completed: 'Bitmiş',
+        },
+        expand: 'Genişlət',
+        collapse: 'Bağla',
+        participatingVendors: 'İştirak Edən Satıcılar',
       },
 
       // Errors

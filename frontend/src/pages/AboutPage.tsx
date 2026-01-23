@@ -260,7 +260,7 @@ const AboutPage: React.FC = () => {
                       </span>
                       <button
                         className={`expand-btn ${expandedEventId === event.id ? 'expanded' : ''}`}
-                        aria-label={expandedEventId === event.id ? 'Collapse' : 'Expand'}
+                        aria-label={expandedEventId === event.id ? t('about.collapse', 'Collapse') : t('about.expand', 'Expand')}
                       >
                         {expandedEventId === event.id ? '▲' : '▼'}
                       </button>

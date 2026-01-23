@@ -102,7 +102,7 @@ const LoginPage: React.FC = () => {
 
             <div className="form-group">
               <label htmlFor="password" className="form-label">
-                {t('Password', { defaultValue: 'Password' })}
+                {t('auth.password')}
               </label>
               <input
                 type="password"
