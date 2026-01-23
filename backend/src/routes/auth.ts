@@ -1,13 +1,24 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { rateLimit } from 'express-rate-limit';
 import { prisma } from '../index';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
-// Login endpoint
-router.post('/login', async (req: Request, res: Response): Promise<void> => {
+// Login rate limiter - 5 attempts per 15 minutes per IP
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts
+  message: { error: 'Too many login attempts. Please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful logins
+});
+
+// Login endpoint with rate limiting
+router.post('/login', loginRateLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
