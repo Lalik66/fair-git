@@ -156,9 +156,13 @@ const resources = {
       about: {
         title: 'About Us',
         mission: 'Our Mission',
+        history: 'Our History',
+        team: 'Our Team',
+        contact: 'Contact Us',
         pastEvents: 'Past Events',
         upcomingEvents: 'Upcoming Events',
         vendors: 'Vendors',
+        vendor: 'vendor',
       },
 
       // Errors
@@ -337,9 +341,13 @@ const resources = {
       about: {
         title: 'Haqqımızda',
         mission: 'Missiyamız',
+        history: 'Tariximiz',
+        team: 'Komandamız',
+        contact: 'Əlaqə',
         pastEvents: 'Keçmiş Tədbirlər',
         upcomingEvents: 'Gələcək Tədbirlər',
         vendors: 'Satıcılar',
+        vendor: 'satıcı',
       },
 
       // Errors
