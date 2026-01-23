@@ -1,6 +1,7 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminApi } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import './UserManagement.css';
 
 interface User {
@@ -16,6 +17,7 @@ interface User {
 
 const UserManagement: React.FC = () => {
   const { t } = useTranslation();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -163,14 +165,21 @@ const UserManagement: React.FC = () => {
                     : '-'}
                 </td>
                 <td>
-                  <button
-                    className={`btn btn-sm ${user.isActive ? 'btn-danger' : 'btn-success'}`}
-                    onClick={() => handleToggleStatus(user.id, user.isActive)}
-                  >
-                    {user.isActive
-                      ? t('Deactivate', { defaultValue: 'Deactivate' })
-                      : t('Activate', { defaultValue: 'Activate' })}
-                  </button>
+                  {/* Prevent admin from deactivating their own account */}
+                  {user.id === currentUser?.id && user.isActive ? (
+                    <span className="self-indicator" title={t('You cannot deactivate your own account', { defaultValue: 'You cannot deactivate your own account' })}>
+                      {t('Current User', { defaultValue: 'Current User' })}
+                    </span>
+                  ) : (
+                    <button
+                      className={`btn btn-sm ${user.isActive ? 'btn-danger' : 'btn-success'}`}
+                      onClick={() => handleToggleStatus(user.id, user.isActive)}
+                    >
+                      {user.isActive
+                        ? t('Deactivate', { defaultValue: 'Deactivate' })
+                        : t('Activate', { defaultValue: 'Activate' })}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
