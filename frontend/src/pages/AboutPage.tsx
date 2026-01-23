@@ -188,6 +188,7 @@ const AboutPage: React.FC = () => {
                         src={fair.bannerImageUrl}
                         alt={fair.name}
                         className="banner-image"
+                        loading="lazy"
                       />
                     </div>
                   )}
@@ -271,6 +272,7 @@ const AboutPage: React.FC = () => {
                                 src={vendor.logoUrl}
                                 alt={vendor.companyName || 'Vendor'}
                                 className="vendor-logo"
+                                loading="lazy"
                               />
                             ) : (
                               <div className="vendor-logo-placeholder">🏪</div>

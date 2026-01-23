@@ -928,6 +928,7 @@ const ApplicationReview: React.FC = () => {
                         src={applicationDetails.logoUrl}
                         alt="Company Logo"
                         className="vendor-logo"
+                        loading="lazy"
                       />
                     </div>
                   )}
@@ -975,6 +976,7 @@ const ApplicationReview: React.FC = () => {
                         src={img.imageUrl}
                         alt={`Product ${img.orderIndex + 1}`}
                         className="product-image"
+                        loading="lazy"
                       />
                     ))}
                   </div>

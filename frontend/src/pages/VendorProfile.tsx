@@ -428,7 +428,7 @@ const VendorProfile: React.FC = () => {
             <div className="logo-upload-container">
               {profile?.logoUrl ? (
                 <div className="logo-preview">
-                  <img src={getLogoUrl(profile.logoUrl) || ''} alt="Company Logo" />
+                  <img src={getLogoUrl(profile.logoUrl) || ''} alt="Company Logo" loading="lazy" />
                   <div className="logo-actions">
                     <button
                       className="btn btn-secondary btn-sm"
@@ -521,7 +521,7 @@ const VendorProfile: React.FC = () => {
               <div className="product-images-grid">
                 {profile?.productImages?.map((img) => (
                   <div key={img.id} className="product-image-item">
-                    <img src={getImageUrl(img.imageUrl) || ''} alt={`Product ${img.orderIndex + 1}`} />
+                    <img src={getImageUrl(img.imageUrl) || ''} alt={`Product ${img.orderIndex + 1}`} loading="lazy" />
                     <button
                       className="delete-image-btn"
                       onClick={() => handleDeleteProductImage(img.id)}
