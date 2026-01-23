@@ -100,6 +100,10 @@ const ApplicationReview: React.FC = () => {
   const [notesText, setNotesText] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -343,6 +347,17 @@ const ApplicationReview: React.FC = () => {
     const fairs = new Set(applications.map(app => app.fairName));
     return Array.from(fairs).sort();
   }, [applications]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAndSortedApplications.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedApplications = filteredAndSortedApplications.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, filterCategory, filterDateFrom, filterDateTo, filterHouse, filterFair, searchQuery]);
 
   // Quick date filter helpers
   const formatDateForInput = (date: Date): string => {
@@ -827,7 +842,7 @@ const ApplicationReview: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredAndSortedApplications.map((app) => (
+              {paginatedApplications.map((app) => (
                 <tr key={app.id} className={`status-${app.status}`}>
                   <td className="date-cell">
                     {formatDate(app.submittedAt)}
@@ -895,6 +910,65 @@ const ApplicationReview: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {filteredAndSortedApplications.length > 0 && (
+        <div className="pagination-controls">
+          <div className="pagination-info">
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredAndSortedApplications.length)} of {filteredAndSortedApplications.length} applications
+          </div>
+          <div className="pagination-buttons">
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              First
+            </button>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            <span className="page-indicator">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              Last
+            </button>
+          </div>
+          <div className="items-per-page">
+            <label htmlFor="items-per-page">Per page:</label>
+            <select
+              id="items-per-page"
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="filter-select"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
         </div>
       )}
 
