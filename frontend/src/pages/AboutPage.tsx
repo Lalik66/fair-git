@@ -121,15 +121,8 @@ const AboutPage: React.FC = () => {
   };
 
   const getCategoryLabel = (category: string | null) => {
-    if (!category) return t('vendor.categories.other', 'Other');
-    const categoryMap: Record<string, string> = {
-      food_beverages: t('vendor.categories.foodBeverages', 'Food & Beverages'),
-      handicrafts: t('vendor.categories.handicrafts', 'Handicrafts'),
-      clothing: t('vendor.categories.clothing', 'Clothing'),
-      accessories: t('vendor.categories.accessories', 'Accessories'),
-      other: t('vendor.categories.other', 'Other'),
-    };
-    return categoryMap[category] || category;
+    if (!category) return t('categories.other', 'Other');
+    return t(`categories.${category}`, category);
   };
 
   const getLocalizedContent = (section: AboutContent | undefined): string => {

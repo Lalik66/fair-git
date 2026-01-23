@@ -84,6 +84,12 @@ const initialFormData: FairFormData = {
   status: 'upcoming',
 };
 
+// Get today's date in YYYY-MM-DD format for date input min attribute
+const getTodayDateString = (): string => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+};
+
 const FairManagement: React.FC = () => {
   const { t } = useTranslation();
   const [fairs, setFairs] = useState<Fair[]>([]);
@@ -530,6 +536,7 @@ const FairManagement: React.FC = () => {
                     name="startDate"
                     value={formData.startDate}
                     onChange={handleInputChange}
+                    min={getTodayDateString()}
                     required
                   />
                 </div>
@@ -541,6 +548,7 @@ const FairManagement: React.FC = () => {
                     name="endDate"
                     value={formData.endDate}
                     onChange={handleInputChange}
+                    min={formData.startDate || getTodayDateString()}
                     required
                   />
                 </div>
@@ -681,6 +689,7 @@ const FairManagement: React.FC = () => {
                     name="startDate"
                     value={formData.startDate}
                     onChange={handleInputChange}
+                    min={getTodayDateString()}
                     required
                   />
                 </div>
@@ -692,6 +701,7 @@ const FairManagement: React.FC = () => {
                     name="endDate"
                     value={formData.endDate}
                     onChange={handleInputChange}
+                    min={formData.startDate || getTodayDateString()}
                     required
                   />
                 </div>
@@ -919,7 +929,7 @@ const FairManagement: React.FC = () => {
                       {fairDetails.participatingVendors.map((vendor) => (
                         <tr key={vendor.vendorId}>
                           <td>{vendor.companyName || '-'}</td>
-                          <td>{vendor.productCategory || '-'}</td>
+                          <td>{vendor.productCategory ? t(`categories.${vendor.productCategory}`, vendor.productCategory) : '-'}</td>
                           <td>
                             <div>{vendor.contactName || '-'}</div>
                             <div className="contact-email">{vendor.contactEmail}</div>

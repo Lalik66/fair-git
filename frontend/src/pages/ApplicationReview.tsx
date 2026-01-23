@@ -384,14 +384,7 @@ const ApplicationReview: React.FC = () => {
 
   const getCategoryLabel = (category: string | null) => {
     if (!category) return '-';
-    const labels: Record<string, string> = {
-      food_beverages: 'Food & Beverages',
-      handicrafts: 'Handicrafts',
-      clothing: 'Clothing',
-      accessories: 'Accessories',
-      other: 'Other',
-    };
-    return labels[category] || category;
+    return t(`categories.${category}`, category);
   };
 
   const exportToCSV = () => {

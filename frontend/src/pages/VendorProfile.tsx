@@ -282,17 +282,10 @@ const VendorProfile: React.FC = () => {
   };
 
   const getCategoryLabel = (category: string | null) => {
+    if (category) {
+      return t(`categories.${category}`, category);
+    }
     switch (category) {
-      case 'food_beverages':
-        return 'Food & Beverages';
-      case 'handicrafts':
-        return 'Handicrafts';
-      case 'clothing':
-        return 'Clothing';
-      case 'accessories':
-        return 'Accessories';
-      case 'other':
-        return 'Other';
       default:
         return category || 'Not set';
     }
