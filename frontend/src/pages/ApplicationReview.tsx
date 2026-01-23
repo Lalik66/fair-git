@@ -344,6 +344,38 @@ const ApplicationReview: React.FC = () => {
     return Array.from(fairs).sort();
   }, [applications]);
 
+  // Quick date filter helpers
+  const formatDateForInput = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const setTodayFilter = () => {
+    const today = new Date();
+    const dateString = formatDateForInput(today);
+    setFilterDateFrom(dateString);
+    setFilterDateTo(dateString);
+  };
+
+  const setThisWeekFilter = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    // Calculate start of week (Monday)
+    const startOfWeek = new Date(today);
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startOfWeek.setDate(today.getDate() - daysFromMonday);
+    // End of week is Sunday
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+    setFilterDateFrom(formatDateForInput(startOfWeek));
+    setFilterDateTo(formatDateForInput(endOfWeek));
+  };
+
+  const clearDateFilters = () => {
+    setFilterDateFrom('');
+    setFilterDateTo('');
+  };
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -693,6 +725,34 @@ const ApplicationReview: React.FC = () => {
             onChange={(e) => setFilterDateTo(e.target.value)}
             className="filter-date"
           />
+        </div>
+        <div className="filter-group quick-date-filters">
+          <label>Quick:</label>
+          <div className="quick-date-buttons">
+            <button
+              type="button"
+              className={`btn btn-outline btn-xs ${filterDateFrom === formatDateForInput(new Date()) && filterDateTo === formatDateForInput(new Date()) ? 'active' : ''}`}
+              onClick={setTodayFilter}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline btn-xs"
+              onClick={setThisWeekFilter}
+            >
+              This Week
+            </button>
+            {(filterDateFrom || filterDateTo) && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-xs"
+                onClick={clearDateFilters}
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
         <div className="filter-group">
           <label htmlFor="house-filter">Filter by House:</label>
