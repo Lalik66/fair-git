@@ -1249,6 +1249,95 @@ router.put('/fairs/:fairId', async (req: Request, res: Response): Promise<void> 
       },
     });
 
+    // Check if dates changed and send notifications to affected vendors
+    const startDateChanged = existingFair.startDate.getTime() !== start.getTime();
+    const endDateChanged = existingFair.endDate.getTime() !== end.getTime();
+
+    if (startDateChanged || endDateChanged) {
+      // Get all approved bookings for this fair
+      const approvedBookings = await prisma.booking.findMany({
+        where: {
+          fairId: fairId,
+          bookingStatus: 'approved',
+        },
+        include: {
+          vendorProfile: {
+            include: {
+              user: {
+                select: {
+                  email: true,
+                  firstName: true,
+                  preferredLanguage: true,
+                },
+              },
+            },
+          },
+          vendorHouse: true,
+        },
+      });
+
+      // Send date change notification to each affected vendor
+      for (const booking of approvedBookings) {
+        const userLang = booking.vendorProfile.user.preferredLanguage || 'az';
+        const vendorName = booking.vendorProfile.user.firstName || 'Vendor';
+        const houseNumber = booking.vendorHouse.houseNumber;
+        const oldStartDate = existingFair.startDate.toISOString().split('T')[0];
+        const oldEndDate = existingFair.endDate.toISOString().split('T')[0];
+        const newStartDate = start.toISOString().split('T')[0];
+        const newEndDate = end.toISOString().split('T')[0];
+
+        console.log('='.repeat(60));
+        console.log(`EMAIL NOTIFICATION (Development Mode) - Language: ${userLang.toUpperCase()}`);
+        console.log('='.repeat(60));
+        console.log(`To: ${booking.vendorProfile.user.email}`);
+
+        if (userLang === 'en') {
+          console.log(`Subject: Fair Date Change Notice - ${fair.name}`);
+          console.log('');
+          console.log(`Dear ${vendorName},`);
+          console.log('');
+          console.log(`Important: The dates for ${fair.name} have been changed.`);
+          console.log('');
+          console.log('Previous Dates:');
+          console.log(`  - Start: ${oldStartDate}`);
+          console.log(`  - End: ${oldEndDate}`);
+          console.log('');
+          console.log('New Dates:');
+          console.log(`  - Start: ${newStartDate}`);
+          console.log(`  - End: ${newEndDate}`);
+          console.log('');
+          console.log(`Your booking details:`);
+          console.log(`  - House Number: ${houseNumber}`);
+          console.log('');
+          console.log('Please update your calendar accordingly. If you have any questions,');
+          console.log('please contact our support team.');
+        } else {
+          // Azerbaijani
+          console.log(`Mövzu: Yarmarka Tarix Dəyişikliyi Bildirişi - ${fair.name}`);
+          console.log('');
+          console.log(`Hörmətli ${vendorName},`);
+          console.log('');
+          console.log(`Vacib: ${fair.name} üçün tarixlər dəyişdirildi.`);
+          console.log('');
+          console.log('Əvvəlki Tarixlər:');
+          console.log(`  - Başlanğıc: ${oldStartDate}`);
+          console.log(`  - Bitiş: ${oldEndDate}`);
+          console.log('');
+          console.log('Yeni Tarixlər:');
+          console.log(`  - Başlanğıc: ${newStartDate}`);
+          console.log(`  - Bitiş: ${newEndDate}`);
+          console.log('');
+          console.log(`Rezervasiya məlumatlarınız:`);
+          console.log(`  - Ev Nömrəsi: ${houseNumber}`);
+          console.log('');
+          console.log('Zəhmət olmasa təqviminizi yeniləyin. Hər hansı sualınız varsa,');
+          console.log('dəstək komandamızla əlaqə saxlayın.');
+        }
+        console.log('='.repeat(60));
+        console.log('');
+      }
+    }
+
     res.json({ fair, message: 'Fair updated successfully' });
   } catch (error) {
     console.error('Update fair error:', error);
