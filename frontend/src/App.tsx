@@ -18,25 +18,30 @@ const Navigation: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
 
-  // Close mobile menu when route changes
+  // Close mobile menu and user menu when route changes
   useEffect(() => {
     setMobileMenuOpen(false);
+    setUserMenuOpen(false);
   }, [location.pathname]);
 
-  // Close mobile menu when clicking outside
+  // Close mobile menu and user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (mobileMenuOpen && !target.closest('.main-nav')) {
         setMobileMenuOpen(false);
       }
+      if (userMenuOpen && !target.closest('.user-menu')) {
+        setUserMenuOpen(false);
+      }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, userMenuOpen]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -69,8 +74,36 @@ const Navigation: React.FC = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  const toggleUserMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setUserMenuOpen(!userMenuOpen);
+  };
+
   const handleNavLinkClick = () => {
     setMobileMenuOpen(false);
+    setUserMenuOpen(false);
+  };
+
+  const getDashboardUrl = () => {
+    if (user?.role === 'admin') return '/admin';
+    if (user?.role === 'vendor') return '/vendor';
+    return '/';
+  };
+
+  const getProfileUrl = () => {
+    if (user?.role === 'admin') return '/admin'; // Admin can update profile in dashboard
+    if (user?.role === 'vendor') return '/vendor/profile';
+    return '/';
+  };
+
+  const getUserInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
   };
 
   return (
@@ -106,17 +139,45 @@ const Navigation: React.FC = () => {
           {i18n.language === 'az' ? 'EN' : 'AZ'}
         </button>
         {user ? (
-          <>
-            <Link
-              to={user.role === 'admin' ? '/admin' : user.role === 'vendor' ? '/vendor' : '/'}
-              onClick={handleNavLinkClick}
+          <div className="user-menu">
+            <button
+              className="user-menu-trigger"
+              onClick={toggleUserMenu}
+              aria-expanded={userMenuOpen}
+              aria-haspopup="true"
             >
-              {t('nav.dashboard')}
-            </Link>
-            <button onClick={() => { logout(); handleNavLinkClick(); }} className="btn btn-secondary btn-nav">
-              {t('auth.logout')}
+              <span className="user-avatar">{getUserInitials()}</span>
+              <span className="user-name">{user.firstName || user.email?.split('@')[0]}</span>
+              <span className={`user-menu-arrow ${userMenuOpen ? 'open' : ''}`}>▼</span>
             </button>
-          </>
+            {userMenuOpen && (
+              <div className="user-menu-dropdown">
+                <Link
+                  to={getDashboardUrl()}
+                  className="user-menu-item"
+                  onClick={handleNavLinkClick}
+                >
+                  <span className="user-menu-icon">🏠</span>
+                  {t('nav.dashboard')}
+                </Link>
+                <Link
+                  to={getProfileUrl()}
+                  className="user-menu-item"
+                  onClick={handleNavLinkClick}
+                >
+                  <span className="user-menu-icon">👤</span>
+                  {t('nav.profile', 'Profile')}
+                </Link>
+                <button
+                  onClick={() => { logout(); handleNavLinkClick(); }}
+                  className="user-menu-item user-menu-logout"
+                >
+                  <span className="user-menu-icon">🚪</span>
+                  {t('auth.logout')}
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <Link to="/login" className="btn btn-primary btn-nav" onClick={handleNavLinkClick}>
             {t('auth.login')}
