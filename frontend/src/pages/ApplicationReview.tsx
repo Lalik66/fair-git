@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { adminApi } from '../services/api';
@@ -71,19 +72,22 @@ type SortOrder = 'asc' | 'desc';
 
 const ApplicationReview: React.FC = () => {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [applications, setApplications] = useState<Application[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, pending: 0, approved: 0, rejected: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [filterDateFrom, setFilterDateFrom] = useState<string>('');
-  const [filterDateTo, setFilterDateTo] = useState<string>('');
-  const [filterHouse, setFilterHouse] = useState<string>('all');
-  const [filterFair, setFilterFair] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortField, setSortField] = useState<SortField>('submittedAt');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  // Initialize filters from URL params or use defaults
+  const [filterStatus, setFilterStatus] = useState<string>(searchParams.get('status') || 'all');
+  const [filterCategory, setFilterCategory] = useState<string>(searchParams.get('category') || 'all');
+  const [filterDateFrom, setFilterDateFrom] = useState<string>(searchParams.get('dateFrom') || '');
+  const [filterDateTo, setFilterDateTo] = useState<string>(searchParams.get('dateTo') || '');
+  const [filterHouse, setFilterHouse] = useState<string>(searchParams.get('house') || 'all');
+  const [filterFair, setFilterFair] = useState<string>(searchParams.get('fair') || 'all');
+  const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || '');
+  const [sortField, setSortField] = useState<SortField>((searchParams.get('sortField') as SortField) || 'submittedAt');
+  const [sortOrder, setSortOrder] = useState<SortOrder>((searchParams.get('sortOrder') as SortOrder) || 'desc');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -100,9 +104,33 @@ const ApplicationReview: React.FC = () => {
   const [notesText, setNotesText] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  // Pagination state - also from URL
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10));
+  const [itemsPerPage, setItemsPerPage] = useState(parseInt(searchParams.get('perPage') || '10', 10));
+
+  // Sync filter state to URL
+  const updateUrlParams = useCallback(() => {
+    const params = new URLSearchParams();
+
+    if (filterStatus !== 'all') params.set('status', filterStatus);
+    if (filterCategory !== 'all') params.set('category', filterCategory);
+    if (filterDateFrom) params.set('dateFrom', filterDateFrom);
+    if (filterDateTo) params.set('dateTo', filterDateTo);
+    if (filterHouse !== 'all') params.set('house', filterHouse);
+    if (filterFair !== 'all') params.set('fair', filterFair);
+    if (searchQuery) params.set('search', searchQuery);
+    if (sortField !== 'submittedAt') params.set('sortField', sortField);
+    if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
+    if (currentPage !== 1) params.set('page', currentPage.toString());
+    if (itemsPerPage !== 10) params.set('perPage', itemsPerPage.toString());
+
+    setSearchParams(params, { replace: true });
+  }, [filterStatus, filterCategory, filterDateFrom, filterDateTo, filterHouse, filterFair, searchQuery, sortField, sortOrder, currentPage, itemsPerPage, setSearchParams]);
+
+  // Update URL when filters change
+  useEffect(() => {
+    updateUrlParams();
+  }, [updateUrlParams]);
 
   useEffect(() => {
     fetchData();
