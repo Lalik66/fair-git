@@ -23,6 +23,14 @@ interface Profile {
   productImages: ProductImage[];
 }
 
+interface FieldErrors {
+  companyName?: string;
+  email?: string;
+  phone?: string;
+  productCategory?: string;
+  businessDescription?: string;
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3002';
 const MAX_PRODUCT_IMAGES = 5;
 
@@ -37,6 +45,7 @@ const VendorProfile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const productImageInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,8 +87,65 @@ const VendorProfile: React.FC = () => {
     setProductCategory(p.productCategory || '');
   };
 
+  // Validate form fields and return true if valid
+  const validateForm = (): boolean => {
+    const errors: FieldErrors = {};
+
+    // Company name is required
+    if (!companyName.trim()) {
+      errors.companyName = t('validation.companyNameRequired', 'Company name is required');
+    }
+
+    // Email is required and must be valid
+    if (!email.trim()) {
+      errors.email = t('validation.emailRequired', 'Email is required');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = t('validation.emailInvalid', 'Please enter a valid email address');
+    }
+
+    // Product category is required
+    if (!productCategory) {
+      errors.productCategory = t('validation.categoryRequired', 'Product category is required');
+    }
+
+    // Business description is required
+    if (!businessDescription.trim()) {
+      errors.businessDescription = t('validation.descriptionRequired', 'Business description is required');
+    }
+
+    // Phone number validation (optional but must be valid format if provided)
+    if (phone.trim()) {
+      // Allow formats like: +994501234567, 994501234567, 0501234567, 050-123-45-67, (050) 123 45 67
+      const phoneRegex = /^[+]?[\d\s\-()]{7,20}$/;
+      if (!phoneRegex.test(phone.trim())) {
+        errors.phone = t('validation.invalidPhone', 'Please enter a valid phone number');
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Clear field error when user starts typing
+  const clearFieldError = (field: keyof FieldErrors) => {
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form before submitting
+    if (!validateForm()) {
+      setError(t('validation.fixErrors', 'Please fix the errors below before submitting'));
+      return;
+    }
+
     try {
       setSaving(true);
       setError(null);
@@ -115,6 +181,7 @@ const VendorProfile: React.FC = () => {
     }
     setIsEditing(false);
     setError(null);
+    setFieldErrors({});
   };
 
   const handleLogoUploadClick = () => {
@@ -322,7 +389,7 @@ const VendorProfile: React.FC = () => {
       {successMessage && <div className="success-message">{successMessage}</div>}
 
       {isEditing ? (
-        <form onSubmit={handleSave} className="profile-form">
+        <form onSubmit={handleSave} className="profile-form" noValidate>
           <div className="form-section">
             <h3>Contact Information</h3>
             <div className="form-row">
@@ -348,48 +415,88 @@ const VendorProfile: React.FC = () => {
               </div>
             </div>
             <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="email">Email</label>
+              <div className={`form-group ${fieldErrors.email ? 'has-error' : ''}`}>
+                <label htmlFor="email">Email <span className="required">*</span></label>
                 <input
                   type="email"
                   id="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    clearFieldError('email');
+                  }}
                   placeholder="Enter email"
-                  required
+                  className={fieldErrors.email ? 'input-error' : ''}
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={fieldErrors.email ? 'email-error' : undefined}
                 />
+                {fieldErrors.email && (
+                  <span className="field-error" id="email-error" role="alert">
+                    {fieldErrors.email}
+                  </span>
+                )}
               </div>
-              <div className="form-group">
+              <div className={`form-group ${fieldErrors.phone ? 'has-error' : ''}`}>
                 <label htmlFor="phone">Phone Number</label>
                 <input
                   type="tel"
                   id="phone"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (fieldErrors.phone) {
+                      setFieldErrors(prev => ({ ...prev, phone: undefined }));
+                    }
+                  }}
                   placeholder="Enter phone number"
+                  className={fieldErrors.phone ? 'input-error' : ''}
+                  aria-invalid={!!fieldErrors.phone}
+                  aria-describedby={fieldErrors.phone ? 'phone-error' : undefined}
                 />
+                {fieldErrors.phone && (
+                  <span className="field-error" id="phone-error" role="alert">
+                    {fieldErrors.phone}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
           <div className="form-section">
             <h3>Business Information</h3>
-            <div className="form-group">
-              <label htmlFor="companyName">Company Name</label>
+            <div className={`form-group ${fieldErrors.companyName ? 'has-error' : ''}`}>
+              <label htmlFor="companyName">Company Name <span className="required">*</span></label>
               <input
                 type="text"
                 id="companyName"
                 value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
+                onChange={(e) => {
+                  setCompanyName(e.target.value);
+                  clearFieldError('companyName');
+                }}
                 placeholder="Enter company name"
+                className={fieldErrors.companyName ? 'input-error' : ''}
+                aria-invalid={!!fieldErrors.companyName}
+                aria-describedby={fieldErrors.companyName ? 'companyName-error' : undefined}
               />
+              {fieldErrors.companyName && (
+                <span className="field-error" id="companyName-error" role="alert">
+                  {fieldErrors.companyName}
+                </span>
+              )}
             </div>
-            <div className="form-group">
-              <label htmlFor="productCategory">Product Category</label>
+            <div className={`form-group ${fieldErrors.productCategory ? 'has-error' : ''}`}>
+              <label htmlFor="productCategory">Product Category <span className="required">*</span></label>
               <select
                 id="productCategory"
                 value={productCategory}
-                onChange={(e) => setProductCategory(e.target.value)}
+                onChange={(e) => {
+                  setProductCategory(e.target.value);
+                  clearFieldError('productCategory');
+                }}
+                className={fieldErrors.productCategory ? 'input-error' : ''}
+                aria-invalid={!!fieldErrors.productCategory}
+                aria-describedby={fieldErrors.productCategory ? 'productCategory-error' : undefined}
               >
                 <option value="">Select category</option>
                 <option value="food_beverages">Food & Beverages</option>
@@ -398,16 +505,32 @@ const VendorProfile: React.FC = () => {
                 <option value="accessories">Accessories</option>
                 <option value="other">Other</option>
               </select>
+              {fieldErrors.productCategory && (
+                <span className="field-error" id="productCategory-error" role="alert">
+                  {fieldErrors.productCategory}
+                </span>
+              )}
             </div>
-            <div className="form-group full-width">
-              <label htmlFor="businessDescription">Business Description</label>
+            <div className={`form-group full-width ${fieldErrors.businessDescription ? 'has-error' : ''}`}>
+              <label htmlFor="businessDescription">Business Description <span className="required">*</span></label>
               <textarea
                 id="businessDescription"
                 value={businessDescription}
-                onChange={(e) => setBusinessDescription(e.target.value)}
+                onChange={(e) => {
+                  setBusinessDescription(e.target.value);
+                  clearFieldError('businessDescription');
+                }}
                 placeholder="Describe your business and products..."
                 rows={4}
+                className={fieldErrors.businessDescription ? 'input-error' : ''}
+                aria-invalid={!!fieldErrors.businessDescription}
+                aria-describedby={fieldErrors.businessDescription ? 'businessDescription-error' : undefined}
               />
+              {fieldErrors.businessDescription && (
+                <span className="field-error" id="businessDescription-error" role="alert">
+                  {fieldErrors.businessDescription}
+                </span>
+              )}
             </div>
           </div>
 
