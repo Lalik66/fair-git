@@ -1699,6 +1699,48 @@ router.delete('/test-applications', async (req: Request, res: Response): Promise
   }
 });
 
+// Create test vendor with password (for testing purposes)
+router.post('/test-vendor', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const testEmail = `test-vendor-${Date.now()}@test.com`;
+    const testPassword = 'VendorPass123!';
+    const passwordHash = await bcrypt.hash(testPassword, 10);
+
+    // Create test vendor user with password
+    const user = await prisma.user.create({
+      data: {
+        email: testEmail,
+        firstName: 'Test',
+        lastName: 'Vendor',
+        role: 'vendor',
+        isActive: true,
+        passwordHash,
+      },
+    });
+
+    // Create vendor profile
+    await prisma.vendorProfile.create({
+      data: {
+        userId: user.id,
+        companyName: '',  // Empty - for testing validation
+        businessDescription: '',  // Empty - for testing validation
+        productCategory: '',  // Empty - for testing validation
+      },
+    });
+
+    res.status(201).json({
+      message: 'Test vendor created successfully',
+      credentials: {
+        email: testEmail,
+        password: testPassword,
+      },
+    });
+  } catch (error) {
+    console.error('Create test vendor error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ============================================
 // About Us Management
 // ============================================

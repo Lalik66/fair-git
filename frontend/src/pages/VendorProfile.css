@@ -389,6 +389,32 @@
   min-height: 100px;
 }
 
+/* Field-level error styles */
+.form-group.has-error label {
+  color: #dc2626;
+}
+
+.form-group .input-error {
+  border-color: #dc2626;
+}
+
+.form-group .input-error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.field-error {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+}
+
+.required {
+  color: #dc2626;
+  font-weight: bold;
+}
+
 .form-actions {
   padding: 20px 24px;
   background: #f8fafc;
