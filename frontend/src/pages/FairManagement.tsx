@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminApi } from '../services/api';
+import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning';
 import './FairManagement.css';
 
 interface Fair {
@@ -100,6 +101,7 @@ const FairManagement: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedFair, setSelectedFair] = useState<Fair | null>(null);
   const [formData, setFormData] = useState<FairFormData>(initialFormData);
+  const [originalFormData, setOriginalFormData] = useState<FairFormData>(initialFormData);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
@@ -107,6 +109,24 @@ const FairManagement: React.FC = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [fairDetails, setFairDetails] = useState<FairDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+
+  // Track if form has unsaved changes
+  const isFormDirty = useMemo(() => {
+    if (!showCreateModal && !showEditModal) return false;
+    return JSON.stringify(formData) !== JSON.stringify(originalFormData);
+  }, [formData, originalFormData, showCreateModal, showEditModal]);
+
+  // Use unsaved changes warning hook
+  const {
+    showWarningModal,
+    confirmNavigation,
+    handleStay,
+    handleLeave,
+    warningMessage,
+  } = useUnsavedChangesWarning({
+    isDirty: isFormDirty,
+    message: t('unsavedChanges.message', 'You have unsaved changes. Are you sure you want to leave?'),
+  });
 
   useEffect(() => {
     fetchFairs();
@@ -191,6 +211,7 @@ const FairManagement: React.FC = () => {
 
   const resetForm = () => {
     setFormData(initialFormData);
+    setOriginalFormData(initialFormData);
     setError(null);
   };
 
@@ -201,7 +222,7 @@ const FairManagement: React.FC = () => {
 
   const openEditModal = (fair: Fair) => {
     setSelectedFair(fair);
-    setFormData({
+    const editFormData = {
       name: fair.name,
       descriptionAz: fair.descriptionAz || '',
       descriptionEn: fair.descriptionEn || '',
@@ -212,16 +233,28 @@ const FairManagement: React.FC = () => {
       mapCenterLng: fair.mapCenterLng?.toString() || '',
       bannerImageUrl: fair.bannerImageUrl || '',
       status: fair.status,
-    });
+    };
+    setFormData(editFormData);
+    setOriginalFormData(editFormData);
     setShowEditModal(true);
   };
 
-  const closeModals = () => {
+  // Close modals - checks for unsaved changes first
+  const closeModals = useCallback(() => {
     setShowCreateModal(false);
     setShowEditModal(false);
     setSelectedFair(null);
     resetForm();
-  };
+  }, []);
+
+  // Attempt to close modal - shows warning if dirty
+  const attemptCloseModal = useCallback(() => {
+    if (isFormDirty) {
+      confirmNavigation(closeModals);
+    } else {
+      closeModals();
+    }
+  }, [isFormDirty, confirmNavigation, closeModals]);
 
   const handleCreateFair = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -505,11 +538,11 @@ const FairManagement: React.FC = () => {
 
       {/* Create Fair Modal */}
       {showCreateModal && (
-        <div className="modal-overlay" onClick={closeModals}>
+        <div className="modal-overlay" onClick={attemptCloseModal}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{t('Create New Fair', { defaultValue: 'Create New Fair' })}</h2>
-              <button className="modal-close" onClick={closeModals}>&times;</button>
+              <button className="modal-close" onClick={attemptCloseModal}>&times;</button>
             </div>
             <form onSubmit={handleCreateFair}>
               {error && <div className="form-error">{error}</div>}
@@ -645,7 +678,7 @@ const FairManagement: React.FC = () => {
               </div>
 
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={closeModals}>
+                <button type="button" className="btn btn-secondary" onClick={attemptCloseModal}>
                   {t('Cancel', { defaultValue: 'Cancel' })}
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
@@ -659,11 +692,11 @@ const FairManagement: React.FC = () => {
 
       {/* Edit Fair Modal */}
       {showEditModal && selectedFair && (
-        <div className="modal-overlay" onClick={closeModals}>
+        <div className="modal-overlay" onClick={attemptCloseModal}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{t('Edit Fair', { defaultValue: 'Edit Fair' })}</h2>
-              <button className="modal-close" onClick={closeModals}>&times;</button>
+              <button className="modal-close" onClick={attemptCloseModal}>&times;</button>
             </div>
             <form onSubmit={handleUpdateFair}>
               {error && <div className="form-error">{error}</div>}
@@ -792,7 +825,7 @@ const FairManagement: React.FC = () => {
               </div>
 
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={closeModals}>
+                <button type="button" className="btn btn-secondary" onClick={attemptCloseModal}>
                   {t('Cancel', { defaultValue: 'Cancel' })}
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
@@ -800,6 +833,28 @@ const FairManagement: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Unsaved Changes Warning Modal */}
+      {showWarningModal && (
+        <div className="modal-overlay warning-overlay">
+          <div className="modal-content warning-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header warning-header">
+              <h2>⚠️ {t('unsavedChanges.title', 'Unsaved Changes')}</h2>
+            </div>
+            <div className="warning-body">
+              <p>{warningMessage}</p>
+            </div>
+            <div className="modal-footer warning-footer">
+              <button type="button" className="btn btn-secondary" onClick={handleStay}>
+                {t('unsavedChanges.stay', 'Stay')}
+              </button>
+              <button type="button" className="btn btn-danger" onClick={handleLeave}>
+                {t('unsavedChanges.leave', 'Leave')}
+              </button>
+            </div>
           </div>
         </div>
       )}
