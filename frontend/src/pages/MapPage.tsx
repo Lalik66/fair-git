@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { publicApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import PanoramaViewer from '../components/PanoramaViewer';
 import './MapPage.css';
 
 // Set Mapbox access token
@@ -63,8 +64,7 @@ const MapPage: React.FC = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_selectedHouse, _setSelectedHouse] = useState<VendorHouse | null>(null);
+  const [panoramaHouse, setPanoramaHouse] = useState<VendorHouse | null>(null);
 
   // Default map center (Baku, Azerbaijan)
   const defaultCenter: [number, number] = [49.8671, 40.4093];
@@ -256,6 +256,22 @@ const MapPage: React.FC = () => {
     });
   }, [vendorHouses, facilities, user, t]);
 
+  // Listen for panorama open events from popup buttons
+  useEffect(() => {
+    const handleOpenPanorama = (e: CustomEvent) => {
+      const houseId = e.detail;
+      const house = vendorHouses.find(h => h.id === houseId);
+      if (house && house.panorama360Url) {
+        setPanoramaHouse(house);
+      }
+    };
+
+    window.addEventListener('openPanorama', handleOpenPanorama as EventListener);
+    return () => {
+      window.removeEventListener('openPanorama', handleOpenPanorama as EventListener);
+    };
+  }, [vendorHouses]);
+
   // Handle fair selection change
   const handleFairChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFairId = e.target.value;
@@ -265,6 +281,11 @@ const MapPage: React.FC = () => {
     } else {
       setSearchParams({});
     }
+  };
+
+  // Handle closing panorama viewer
+  const handleClosePanorama = () => {
+    setPanoramaHouse(null);
   };
 
   // Get icon for facility type
@@ -394,6 +415,15 @@ const MapPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Panorama Viewer Modal */}
+      {panoramaHouse && panoramaHouse.panorama360Url && (
+        <PanoramaViewer
+          panoramaUrl={panoramaHouse.panorama360Url}
+          houseNumber={panoramaHouse.houseNumber}
+          onClose={handleClosePanorama}
+        />
+      )}
     </div>
   );
 };
