@@ -88,8 +88,8 @@ export const adminApi = {
     return response.data;
   },
 
-  getLogs: async () => {
-    const response = await api.get('/admin/logs');
+  getLogs: async (params?: { action?: string; fromDate?: string; toDate?: string }) => {
+    const response = await api.get('/admin/logs', { params });
     return response.data;
   },
 
@@ -295,6 +295,18 @@ export const publicApi = {
 
   getPastEvents: async () => {
     const response = await api.get('/public/past-events');
+    return response.data;
+  },
+
+  getVendorHouses: async (fairId?: string) => {
+    const response = await api.get('/public/vendor-houses', {
+      params: fairId ? { fairId } : undefined,
+    });
+    return response.data;
+  },
+
+  getFacilities: async () => {
+    const response = await api.get('/public/facilities');
     return response.data;
   },
 };

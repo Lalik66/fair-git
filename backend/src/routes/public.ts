@@ -25,6 +25,8 @@ router.get('/next-fair', async (req: Request, res: Response): Promise<void> => {
         endDate: true,
         locationAddress: true,
         status: true,
+        mapCenterLat: true,
+        mapCenterLng: true,
       },
     });
 
@@ -45,6 +47,8 @@ router.get('/next-fair', async (req: Request, res: Response): Promise<void> => {
           endDate: true,
           locationAddress: true,
           status: true,
+          mapCenterLat: true,
+          mapCenterLng: true,
         },
       });
     }
@@ -78,6 +82,8 @@ router.get('/fairs', async (req: Request, res: Response): Promise<void> => {
         locationAddress: true,
         status: true,
         bannerImageUrl: true,
+        mapCenterLat: true,
+        mapCenterLng: true,
       },
       orderBy: { startDate: 'asc' },
     });
@@ -155,6 +161,96 @@ router.get('/past-events', async (req: Request, res: Response): Promise<void> =>
     res.json({ events });
   } catch (error) {
     console.error('Get past events error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get vendor houses for map display with availability status
+router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fairId } = req.query;
+
+    // Get all enabled vendor houses
+    const houses = await prisma.vendorHouse.findMany({
+      where: {
+        isEnabled: true,
+      },
+      select: {
+        id: true,
+        houseNumber: true,
+        areaSqm: true,
+        price: true,
+        description: true,
+        latitude: true,
+        longitude: true,
+        panorama360Url: true,
+      },
+      orderBy: { houseNumber: 'asc' },
+    });
+
+    // If fairId is provided, get booking information to determine availability
+    let bookingsMap: Map<string, boolean> = new Map();
+    if (fairId && typeof fairId === 'string') {
+      const bookings = await prisma.booking.findMany({
+        where: {
+          fairId: fairId,
+          bookingStatus: { in: ['pending', 'approved'] },
+        },
+        select: {
+          vendorHouseId: true,
+        },
+      });
+
+      // Also check for pending/approved applications
+      const applications = await prisma.application.findMany({
+        where: {
+          fairId: fairId,
+          status: { in: ['pending', 'approved'] },
+        },
+        select: {
+          vendorHouseId: true,
+        },
+      });
+
+      // Combine bookings and applications to mark houses as occupied
+      bookings.forEach((b) => bookingsMap.set(b.vendorHouseId, true));
+      applications.forEach((a) => bookingsMap.set(a.vendorHouseId, true));
+    }
+
+    // Transform houses to include availability
+    const housesWithAvailability = houses.map((house) => ({
+      ...house,
+      isAvailable: fairId ? !bookingsMap.has(house.id) : null,
+    }));
+
+    res.json({ houses: housesWithAvailability });
+  } catch (error) {
+    console.error('Get vendor houses error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get facilities for map display
+router.get('/facilities', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const facilities = await prisma.facility.findMany({
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        description: true,
+        latitude: true,
+        longitude: true,
+        photoUrl: true,
+        icon: true,
+        color: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    res.json({ facilities });
+  } catch (error) {
+    console.error('Get facilities error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

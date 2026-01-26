@@ -11,6 +11,7 @@ import VendorProfile from './pages/VendorProfile';
 import VendorApplications from './pages/VendorApplications';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
+import MapPage from './pages/MapPage';
 import { authApi } from './services/api';
 
 // Navigation component
@@ -188,18 +189,7 @@ const Navigation: React.FC = () => {
   );
 };
 
-// Placeholder components - to be implemented
-const MapPage: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="map-page">
-      <h1>{t('map.title', 'Browse Map')}</h1>
-      <p>Interactive map will be implemented here.</p>
-    </div>
-  );
-};
-
-// AboutPage imported from pages/AboutPage.tsx
+// MapPage and AboutPage imported from pages/
 
 const VendorDashboard: React.FC = () => {
   const { t } = useTranslation();
