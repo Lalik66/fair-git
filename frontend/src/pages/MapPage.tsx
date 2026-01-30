@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { publicApi } from '../services/api';
+import { publicApi, vendorApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import PanoramaViewer from '../components/PanoramaViewer';
 import './MapPage.css';
@@ -75,6 +75,8 @@ const MapPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [panoramaHouse, setPanoramaHouse] = useState<VendorHouse | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [applicationMessage, setApplicationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [submittingApplication, setSubmittingApplication] = useState(false);
 
   // Product categories for filter
   const productCategories = [
@@ -326,6 +328,45 @@ const MapPage: React.FC = () => {
     };
   }, [vendorHouses]);
 
+  // Listen for apply-for-house events from popup buttons
+  useEffect(() => {
+    const handleApplyForHouse = async (e: CustomEvent) => {
+      const houseId = e.detail;
+      if (!selectedFairId) {
+        setApplicationMessage({ type: 'error', text: t('map.selectFairFirst', 'Please select a fair first') });
+        return;
+      }
+
+      const house = vendorHouses.find(h => h.id === houseId);
+      if (!house) return;
+
+      const confirmed = window.confirm(
+        t('map.confirmApplication', `Are you sure you want to apply for house ${house.houseNumber} at ${fairs.find(f => f.id === selectedFairId)?.name || 'this fair'}?`)
+      );
+      if (!confirmed) return;
+
+      try {
+        setSubmittingApplication(true);
+        setApplicationMessage(null);
+        await vendorApi.submitApplication(selectedFairId, houseId);
+        setApplicationMessage({
+          type: 'success',
+          text: t('map.applicationSubmitted', 'Application submitted successfully! You will receive a confirmation email.')
+        });
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.error || t('map.applicationError', 'Failed to submit application');
+        setApplicationMessage({ type: 'error', text: errorMsg });
+      } finally {
+        setSubmittingApplication(false);
+      }
+    };
+
+    window.addEventListener('applyForHouse', handleApplyForHouse as EventListener);
+    return () => {
+      window.removeEventListener('applyForHouse', handleApplyForHouse as EventListener);
+    };
+  }, [vendorHouses, selectedFairId, fairs, t]);
+
   // Handle fair selection change
   const handleFairChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFairId = e.target.value;
@@ -489,6 +530,13 @@ const MapPage: React.FC = () => {
           >
             ✕ {t('common.clearFilters', 'Clear Filters')}
           </button>
+        </div>
+      )}
+
+      {applicationMessage && (
+        <div className={`application-message ${applicationMessage.type}`}>
+          <span>{applicationMessage.text}</span>
+          <button className="btn-dismiss" onClick={() => setApplicationMessage(null)}>✕</button>
         </div>
       )}
 
