@@ -170,10 +170,35 @@ router.patch('/users/:userId/status', async (req: Request, res: Response): Promi
   }
 });
 
-// Get admin activity logs
+// Get admin activity logs with filtering
 router.get('/logs', async (req: Request, res: Response): Promise<void> => {
   try {
+    const { action, fromDate, toDate } = req.query;
+
+    // Build filter conditions
+    const where: any = {};
+
+    // Filter by action type
+    if (action && action !== 'all') {
+      where.action = action as string;
+    }
+
+    // Filter by date range
+    if (fromDate || toDate) {
+      where.timestamp = {};
+      if (fromDate) {
+        where.timestamp.gte = new Date(fromDate as string);
+      }
+      if (toDate) {
+        // Set to end of the day for toDate
+        const endDate = new Date(toDate as string);
+        endDate.setHours(23, 59, 59, 999);
+        where.timestamp.lte = endDate;
+      }
+    }
+
     const logs = await prisma.adminLog.findMany({
+      where,
       include: {
         admin: {
           select: {
@@ -187,7 +212,17 @@ router.get('/logs', async (req: Request, res: Response): Promise<void> => {
       take: 100,
     });
 
-    res.json({ logs });
+    // Get distinct action types for filter dropdown
+    const actionTypes = await prisma.adminLog.findMany({
+      select: { action: true },
+      distinct: ['action'],
+      orderBy: { action: 'asc' },
+    });
+
+    res.json({
+      logs,
+      actionTypes: actionTypes.map(a => a.action)
+    });
   } catch (error) {
     console.error('Get logs error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -1741,6 +1776,108 @@ router.post('/test-vendor', async (req: Request, res: Response): Promise<void> =
   }
 });
 
+// Create test vendor with 360° panorama booking (for testing panorama feature)
+router.post('/test-vendor-with-panorama', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const testEmail = `test-panorama-vendor-${Date.now()}@test.com`;
+    const testPassword = 'VendorPass123!';
+    const passwordHash = await bcrypt.hash(testPassword, 10);
+
+    // Create test vendor user with password
+    const user = await prisma.user.create({
+      data: {
+        email: testEmail,
+        firstName: 'Panorama',
+        lastName: 'Vendor',
+        role: 'vendor',
+        isActive: true,
+        passwordHash,
+      },
+    });
+
+    // Create vendor profile
+    const vendorProfile = await prisma.vendorProfile.create({
+      data: {
+        userId: user.id,
+        companyName: 'Panorama Test Company',
+        businessDescription: 'Test company for 360° panorama feature',
+        productCategory: 'other',
+      },
+    });
+
+    // Get an upcoming fair
+    const fair = await prisma.fair.findFirst({
+      where: { status: 'upcoming' },
+    });
+
+    if (!fair) {
+      res.status(400).json({ error: 'No upcoming fair found. Create a fair first.' });
+      return;
+    }
+
+    // Create a vendor house with 360° panorama
+    const testHouseNumber = `PANORAMA-HOUSE-${Date.now()}`;
+    const vendorHouse = await prisma.vendorHouse.create({
+      data: {
+        houseNumber: testHouseNumber,
+        areaSqm: 30,
+        price: 600,
+        description: 'Test vendor house with 360° panorama tour',
+        latitude: 40.4093,
+        longitude: 49.8671,
+        isEnabled: true,
+        panorama360Url: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
+      },
+    });
+
+    // Create approved application
+    const application = await prisma.application.create({
+      data: {
+        vendorProfileId: vendorProfile.id,
+        fairId: fair.id,
+        vendorHouseId: vendorHouse.id,
+        status: 'approved',
+        reviewedAt: new Date(),
+        reviewedById: req.user!.id,
+      },
+    });
+
+    // Create approved booking
+    const booking = await prisma.booking.create({
+      data: {
+        applicationId: application.id,
+        vendorProfileId: vendorProfile.id,
+        vendorHouseId: vendorHouse.id,
+        fairId: fair.id,
+        bookingStatus: 'approved',
+        startDate: fair.startDate,
+        endDate: fair.endDate,
+      },
+    });
+
+    res.status(201).json({
+      message: 'Test vendor with 360° panorama booking created successfully',
+      credentials: {
+        email: testEmail,
+        password: testPassword,
+      },
+      testData: {
+        vendorId: user.id,
+        vendorProfileId: vendorProfile.id,
+        vendorHouseId: vendorHouse.id,
+        houseNumber: testHouseNumber,
+        applicationId: application.id,
+        bookingId: booking.id,
+        fairName: fair.name,
+        panorama360Url: vendorHouse.panorama360Url,
+      },
+    });
+  } catch (error) {
+    console.error('Create test vendor with panorama error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ============================================
 // About Us Management
 // ============================================
@@ -1801,6 +1938,189 @@ router.put('/about-us/:sectionKey', async (req: Request, res: Response): Promise
     res.json({ content, message: 'Content updated successfully' });
   } catch (error) {
     console.error('Update about us content error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ============================================
+// Vendor House Management (for 360° panorama testing)
+// ============================================
+
+// Update vendor house panorama URL
+router.put('/vendor-houses/:houseId/panorama', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { houseId } = req.params;
+    const { panorama360Url } = req.body;
+
+    const vendorHouse = await prisma.vendorHouse.findUnique({
+      where: { id: houseId },
+    });
+
+    if (!vendorHouse) {
+      res.status(404).json({ error: 'Vendor house not found' });
+      return;
+    }
+
+    const updated = await prisma.vendorHouse.update({
+      where: { id: houseId },
+      data: { panorama360Url },
+    });
+
+    res.json({
+      message: 'Panorama URL updated successfully',
+      vendorHouse: {
+        id: updated.id,
+        houseNumber: updated.houseNumber,
+        panorama360Url: updated.panorama360Url,
+      },
+    });
+  } catch (error) {
+    console.error('Update vendor house panorama error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get all vendor houses
+router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const houses = await prisma.vendorHouse.findMany({
+      orderBy: { houseNumber: 'asc' },
+      select: {
+        id: true,
+        houseNumber: true,
+        areaSqm: true,
+        price: true,
+        description: true,
+        panorama360Url: true,
+        isEnabled: true,
+      },
+    });
+
+    res.json({ houses });
+  } catch (error) {
+    console.error('Get vendor houses error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update vendor house details
+router.put('/vendor-houses/:houseId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { houseId } = req.params;
+    const { houseNumber, areaSqm, price, description, isEnabled } = req.body;
+
+    const vendorHouse = await prisma.vendorHouse.findUnique({
+      where: { id: houseId },
+    });
+
+    if (!vendorHouse) {
+      res.status(404).json({ error: 'Vendor house not found' });
+      return;
+    }
+
+    const updateData: Record<string, unknown> = {};
+
+    if (houseNumber !== undefined) {
+      if (houseNumber !== vendorHouse.houseNumber) {
+        const existingHouse = await prisma.vendorHouse.findUnique({
+          where: { houseNumber },
+        });
+        if (existingHouse) {
+          res.status(400).json({ error: 'A vendor house with this number already exists' });
+          return;
+        }
+      }
+      updateData.houseNumber = houseNumber;
+    }
+
+    if (areaSqm !== undefined) {
+      updateData.areaSqm = areaSqm !== null && areaSqm !== '' ? parseFloat(String(areaSqm)) : null;
+    }
+
+    if (price !== undefined) {
+      updateData.price = price !== null && price !== '' ? parseFloat(String(price)) : null;
+    }
+
+    if (description !== undefined) {
+      updateData.description = description || null;
+    }
+
+    if (isEnabled !== undefined) {
+      updateData.isEnabled = Boolean(isEnabled);
+    }
+
+    const updated = await prisma.vendorHouse.update({
+      where: { id: houseId },
+      data: updateData,
+    });
+
+    res.json({
+      message: 'Vendor house updated successfully',
+      vendorHouse: {
+        id: updated.id,
+        houseNumber: updated.houseNumber,
+        areaSqm: updated.areaSqm,
+        price: updated.price,
+        description: updated.description,
+        isEnabled: updated.isEnabled,
+        panorama360Url: updated.panorama360Url,
+        latitude: updated.latitude,
+        longitude: updated.longitude,
+      },
+    });
+  } catch (error) {
+    console.error('Update vendor house error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get single vendor house details
+router.get('/vendor-houses/:houseId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { houseId } = req.params;
+
+    const vendorHouse = await prisma.vendorHouse.findUnique({
+      where: { id: houseId },
+      include: {
+        applications: {
+          select: {
+            id: true,
+            status: true,
+            fair: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+        },
+        bookings: {
+          select: {
+            id: true,
+            status: true,
+            fair: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+        },
+      },
+    });
+
+    if (!vendorHouse) {
+      res.status(404).json({ error: 'Vendor house not found' });
+      return;
+    }
+
+    res.json({ vendorHouse });
+  } catch (error) {
+    console.error('Get vendor house error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

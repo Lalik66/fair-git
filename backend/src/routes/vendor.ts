@@ -108,6 +108,7 @@ router.get('/bookings', async (req: Request, res: Response): Promise<void> => {
             areaSqm: true,
             price: true,
             description: true,
+            panorama360Url: true,
           },
         },
         application: {
@@ -141,6 +142,7 @@ router.get('/bookings', async (req: Request, res: Response): Promise<void> => {
       houseArea: booking.vendorHouse.areaSqm,
       housePrice: booking.vendorHouse.price,
       houseDescription: booking.vendorHouse.description,
+      housePanorama360Url: booking.vendorHouse.panorama360Url,
       // Application info
       applicationId: booking.application.id,
       applicationSubmittedAt: booking.application.submittedAt,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { vendorApi } from '../services/api';
+import PanoramaViewer from '../components/PanoramaViewer';
 import './VendorBookings.css';
 
 interface Booking {
@@ -20,6 +21,7 @@ interface Booking {
   houseArea: number | null;
   housePrice: number | null;
   houseDescription: string | null;
+  housePanorama360Url: string | null;
   applicationId: string;
   applicationSubmittedAt: string;
 }
@@ -29,6 +31,8 @@ const VendorBookings: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPanorama, setShowPanorama] = useState(false);
+  const [selectedPanorama, setSelectedPanorama] = useState<{ url: string; houseNumber: string } | null>(null);
 
   useEffect(() => {
     fetchBookings();
@@ -83,6 +87,16 @@ const VendorBookings: React.FC = () => {
       default:
         return status;
     }
+  };
+
+  const handleView360Tour = (panoramaUrl: string, houseNumber: string) => {
+    setSelectedPanorama({ url: panoramaUrl, houseNumber });
+    setShowPanorama(true);
+  };
+
+  const handleClosePanorama = () => {
+    setShowPanorama(false);
+    setSelectedPanorama(null);
   };
 
   if (loading) {
@@ -181,10 +195,28 @@ const VendorBookings: React.FC = () => {
                 <span className="booked-date">
                   Booked: {formatDate(booking.createdAt)}
                 </span>
+                {booking.housePanorama360Url && (
+                  <button
+                    className="btn btn-360-tour"
+                    onClick={() => handleView360Tour(booking.housePanorama360Url!, booking.houseNumber)}
+                    title="View 360° panoramic tour of your house"
+                  >
+                    <span className="tour-icon">🔄</span>
+                    360° Tour
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {showPanorama && selectedPanorama && (
+        <PanoramaViewer
+          panoramaUrl={selectedPanorama.url}
+          houseNumber={selectedPanorama.houseNumber}
+          onClose={handleClosePanorama}
+        />
       )}
     </div>
   );

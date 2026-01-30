@@ -206,6 +206,33 @@ export const adminApi = {
     const response = await api.post(`/admin/fairs/${fairId}/archive-bookings`);
     return response.data;
   },
+
+  // Vendor house management
+  getVendorHouses: async () => {
+    const response = await api.get('/admin/vendor-houses');
+    return response.data;
+  },
+
+  getVendorHouse: async (houseId: string) => {
+    const response = await api.get(`/admin/vendor-houses/${houseId}`);
+    return response.data;
+  },
+
+  updateVendorHouse: async (houseId: string, data: {
+    houseNumber?: string;
+    areaSqm?: number | null;
+    price?: number | null;
+    description?: string | null;
+    isEnabled?: boolean;
+  }) => {
+    const response = await api.put(`/admin/vendor-houses/${houseId}`, data);
+    return response.data;
+  },
+
+  updateVendorHousePanorama: async (houseId: string, panorama360Url: string) => {
+    const response = await api.put(`/admin/vendor-houses/${houseId}/panorama`, { panorama360Url });
+    return response.data;
+  },
 };
 
 // Vendor API

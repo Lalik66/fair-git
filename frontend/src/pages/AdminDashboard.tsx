@@ -7,6 +7,7 @@ import AdminLogs from './AdminLogs';
 import FairManagement from './FairManagement';
 import ApplicationReview from './ApplicationReview';
 import AboutUsEditor from './AboutUsEditor';
+import MapManagement from './MapManagement';
 import './AdminDashboard.css';
 
 // Admin home/overview component
@@ -51,8 +52,11 @@ const AdminHome: React.FC = () => {
         <div className="admin-card">
           <h3>{t('admin.mapManagement')}</h3>
           <p>Configure vendor houses and facilities.</p>
-          <button className="btn btn-primary" disabled>
-            Coming Soon
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate('/admin/map')}
+          >
+            {t('Manage Map', { defaultValue: 'Manage Map' })}
           </button>
         </div>
 
@@ -115,6 +119,7 @@ const AdminDashboard: React.FC = () => {
       'users': t('admin.userManagement', { defaultValue: 'User Management' }),
       'logs': t('admin.adminLogs', { defaultValue: 'Activity Logs' }),
       'about-us': t('admin.aboutUsEditor', { defaultValue: 'About Us Editor' }),
+      'map': t('admin.mapManagement', { defaultValue: 'Map Management' }),
     };
 
     const crumbs: Array<{ label: string; path: string | null }> = [
@@ -177,6 +182,7 @@ const AdminDashboard: React.FC = () => {
           <Route path="/fairs" element={<FairManagement />} />
           <Route path="/applications" element={<ApplicationReview />} />
           <Route path="/about-us" element={<AboutUsEditor />} />
+          <Route path="/map" element={<MapManagement />} />
         </Routes>
       </main>
     </div>

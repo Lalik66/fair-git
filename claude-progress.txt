@@ -1,6 +1,92 @@
 # Fair Marketplace - Development Progress
 
-## Current Status: 181/240 features passing (75.4%)
+## Current Status: 189/240 features passing (78.8%)
+
+## Session 21 - January 25, 2026
+
+### Completed This Session:
+- **Feature 38: Application image validation - file size**
+  - Created test file generator (create-large-test-image.js) to produce 6MB file
+  - Tested file upload on vendor profile page
+  - Verified 6MB file rejected with error: "File size exceeds 5MB limit."
+  - Verified small valid image (70 bytes) accepted with success message
+  - Backend uses multer with 5MB fileSize limit
+
+- **Feature 39: Application image validation - file format**
+  - Created test files (PDF, PNG, JPG) using create-test-files.js
+  - Tested file upload on vendor profile page
+  - Verified PDF rejected with error: "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed."
+  - Verified JPG accepted with success message "Logo uploaded successfully!"
+  - Backend fileFilter allows: image/jpeg, image/jpg, image/png, image/gif, image/webp
+
+- **Feature 90 (Regression)**: Verified vendor cannot access admin routes
+  - Vendor user redirected away from /admin, /admin/fairs, /admin/applications
+
+### Skipped Features (Dependencies Not Implemented):
+Many features were skipped because they require functionality that isn't implemented:
+
+1. **Map Management** (Coming Soon in UI) - Features 20-34, 56, 64-71, 107, 115, 124, 127, 150, 153, 154, 202, 205-207, 210, 215, 231
+2. **Google OAuth** - Features 2, 3, 6, 126, 221
+3. **Cloudinary Integration** - Features 208, 225 (images stored locally in /uploads/)
+4. **360° Panorama Viewer** - Features 56, 66, 204, 207 (library installed but not used)
+5. **Application Deletion** - Features 151, 152 (no delete button in admin UI)
+6. **Breadcrumbs** - Feature 107 (uses "← Back to Dashboard" link instead)
+7. **Network Error Testing** - Feature 128 (requires network manipulation)
+
+### Technical Notes:
+- Test file generators created in project root:
+  - create-large-test-image.js - Creates 6MB test file for size validation
+  - create-test-files.js - Creates PDF, PNG, JPG test files for format validation
+- Test files output to test-images/ directory
+
+### What Needs Work Next:
+- Most remaining features require implementing:
+  1. Interactive Map Management (Leaflet/Mapbox integration)
+  2. Google OAuth authentication
+  3. Cloudinary integration for cloud image storage
+  4. 360° Panorama viewer using Photo Sphere Viewer library
+  5. Application deletion functionality
+  
+### NEW FEATURE REQUEST: Split-View Map Layout with Sidebar
+
+Redesign the public map page with a split-view layout:
+
+**Left Sidebar (30-40% width):**
+- Header with "Yarmarka xəritəsi" (Fair Map) title
+- Filter buttons row: All, Evlər (Houses), Kafe, WC, Giriş (Entrance), Əyləncələr (Entertainment), Dayancaq (Stops), Parking
+- Scrollable list of all map objects showing:
+  - Object name (colored by type)
+  - Short description
+  - Address or details
+- Clicking an item in the list:
+  - Centers map on that location
+  - Opens the popup for that marker
+  - Highlights the item in the list
+
+**Right Map Panel (60-70% width):**
+- Interactive Mapbox map (keep existing functionality)
+- Search box at top-right corner
+- 3D building view enabled
+- All existing markers and popups
+- When marker clicked, corresponding list item highlights
+
+**360° Panorama Preview:**
+- Small preview panel at bottom-right of map
+- Shows panorama thumbnail when house is selected
+- Displays house size (e.g., "Evin ölçüləri: 130m²")
+- Click to open full panorama viewer
+
+**Responsive Design:**
+- On mobile: sidebar becomes bottom sheet or collapsible drawer
+- Filter buttons become horizontally scrollable
+
+**Color Coding:**
+- Green: Vendor houses (Evlər)
+- Orange/Red: Food & cafes
+- Blue: Information, WC, services
+- Purple: Entertainment
+- Gray: Parking
+---
 
 ## Session 20 - January 24, 2026
 
@@ -12,6 +98,36 @@
   - Labels turn red when fields have validation errors
   - Verified working with browser automation - screenshot taken
 
+- **Feature 141: Dirty form warning on navigation**
+  - Created new useUnsavedChangesWarning.ts hook
+  - Tracks form state changes via JSON comparison
+  - Shows warning modal when closing form with unsaved changes
+  - Browser beforeunload event for tab close/refresh
+  - Verified working with browser automation
+
+- **Feature 144: Filter parameters in URL**
+  - Updated ApplicationReview.tsx to use useSearchParams
+  - All filters (status, category, date, house, fair, search, sort, pagination) sync to URL
+  - Navigating to URL with params restores filter state
+  - Enables sharing filtered views via URL
+  - Verified working with browser automation
+
+- **Feature 157: Pagination resets on filter change**
+  - Already implemented in ApplicationReview.tsx
+  - useEffect resets currentPage to 1 when filters change
+  - Verified: going to page 2, applying filter, returns to page 1
+
+- **Feature 166: Phone number validation**
+  - Added phone validation to VendorProfile.tsx
+  - Regex allows +, digits, spaces, dashes, parentheses (7-20 chars)
+  - Invalid format shows error, valid format passes
+  - Also added field-level error display for all required fields
+
+- **Feature 170: Whitespace-only rejected for required fields**
+  - Already implemented with .trim() checks in validateForm
+  - Entering only spaces in Company Name shows "Company name is required"
+  - Verified working with browser automation
+
 ### Technical Changes:
 1. **frontend/src/pages/VendorProfile.css**:
    - Added field-level error styles (.form-group.has-error label, .input-error, .field-error, .required)
@@ -22,13 +138,28 @@
    - Added POST /api/admin/test-vendor endpoint for creating test vendors with passwords
    - This enables testing vendor features without manual database manipulation
 
+3. **frontend/src/hooks/useUnsavedChangesWarning.ts** (NEW FILE):
+   - Reusable hook for dirty form detection
+   - Handles beforeunload event
+   - Returns modal state and navigation confirmation function
+
+4. **frontend/src/pages/FairManagement.tsx**:
+   - Integrated useUnsavedChangesWarning hook
+   - Added warning modal for unsaved changes
+   - Tracks original form data to detect changes
+
+5. **frontend/src/pages/ApplicationReview.tsx**:
+   - Added useSearchParams for URL synchronization
+   - Filter state initialized from URL params
+   - updateUrlParams callback syncs state to URL on change
+
 ### Regression Testing:
 - Verified CSV export feature (Feature 52) still works correctly
 - Exported 8 rejected applications to CSV successfully
 
 ### What Needs Work Next:
 - Continue with the next pending feature from the feature queue
-- Current completion: 181/240 (75.4%)
+- Current completion: 183/240 (76.2%)
 
 ---
 

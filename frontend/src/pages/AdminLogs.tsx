@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminApi } from '../services/api';
 import './AdminLogs.css';
@@ -20,18 +20,35 @@ interface AdminLog {
 const AdminLogs: React.FC = () => {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<AdminLog[]>([]);
+  const [actionTypes, setActionTypes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLogs();
-  }, []);
+  // Filter states
+  const [actionFilter, setActionFilter] = useState<string>('all');
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await adminApi.getLogs();
+      const params: { action?: string; fromDate?: string; toDate?: string } = {};
+
+      if (actionFilter && actionFilter !== 'all') {
+        params.action = actionFilter;
+      }
+      if (fromDate) {
+        params.fromDate = fromDate;
+      }
+      if (toDate) {
+        params.toDate = toDate;
+      }
+
+      const data = await adminApi.getLogs(params);
       setLogs(data.logs);
+      if (data.actionTypes) {
+        setActionTypes(data.actionTypes);
+      }
       setError(null);
     } catch (err) {
       setError('Failed to load admin logs');
@@ -39,7 +56,11 @@ const AdminLogs: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [actionFilter, fromDate, toDate]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
@@ -64,8 +85,10 @@ const AdminLogs: React.FC = () => {
       'create_fair': 'Create Fair',
       'update_fair': 'Update Fair',
       'delete_fair': 'Delete Fair',
+      'archive_fair': 'Archive Fair',
       'approve_application': 'Approve Application',
       'reject_application': 'Reject Application',
+      'update_about_us': 'Update About Us',
     };
     return actionMap[action] || action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
@@ -80,7 +103,15 @@ const AdminLogs: React.FC = () => {
     return 'badge-info';
   };
 
-  if (loading) {
+  const handleClearFilters = () => {
+    setActionFilter('all');
+    setFromDate('');
+    setToDate('');
+  };
+
+  const hasFilters = actionFilter !== 'all' || fromDate || toDate;
+
+  if (loading && logs.length === 0) {
     return (
       <div className="admin-logs-container">
         <div className="loading-spinner">
@@ -112,9 +143,68 @@ const AdminLogs: React.FC = () => {
         </button>
       </div>
 
+      {/* Filter Controls */}
+      <div className="logs-filters">
+        <div className="filter-group">
+          <label htmlFor="actionFilter">{t('Filter by Action:', { defaultValue: 'Filter by Action:' })}</label>
+          <select
+            id="actionFilter"
+            value={actionFilter}
+            onChange={(e) => setActionFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">{t('All Actions', { defaultValue: 'All Actions' })}</option>
+            {actionTypes.map((action) => (
+              <option key={action} value={action}>
+                {formatAction(action)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="fromDate">{t('From:', { defaultValue: 'From:' })}</label>
+          <input
+            type="date"
+            id="fromDate"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="filter-date"
+          />
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="toDate">{t('To:', { defaultValue: 'To:' })}</label>
+          <input
+            type="date"
+            id="toDate"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="filter-date"
+          />
+        </div>
+
+        {hasFilters && (
+          <button onClick={handleClearFilters} className="btn btn-outline btn-sm clear-filters-btn">
+            {t('Clear Filters', { defaultValue: 'Clear Filters' })}
+          </button>
+        )}
+      </div>
+
+      {/* Results count */}
+      <div className="logs-count">
+        {t('Showing {{count}} log entries', { defaultValue: `Showing ${logs.length} log entries`, count: logs.length })}
+        {loading && <span className="loading-indicator"> ({t('Loading...', { defaultValue: 'Loading...' })})</span>}
+      </div>
+
       {logs.length === 0 ? (
         <div className="no-logs">
           <p>{t('No activity logs found', { defaultValue: 'No activity logs found' })}</p>
+          {hasFilters && (
+            <p className="no-logs-hint">
+              {t('Try adjusting your filters', { defaultValue: 'Try adjusting your filters' })}
+            </p>
+          )}
         </div>
       ) : (
         <div className="logs-table-container">

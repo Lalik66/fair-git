@@ -165,7 +165,7 @@ router.get('/past-events', async (req: Request, res: Response): Promise<void> =>
   }
 });
 
-// Get vendor houses for map display with availability status
+// Get vendor houses for map display with availability status and vendor info
 router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> => {
   try {
     const { fairId } = req.query;
@@ -188,9 +188,18 @@ router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> 
       orderBy: { houseNumber: 'asc' },
     });
 
-    // If fairId is provided, get booking information to determine availability
-    let bookingsMap: Map<string, boolean> = new Map();
+    // If fairId is provided, get booking information to determine availability and vendor info
+    interface VendorInfo {
+      companyName: string | null;
+      productCategory: string | null;
+      businessDescription: string | null;
+      logoUrl: string | null;
+      productImages: string[];
+    }
+    let bookingsMap: Map<string, VendorInfo | true> = new Map();
+
     if (fairId && typeof fairId === 'string') {
+      // Get bookings with vendor profile information (for occupied houses)
       const bookings = await prisma.booking.findMany({
         where: {
           fairId: fairId,
@@ -198,10 +207,24 @@ router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> 
         },
         select: {
           vendorHouseId: true,
+          vendorProfile: {
+            select: {
+              companyName: true,
+              productCategory: true,
+              businessDescription: true,
+              logoUrl: true,
+              productImages: {
+                select: {
+                  imageUrl: true,
+                },
+                orderBy: { orderIndex: 'asc' },
+              },
+            },
+          },
         },
       });
 
-      // Also check for pending/approved applications
+      // Also check for pending/approved applications (mark as occupied without vendor info)
       const applications = await prisma.application.findMany({
         where: {
           fairId: fairId,
@@ -209,19 +232,70 @@ router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> 
         },
         select: {
           vendorHouseId: true,
+          vendorProfile: {
+            select: {
+              companyName: true,
+              productCategory: true,
+              businessDescription: true,
+              logoUrl: true,
+              productImages: {
+                select: {
+                  imageUrl: true,
+                },
+                orderBy: { orderIndex: 'asc' },
+              },
+            },
+          },
         },
       });
 
-      // Combine bookings and applications to mark houses as occupied
-      bookings.forEach((b) => bookingsMap.set(b.vendorHouseId, true));
-      applications.forEach((a) => bookingsMap.set(a.vendorHouseId, true));
+      // Map bookings to vendor info
+      bookings.forEach((b) => {
+        const vendorInfo: VendorInfo = {
+          companyName: b.vendorProfile.companyName,
+          productCategory: b.vendorProfile.productCategory,
+          businessDescription: b.vendorProfile.businessDescription,
+          logoUrl: b.vendorProfile.logoUrl,
+          productImages: b.vendorProfile.productImages.map((img) => img.imageUrl),
+        };
+        bookingsMap.set(b.vendorHouseId, vendorInfo);
+      });
+
+      // Map applications (only if not already in bookings)
+      applications.forEach((a) => {
+        if (!bookingsMap.has(a.vendorHouseId)) {
+          const vendorInfo: VendorInfo = {
+            companyName: a.vendorProfile.companyName,
+            productCategory: a.vendorProfile.productCategory,
+            businessDescription: a.vendorProfile.businessDescription,
+            logoUrl: a.vendorProfile.logoUrl,
+            productImages: a.vendorProfile.productImages.map((img) => img.imageUrl),
+          };
+          bookingsMap.set(a.vendorHouseId, vendorInfo);
+        }
+      });
     }
 
-    // Transform houses to include availability
-    const housesWithAvailability = houses.map((house) => ({
-      ...house,
-      isAvailable: fairId ? !bookingsMap.has(house.id) : null,
-    }));
+    // Transform houses to include availability and vendor info
+    const housesWithAvailability = houses.map((house) => {
+      const bookingInfo = bookingsMap.get(house.id);
+      const isOccupied = !!bookingInfo;
+      const vendorInfo = bookingInfo && typeof bookingInfo !== 'boolean' ? bookingInfo : null;
+
+      return {
+        ...house,
+        isAvailable: fairId ? !isOccupied : null,
+        // Include vendor info for occupied houses (public display)
+        vendor: vendorInfo ? {
+          companyName: vendorInfo.companyName,
+          productCategory: vendorInfo.productCategory,
+          businessDescription: vendorInfo.businessDescription,
+          logoUrl: vendorInfo.logoUrl,
+          productImages: vendorInfo.productImages,
+          // Note: Contact info is NOT included for privacy
+        } : null,
+      };
+    });
 
     res.json({ houses: housesWithAvailability });
   } catch (error) {
