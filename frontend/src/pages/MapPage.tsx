@@ -12,6 +12,14 @@ import './MapPage.css';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 mapboxgl.accessToken = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
 
+interface VendorInfo {
+  companyName: string | null;
+  productCategory: string | null;
+  businessDescription: string | null;
+  logoUrl: string | null;
+  productImages: string[];
+}
+
 interface VendorHouse {
   id: string;
   houseNumber: string;
@@ -22,6 +30,7 @@ interface VendorHouse {
   longitude: number;
   panorama360Url: string | null;
   isAvailable: boolean | null;
+  vendor: VendorInfo | null;
 }
 
 interface Facility {
@@ -65,9 +74,19 @@ const MapPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [panoramaHouse, setPanoramaHouse] = useState<VendorHouse | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  // Product categories for filter
+  const productCategories = [
+    { value: 'food_beverages', labelKey: 'categories.food_beverages', fallback: 'Food & Beverages' },
+    { value: 'handicrafts', labelKey: 'categories.handicrafts', fallback: 'Handicrafts' },
+    { value: 'clothing', labelKey: 'categories.clothing', fallback: 'Clothing' },
+    { value: 'accessories', labelKey: 'categories.accessories', fallback: 'Accessories' },
+    { value: 'other', labelKey: 'categories.other', fallback: 'Other' },
+  ];
 
   // Default map center (Baku, Azerbaijan)
-  const defaultCenter: [number, number] = [49.8671, 40.4093];
+  const defaultCenter: [number, number] = [49.83690275228737, 40.37094989291927];
   const defaultZoom = 15;
 
   // Load fairs on mount
@@ -83,6 +102,12 @@ const MapPage: React.FC = () => {
           setSelectedFairId(urlFairId);
         } else if (data.fairs?.length > 0) {
           setSelectedFairId(data.fairs[0].id);
+        }
+
+        // Get category from URL if present
+        const urlCategory = searchParams.get('category');
+        if (urlCategory) {
+          setSelectedCategory(urlCategory);
         }
       } catch (err) {
         console.error('Failed to load fairs:', err);
@@ -165,8 +190,18 @@ const MapPage: React.FC = () => {
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
+    // Filter vendor houses by selected category
+    const filteredHouses = selectedCategory
+      ? vendorHouses.filter(house => {
+          // If house has a vendor with a matching category, show it
+          if (house.vendor && house.vendor.productCategory === selectedCategory) return true;
+          // If no category filter matches and house is available (no vendor), hide it when filtering
+          return false;
+        })
+      : vendorHouses;
+
     // Add vendor house markers
-    vendorHouses.forEach(house => {
+    filteredHouses.forEach(house => {
       if (!house.latitude || !house.longitude) return;
 
       const isAvailable = house.isAvailable !== false;
@@ -183,7 +218,25 @@ const MapPage: React.FC = () => {
       el.innerHTML = `<span class="marker-icon">🏠</span>`;
       el.title = house.houseNumber;
 
-      // Create popup content
+      // Create popup content with vendor info for occupied houses
+      const vendorSection = !isAvailable && house.vendor ? `
+        <div class="vendor-info">
+          ${house.vendor.logoUrl ? `<img src="${house.vendor.logoUrl}" alt="${house.vendor.companyName || ''}" class="vendor-logo" />` : ''}
+          ${house.vendor.companyName ? `<h4 class="vendor-name">${house.vendor.companyName}</h4>` : ''}
+          ${house.vendor.productCategory ? `
+            <p class="product-category">
+              <span class="category-badge">${t(`category.${house.vendor.productCategory}`, house.vendor.productCategory)}</span>
+            </p>
+          ` : ''}
+          ${house.vendor.businessDescription ? `<p class="business-description">${house.vendor.businessDescription}</p>` : ''}
+          ${house.vendor.productImages && house.vendor.productImages.length > 0 ? `
+            <div class="product-images">
+              ${house.vendor.productImages.slice(0, 3).map((img: string) => `<img src="${img}" alt="Product" class="product-image" />`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      ` : '';
+
       const popupContent = `
         <div class="marker-popup vendor-popup">
           <h3>${house.houseNumber}</h3>
@@ -195,6 +248,7 @@ const MapPage: React.FC = () => {
                 : t('map.occupied', 'Occupied')
             }
           </p>
+          ${vendorSection}
           <div class="house-details">
             <p><strong>${t('map.area', 'Area')}:</strong> ${house.areaSqm?.toFixed(1)} m²</p>
             <p><strong>${t('map.price', 'Price')}:</strong> ${house.price?.toFixed(2)} AZN</p>
@@ -254,7 +308,7 @@ const MapPage: React.FC = () => {
 
       markersRef.current.push(marker);
     });
-  }, [vendorHouses, facilities, user, t]);
+  }, [vendorHouses, facilities, user, t, selectedCategory]);
 
   // Listen for panorama open events from popup buttons
   useEffect(() => {
@@ -277,9 +331,36 @@ const MapPage: React.FC = () => {
     const newFairId = e.target.value;
     setSelectedFairId(newFairId);
     if (newFairId) {
-      setSearchParams({ fairId: newFairId });
+      setSearchParams(prev => {
+        const params = new URLSearchParams(prev);
+        params.set('fairId', newFairId);
+        return params;
+      });
     } else {
-      setSearchParams({});
+      setSearchParams(prev => {
+        const params = new URLSearchParams(prev);
+        params.delete('fairId');
+        return params;
+      });
+    }
+  };
+
+  // Handle category filter change
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCategory = e.target.value;
+    setSelectedCategory(newCategory);
+    if (newCategory) {
+      setSearchParams(prev => {
+        const params = new URLSearchParams(prev);
+        params.set('category', newCategory);
+        return params;
+      });
+    } else {
+      setSearchParams(prev => {
+        const params = new URLSearchParams(prev);
+        params.delete('category');
+        return params;
+      });
     }
   };
 
@@ -342,6 +423,35 @@ const MapPage: React.FC = () => {
               </option>
             ))}
           </select>
+          <select
+            className="category-filter"
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+            aria-label={t('map.filterByCategory', 'Filter by Category')}
+          >
+            <option value="">{t('map.allCategories', 'All Categories')}</option>
+            {productCategories.map(cat => (
+              <option key={cat.value} value={cat.value}>
+                {t(cat.labelKey, cat.fallback)}
+              </option>
+            ))}
+          </select>
+          {selectedCategory && (
+            <button
+              className="btn btn-clear-filter"
+              onClick={() => {
+                setSelectedCategory('');
+                setSearchParams(prev => {
+                  const params = new URLSearchParams(prev);
+                  params.delete('category');
+                  return params;
+                });
+              }}
+              title={t('common.clearFilters', 'Clear Filters')}
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
@@ -354,6 +464,31 @@ const MapPage: React.FC = () => {
           {selectedFair.locationAddress && (
             <p className="fair-location">📍 {selectedFair.locationAddress}</p>
           )}
+        </div>
+      )}
+
+      {selectedCategory && (
+        <div className="filter-info">
+          <span>🔍</span>
+          <span>
+            {t('map.filterByCategory', 'Filter by Category')}: <strong>{t(`categories.${selectedCategory}`, selectedCategory)}</strong>
+          </span>
+          <span className="filter-count">
+            ({vendorHouses.filter(h => h.vendor && h.vendor.productCategory === selectedCategory).length} {t('map.vendorHouses', 'vendor houses')})
+          </span>
+          <button
+            className="btn btn-clear-filter"
+            onClick={() => {
+              setSelectedCategory('');
+              setSearchParams(prev => {
+                const params = new URLSearchParams(prev);
+                params.delete('category');
+                return params;
+              });
+            }}
+          >
+            ✕ {t('common.clearFilters', 'Clear Filters')}
+          </button>
         </div>
       )}
 

@@ -76,6 +76,8 @@ const resources = {
         occupied: 'Occupied',
         view360: 'View 360° Tour',
         filterByCategory: 'Filter by Category',
+        allCategories: 'All Categories',
+        filteredResults: 'Showing {{count}} houses',
       },
 
       // Categories
@@ -272,6 +274,8 @@ const resources = {
         occupied: 'Tutulub',
         view360: '360° Turuna Bax',
         filterByCategory: 'Kateqoriyaya görə filtrləyin',
+        allCategories: 'Bütün Kateqoriyalar',
+        filteredResults: '{{count}} ev göstərilir',
       },
 
       // Categories

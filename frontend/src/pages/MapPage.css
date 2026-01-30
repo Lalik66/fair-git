@@ -36,10 +36,59 @@
   cursor: pointer;
 }
 
-.fair-selector:focus {
+.fair-selector:focus,
+.category-filter:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.category-filter {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  min-width: 180px;
+  cursor: pointer;
+}
+
+.btn-clear-filter {
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--surface-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.btn-clear-filter:hover {
+  background-color: #FEE2E2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+
+.filter-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #EEF2FF;
+  color: #4F46E5;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.filter-info .filter-count {
+  font-weight: 600;
 }
 
 .fair-info {
@@ -313,7 +362,8 @@
     font-size: 1.5rem;
   }
 
-  .fair-selector {
+  .fair-selector,
+  .category-filter {
     width: 100%;
   }
 
@@ -343,4 +393,67 @@
 .mapboxgl-popup-close-button:hover {
   background: #F3F4F6;
   border-radius: 4px;
+}
+
+/* Vendor Info in Popup */
+.vendor-info {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.vendor-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  margin-bottom: 8px;
+}
+
+.vendor-name {
+  margin: 0 0 6px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.product-category {
+  margin: 0 0 8px 0;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #EEF2FF;
+  color: #4F46E5;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.business-description {
+  margin: 0 0 10px 0;
+  font-size: 0.85rem;
+  color: #4B5563;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-images {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.product-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
 }
