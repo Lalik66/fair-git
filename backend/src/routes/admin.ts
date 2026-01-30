@@ -1,8 +1,42 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import { prisma } from '../index';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
+
+// Configure multer for panorama image uploads
+const panoramaStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../../uploads/panoramas');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `panorama-${uniqueSuffix}${ext}`);
+  },
+});
+
+const panoramaUpload = multer({
+  storage: panoramaStorage,
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB limit for panoramic images
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed for panoramic images.'));
+    }
+  },
+});
 
 const router = Router();
 
@@ -1976,6 +2010,57 @@ router.put('/vendor-houses/:houseId/panorama', async (req: Request, res: Respons
     });
   } catch (error) {
     console.error('Update vendor house panorama error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Upload panorama image file for vendor house
+router.post('/vendor-houses/:houseId/panorama-upload', panoramaUpload.single('panorama'), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { houseId } = req.params;
+
+    if (!req.file) {
+      res.status(400).json({ error: 'No panorama image file provided' });
+      return;
+    }
+
+    const vendorHouse = await prisma.vendorHouse.findUnique({
+      where: { id: houseId },
+    });
+
+    if (!vendorHouse) {
+      // Clean up uploaded file
+      fs.unlinkSync(req.file.path);
+      res.status(404).json({ error: 'Vendor house not found' });
+      return;
+    }
+
+    // Delete old panorama file if it exists and is a local file
+    if (vendorHouse.panorama360Url && vendorHouse.panorama360Url.startsWith('/uploads/panoramas/')) {
+      const oldFilePath = path.join(__dirname, '../..', vendorHouse.panorama360Url);
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+    }
+
+    // Build the URL for the uploaded file
+    const panorama360Url = `/uploads/panoramas/${req.file.filename}`;
+
+    const updated = await prisma.vendorHouse.update({
+      where: { id: houseId },
+      data: { panorama360Url },
+    });
+
+    res.json({
+      message: 'Panorama image uploaded successfully',
+      vendorHouse: {
+        id: updated.id,
+        houseNumber: updated.houseNumber,
+        panorama360Url: updated.panorama360Url,
+      },
+    });
+  } catch (error) {
+    console.error('Upload vendor house panorama error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

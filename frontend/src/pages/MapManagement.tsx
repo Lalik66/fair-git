@@ -41,6 +41,8 @@ const MapManagement: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [deletingHouse, setDeletingHouse] = useState<VendorHouse | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [uploadingPanoramaId, setUploadingPanoramaId] = useState<string | null>(null);
+  const panoramaInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchHouses = useCallback(async () => {
     try {
@@ -234,6 +236,52 @@ const MapManagement: React.FC = () => {
     }
   };
 
+  const handlePanoramaUploadClick = (houseId: string) => {
+    setUploadingPanoramaId(houseId);
+    setSuccessMessage('');
+    setError('');
+    // Trigger hidden file input
+    if (panoramaInputRef.current) {
+      panoramaInputRef.current.value = '';
+      panoramaInputRef.current.click();
+    }
+  };
+
+  const handlePanoramaFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadingPanoramaId) {
+      setUploadingPanoramaId(null);
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccessMessage('');
+
+      const result = await adminApi.uploadVendorHousePanorama(uploadingPanoramaId, file);
+
+      // Update local state
+      setHouses((prev) =>
+        prev.map((h) =>
+          h.id === uploadingPanoramaId
+            ? { ...h, panorama360Url: result.vendorHouse.panorama360Url }
+            : h
+        )
+      );
+
+      setSuccessMessage(result.message || 'Panorama image uploaded successfully');
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        setError(axiosErr.response?.data?.error || 'Failed to upload panorama image');
+      } else {
+        setError('Failed to upload panorama image');
+      }
+    } finally {
+      setUploadingPanoramaId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="map-management-container">
@@ -244,6 +292,15 @@ const MapManagement: React.FC = () => {
 
   return (
     <div className="map-management-container">
+      {/* Hidden file input for panorama upload */}
+      <input
+        ref={panoramaInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        style={{ display: 'none' }}
+        onChange={handlePanoramaFileChange}
+      />
+
       <div className="map-mgmt-header">
         <h2>{t('admin.mapManagement', { defaultValue: 'Map Management' })}</h2>
         <p className="map-mgmt-subtitle">
@@ -461,6 +518,13 @@ const MapManagement: React.FC = () => {
                       onClick={() => handleEdit(house)}
                     >
                       Edit
+                    </button>
+                    <button
+                      className="btn btn-sm btn-panorama"
+                      onClick={() => handlePanoramaUploadClick(house.id)}
+                      disabled={uploadingPanoramaId === house.id}
+                    >
+                      {uploadingPanoramaId === house.id ? 'Uploading...' : 'Upload Panorama'}
                     </button>
                     <button
                       className="btn btn-sm btn-danger"

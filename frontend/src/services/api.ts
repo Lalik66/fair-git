@@ -234,6 +234,17 @@ export const adminApi = {
     return response.data;
   },
 
+  uploadVendorHousePanorama: async (houseId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('panorama', file);
+    const response = await api.post(`/admin/vendor-houses/${houseId}/panorama-upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   deleteVendorHouse: async (houseId: string) => {
     const response = await api.delete(`/admin/vendor-houses/${houseId}`);
     return response.data;

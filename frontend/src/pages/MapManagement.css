@@ -327,6 +327,16 @@
   white-space: nowrap;
 }
 
+/* Panorama upload button */
+.btn-panorama {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.btn-panorama:hover:not(:disabled) {
+  background-color: #7c3aed;
+}
+
 /* Danger button */
 .btn-danger {
   background-color: #dc2626;
