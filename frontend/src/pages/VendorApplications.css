@@ -9,6 +9,12 @@
   margin-bottom: 1.5rem;
 }
 
+.page-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .vendor-applications h1 {
   margin: 0;
   font-size: 1.75rem;

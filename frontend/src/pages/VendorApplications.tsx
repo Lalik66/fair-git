@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { vendorApi } from '../services/api';
 import './VendorApplications.css';
 
@@ -22,6 +23,7 @@ interface Application {
 
 const VendorApplications: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,9 +101,14 @@ const VendorApplications: React.FC = () => {
     <div className="vendor-applications">
       <div className="page-header">
         <h1>{t('vendor.myApplications', 'My Applications')}</h1>
-        <button onClick={fetchApplications} className="btn btn-secondary btn-refresh">
-          {t('common.refresh', 'Refresh')}
-        </button>
+        <div className="page-header-actions">
+          <button onClick={() => navigate('/map')} className="btn btn-primary">
+            {t('vendor.newApplication', '+ New Application')}
+          </button>
+          <button onClick={fetchApplications} className="btn btn-secondary btn-refresh">
+            {t('common.refresh', 'Refresh')}
+          </button>
+        </div>
       </div>
 
       {applications.length === 0 ? (

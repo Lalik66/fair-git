@@ -575,6 +575,24 @@ a:hover {
   font-size: var(--font-size-sm);
 }
 
+.dashboard-card-primary {
+  background-color: var(--color-primary, #3b82f6);
+  border: 2px solid var(--color-primary, #3b82f6);
+}
+
+.dashboard-card-primary h3 {
+  color: white;
+}
+
+.dashboard-card-primary p {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dashboard-card-primary:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
 /* Vendor Applications placeholder */
 .vendor-applications {
   padding: var(--spacing-8);

@@ -419,11 +419,34 @@ router.post('/applications', async (req: Request, res: Response): Promise<void> 
         fairId: fairId,
         vendorHouseId: vendorHouseId,
       },
+      orderBy: { createdAt: 'desc' },
     });
 
     if (existingApplication) {
-      res.status(400).json({ error: 'You have already submitted an application for this house at this fair' });
-      return;
+      // If existing application is pending or approved, block
+      if (existingApplication.status === 'pending' || existingApplication.status === 'approved') {
+        res.status(400).json({ error: 'You have already submitted an application for this house at this fair' });
+        return;
+      }
+
+      // If existing application was rejected, check 1-week cooldown
+      if (existingApplication.status === 'rejected') {
+        const rejectedAt = existingApplication.reviewedAt || existingApplication.updatedAt;
+        const cooldownMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+        const cooldownEnd = new Date(rejectedAt.getTime() + cooldownMs);
+        const now = new Date();
+
+        if (now < cooldownEnd) {
+          const daysLeft = Math.ceil((cooldownEnd.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+          const reapplyDate = cooldownEnd.toISOString().split('T')[0];
+          res.status(400).json({
+            error: `Your previous application was rejected. You must wait 1 week before reapplying. You can reapply after ${reapplyDate} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining).`,
+          });
+          return;
+        }
+        // Cooldown passed, allow reapplication - delete the old rejected application
+        await prisma.application.delete({ where: { id: existingApplication.id } });
+      }
     }
 
     // Check if the house is already booked for this fair

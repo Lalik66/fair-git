@@ -251,6 +251,10 @@ const VendorDashboard: React.FC = () => {
                 <h1>{t('vendor.dashboard', 'Vendor Dashboard')}</h1>
                 <p>Welcome back, {user?.firstName || user?.email}!</p>
                 <div className="dashboard-cards">
+                  <Link to="/map" className="dashboard-card dashboard-card-primary">
+                    <h3>New Application</h3>
+                    <p>Browse the map and apply for a vendor house</p>
+                  </Link>
                   <Link to="/vendor/bookings" className="dashboard-card">
                     <h3>My Bookings</h3>
                     <p>View your approved fair bookings</p>
