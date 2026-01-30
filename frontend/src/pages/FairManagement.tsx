@@ -72,12 +72,19 @@ interface FairFormData {
   status: string;
 }
 
+// Get a date string offset by N days from today
+const getDateString = (daysOffset: number = 0): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysOffset);
+  return date.toISOString().split('T')[0];
+};
+
 const initialFormData: FairFormData = {
   name: '',
   descriptionAz: '',
   descriptionEn: '',
-  startDate: '',
-  endDate: '',
+  startDate: getDateString(30),
+  endDate: getDateString(60),
   locationAddress: '',
   mapCenterLat: '',
   mapCenterLng: '',
