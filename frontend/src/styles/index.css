@@ -973,3 +973,48 @@ a:hover {
     padding: var(--spacing-3) var(--spacing-4);
   }
 }
+
+/* Error Boundary - Global error fallback UI */
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--color-gray-50);
+  padding: var(--spacing-6);
+}
+
+.error-boundary-content {
+  text-align: center;
+  max-width: 480px;
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-8);
+  box-shadow: var(--shadow-lg);
+}
+
+.error-boundary-icon {
+  font-size: 3rem;
+  color: var(--color-warning);
+  margin-bottom: var(--spacing-4);
+}
+
+.error-boundary-content h1 {
+  font-size: var(--font-size-2xl);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.error-boundary-content p {
+  color: var(--color-gray-600);
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--spacing-6) 0;
+  line-height: 1.6;
+}
+
+.error-boundary-actions {
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: center;
+  flex-wrap: wrap;
+}
