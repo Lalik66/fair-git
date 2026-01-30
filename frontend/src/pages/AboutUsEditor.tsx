@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { adminAboutUsApi } from '../services/api';
 import './AboutUsEditor.css';
@@ -100,7 +99,6 @@ const AboutUsEditor: React.FC = () => {
       <div className="editor-header">
         <div>
           <h1>About Us Editor</h1>
-          <Link to="/admin" className="back-link">← Back to Dashboard</Link>
         </div>
         <a href="/about" target="_blank" rel="noopener noreferrer" className="btn btn-outline">
           Preview Public Page

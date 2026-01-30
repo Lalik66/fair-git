@@ -107,6 +107,33 @@ const AdminDashboard: React.FC = () => {
   // Check if we're on a sub-route
   const isSubRoute = location.pathname !== '/admin' && location.pathname !== '/admin/';
 
+  // Build breadcrumb items from current path
+  const getBreadcrumbs = () => {
+    const routeLabels: Record<string, string> = {
+      'fairs': t('admin.fairManagement', { defaultValue: 'Fair Management' }),
+      'applications': t('admin.applicationReview', { defaultValue: 'Application Review' }),
+      'users': t('admin.userManagement', { defaultValue: 'User Management' }),
+      'logs': t('admin.adminLogs', { defaultValue: 'Activity Logs' }),
+      'about-us': t('admin.aboutUsEditor', { defaultValue: 'About Us Editor' }),
+    };
+
+    const crumbs: Array<{ label: string; path: string | null }> = [
+      { label: t('admin.dashboard', { defaultValue: 'Dashboard' }), path: '/admin' },
+    ];
+
+    if (isSubRoute) {
+      // Extract the sub-route segment after /admin/
+      const subPath = location.pathname.replace(/^\/admin\/?/, '').split('/')[0];
+      if (subPath && routeLabels[subPath]) {
+        crumbs.push({ label: routeLabels[subPath], path: null }); // last item is current page, no link
+      }
+    }
+
+    return crumbs;
+  };
+
+  const breadcrumbs = getBreadcrumbs();
+
   return (
     <div className="admin-dashboard">
       <header className="admin-header">
@@ -114,9 +141,20 @@ const AdminDashboard: React.FC = () => {
           <div className="admin-header-left">
             <h1>{t('admin.dashboard')}</h1>
             {isSubRoute && (
-              <Link to="/admin" className="back-link">
-                &larr; {t('Back to Dashboard', { defaultValue: 'Back to Dashboard' })}
-              </Link>
+              <nav className="breadcrumb" aria-label="Breadcrumb">
+                <ol className="breadcrumb-list">
+                  {breadcrumbs.map((crumb, index) => (
+                    <li key={index} className={`breadcrumb-item ${crumb.path === null ? 'breadcrumb-active' : ''}`}>
+                      {index > 0 && <span className="breadcrumb-separator">&rsaquo;</span>}
+                      {crumb.path ? (
+                        <Link to={crumb.path} className="breadcrumb-link">{crumb.label}</Link>
+                      ) : (
+                        <span className="breadcrumb-current">{crumb.label}</span>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              </nav>
             )}
           </div>
           <div className="admin-user-info">
