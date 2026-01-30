@@ -2125,4 +2125,64 @@ router.get('/vendor-houses/:houseId', async (req: Request, res: Response): Promi
   }
 });
 
+// Delete vendor house (blocked if pending applications exist)
+router.delete('/vendor-houses/:houseId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { houseId } = req.params;
+
+    const vendorHouse = await prisma.vendorHouse.findUnique({
+      where: { id: houseId },
+      include: {
+        applications: {
+          where: { status: 'pending' },
+        },
+        bookings: {
+          where: { bookingStatus: 'active' },
+        },
+      },
+    });
+
+    if (!vendorHouse) {
+      res.status(404).json({ error: 'Vendor house not found' });
+      return;
+    }
+
+    // Check for pending applications
+    if (vendorHouse.applications.length > 0) {
+      res.status(400).json({
+        error: `Cannot delete vendor house "${vendorHouse.houseNumber}": it has ${vendorHouse.applications.length} pending application(s). Please resolve all pending applications first.`,
+      });
+      return;
+    }
+
+    // Check for active bookings
+    if (vendorHouse.bookings.length > 0) {
+      res.status(400).json({
+        error: `Cannot delete vendor house "${vendorHouse.houseNumber}": it has ${vendorHouse.bookings.length} active booking(s). Please resolve all active bookings first.`,
+      });
+      return;
+    }
+
+    // Delete associated records first (non-pending applications and non-active bookings)
+    await prisma.application.deleteMany({
+      where: { vendorHouseId: houseId },
+    });
+    await prisma.booking.deleteMany({
+      where: { vendorHouseId: houseId },
+    });
+
+    // Delete the vendor house
+    await prisma.vendorHouse.delete({
+      where: { id: houseId },
+    });
+
+    res.json({
+      message: `Vendor house "${vendorHouse.houseNumber}" deleted successfully`,
+    });
+  } catch (error) {
+    console.error('Delete vendor house error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

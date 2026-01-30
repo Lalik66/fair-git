@@ -233,6 +233,11 @@ export const adminApi = {
     const response = await api.put(`/admin/vendor-houses/${houseId}/panorama`, { panorama360Url });
     return response.data;
   },
+
+  deleteVendorHouse: async (houseId: string) => {
+    const response = await api.delete(`/admin/vendor-houses/${houseId}`);
+    return response.data;
+  },
 };
 
 // Vendor API

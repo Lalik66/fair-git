@@ -39,6 +39,8 @@ const MapManagement: React.FC = () => {
   });
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [deletingHouse, setDeletingHouse] = useState<VendorHouse | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchHouses = useCallback(async () => {
     try {
@@ -195,6 +197,43 @@ const MapManagement: React.FC = () => {
     }
   };
 
+  const handleDeleteClick = (house: VendorHouse) => {
+    setDeletingHouse(house);
+    setSuccessMessage('');
+    setError('');
+  };
+
+  const handleCancelDelete = () => {
+    setDeletingHouse(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingHouse) return;
+
+    try {
+      setDeleting(true);
+      setError('');
+      setSuccessMessage('');
+
+      const result = await adminApi.deleteVendorHouse(deletingHouse.id);
+
+      // Remove from local state
+      setHouses((prev) => prev.filter((h) => h.id !== deletingHouse.id));
+      setSuccessMessage(result.message || `Vendor house "${deletingHouse.houseNumber}" deleted successfully`);
+      setDeletingHouse(null);
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        setError(axiosErr.response?.data?.error || 'Failed to delete vendor house');
+      } else {
+        setError('Failed to delete vendor house');
+      }
+      setDeletingHouse(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="map-management-container">
@@ -329,6 +368,48 @@ const MapManagement: React.FC = () => {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
+      {deletingHouse && (
+        <div className="edit-modal-overlay" onClick={handleCancelDelete}>
+          <div className="edit-modal delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="edit-modal-header">
+              <h3>Delete Vendor House</h3>
+              <button
+                className="btn-close"
+                onClick={handleCancelDelete}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="edit-modal-body">
+              <p className="delete-warning">
+                Are you sure you want to delete vendor house <strong>{deletingHouse.houseNumber}</strong>?
+              </p>
+              <p className="delete-note">
+                This action cannot be undone. The house and all its non-pending data will be permanently removed.
+              </p>
+            </div>
+            <div className="edit-modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={handleCancelDelete}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : 'Delete House'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Vendor Houses Table */}
       {houses.length === 0 ? (
         <div className="no-houses">
@@ -374,12 +455,18 @@ const MapManagement: React.FC = () => {
                       <span className="badge badge-inactive">Disabled</span>
                     )}
                   </td>
-                  <td>
+                  <td className="actions-cell">
                     <button
                       className="btn btn-sm btn-primary"
                       onClick={() => handleEdit(house)}
                     >
                       Edit
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDeleteClick(house)}
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>

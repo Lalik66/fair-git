@@ -320,6 +320,40 @@
   cursor: pointer;
 }
 
+/* Actions cell */
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+/* Danger button */
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+/* Delete confirmation modal */
+.delete-confirm-modal {
+  max-width: 440px;
+}
+
+.delete-warning {
+  font-size: 1rem;
+  color: var(--color-text, #1f2937);
+  margin: 0 0 0.75rem 0;
+}
+
+.delete-note {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
