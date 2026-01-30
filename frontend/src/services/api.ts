@@ -249,6 +249,45 @@ export const adminApi = {
     const response = await api.delete(`/admin/vendor-houses/${houseId}`);
     return response.data;
   },
+
+  // Facility management
+  getFacilities: async () => {
+    const response = await api.get('/admin/facilities');
+    return response.data;
+  },
+
+  createFacility: async (data: {
+    name: string;
+    type: string;
+    description?: string;
+    latitude: number;
+    longitude: number;
+    photoUrl?: string;
+    icon?: string;
+    color?: string;
+  }) => {
+    const response = await api.post('/admin/facilities', data);
+    return response.data;
+  },
+
+  updateFacility: async (facilityId: string, data: {
+    name?: string;
+    type?: string;
+    description?: string;
+    latitude?: number;
+    longitude?: number;
+    photoUrl?: string;
+    icon?: string;
+    color?: string;
+  }) => {
+    const response = await api.put(`/admin/facilities/${facilityId}`, data);
+    return response.data;
+  },
+
+  deleteFacility: async (facilityId: string) => {
+    const response = await api.delete(`/admin/facilities/${facilityId}`);
+    return response.data;
+  },
 };
 
 // Vendor API

@@ -2270,4 +2270,137 @@ router.delete('/vendor-houses/:houseId', async (req: Request, res: Response): Pr
   }
 });
 
+// ============================================
+// Facility Management
+// ============================================
+
+// Get all facilities
+router.get('/facilities', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const facilities = await prisma.facility.findMany({
+      orderBy: { name: 'asc' },
+    });
+    res.json({ facilities });
+  } catch (error) {
+    console.error('Get facilities error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create a new facility
+router.post('/facilities', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, type, description, latitude, longitude, photoUrl, icon, color } = req.body;
+
+    // Validate required fields
+    if (!name || !type || latitude === undefined || longitude === undefined) {
+      res.status(400).json({ error: 'Name, type, latitude, and longitude are required' });
+      return;
+    }
+
+    // Validate type
+    const validTypes = ['restaurant', 'cafe', 'kids_zone', 'restroom', 'taxi', 'bus_stop', 'parking', 'info', 'first_aid', 'atm'];
+    if (!validTypes.includes(type)) {
+      res.status(400).json({ error: `Invalid facility type. Must be one of: ${validTypes.join(', ')}` });
+      return;
+    }
+
+    const facility = await prisma.facility.create({
+      data: {
+        name,
+        type,
+        description: description || null,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        photoUrl: photoUrl || null,
+        icon: icon || null,
+        color: color || null,
+      },
+    });
+
+    res.status(201).json({
+      message: `Facility "${facility.name}" created successfully`,
+      facility,
+    });
+  } catch (error) {
+    console.error('Create facility error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update a facility
+router.put('/facilities/:facilityId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { facilityId } = req.params;
+    const { name, type, description, latitude, longitude, photoUrl, icon, color } = req.body;
+
+    const existing = await prisma.facility.findUnique({
+      where: { id: facilityId },
+    });
+
+    if (!existing) {
+      res.status(404).json({ error: 'Facility not found' });
+      return;
+    }
+
+    if (type) {
+      const validTypes = ['restaurant', 'cafe', 'kids_zone', 'restroom', 'taxi', 'bus_stop', 'parking', 'info', 'first_aid', 'atm'];
+      if (!validTypes.includes(type)) {
+        res.status(400).json({ error: `Invalid facility type. Must be one of: ${validTypes.join(', ')}` });
+        return;
+      }
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (name !== undefined) updateData.name = name;
+    if (type !== undefined) updateData.type = type;
+    if (description !== undefined) updateData.description = description || null;
+    if (latitude !== undefined) updateData.latitude = parseFloat(latitude);
+    if (longitude !== undefined) updateData.longitude = parseFloat(longitude);
+    if (photoUrl !== undefined) updateData.photoUrl = photoUrl || null;
+    if (icon !== undefined) updateData.icon = icon || null;
+    if (color !== undefined) updateData.color = color || null;
+
+    const facility = await prisma.facility.update({
+      where: { id: facilityId },
+      data: updateData,
+    });
+
+    res.json({
+      message: `Facility "${facility.name}" updated successfully`,
+      facility,
+    });
+  } catch (error) {
+    console.error('Update facility error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete a facility
+router.delete('/facilities/:facilityId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { facilityId } = req.params;
+
+    const existing = await prisma.facility.findUnique({
+      where: { id: facilityId },
+    });
+
+    if (!existing) {
+      res.status(404).json({ error: 'Facility not found' });
+      return;
+    }
+
+    await prisma.facility.delete({
+      where: { id: facilityId },
+    });
+
+    res.json({
+      message: `Facility "${existing.name}" deleted successfully`,
+    });
+  } catch (error) {
+    console.error('Delete facility error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

@@ -1,7 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { adminApi } from '../services/api';
 import './MapManagement.css';
+
+// Set Mapbox access token
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+mapboxgl.accessToken = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
 
 interface VendorHouse {
   id: string;
@@ -15,12 +21,45 @@ interface VendorHouse {
   longitude?: number;
 }
 
+interface Facility {
+  id: string;
+  name: string;
+  type: string;
+  description: string | null;
+  latitude: number;
+  longitude: number;
+  photoUrl: string | null;
+  icon: string | null;
+  color: string | null;
+}
+
+const FACILITY_TYPES = [
+  { value: 'restaurant', label: 'Restaurant', icon: '🍽️', color: '#F59E0B' },
+  { value: 'cafe', label: 'Cafe', icon: '☕', color: '#8B5CF6' },
+  { value: 'kids_zone', label: 'Kids Zone', icon: '🎠', color: '#EC4899' },
+  { value: 'restroom', label: 'Restroom', icon: '🚻', color: '#6366F1' },
+  { value: 'taxi', label: 'Taxi', icon: '🚕', color: '#FBBF24' },
+  { value: 'bus_stop', label: 'Bus Stop', icon: '🚌', color: '#3B82F6' },
+  { value: 'parking', label: 'Parking', icon: '🅿️', color: '#6B7280' },
+  { value: 'info', label: 'Info Point', icon: 'ℹ️', color: '#10B981' },
+  { value: 'first_aid', label: 'First Aid', icon: '🏥', color: '#EF4444' },
+  { value: 'atm', label: 'ATM', icon: '🏧', color: '#059669' },
+];
+
 interface EditFormData {
   houseNumber: string;
   areaSqm: string;
   price: string;
   description: string;
   isEnabled: boolean;
+}
+
+interface FacilityFormData {
+  name: string;
+  type: string;
+  description: string;
+  latitude: string;
+  longitude: string;
 }
 
 const MapManagement: React.FC = () => {
@@ -44,6 +83,29 @@ const MapManagement: React.FC = () => {
   const [uploadingPanoramaId, setUploadingPanoramaId] = useState<string | null>(null);
   const panoramaInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Facility state
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [showFacilityForm, setShowFacilityForm] = useState(false);
+  const [facilityFormData, setFacilityFormData] = useState<FacilityFormData>({
+    name: '',
+    type: 'restaurant',
+    description: '',
+    latitude: '40.4093',
+    longitude: '49.8671',
+  });
+  const [savingFacility, setSavingFacility] = useState(false);
+  const [facilityFormErrors, setFacilityFormErrors] = useState<Record<string, string>>({});
+  const [deletingFacility, setDeletingFacility] = useState<Facility | null>(null);
+  const [deletingFacilityInProgress, setDeletingFacilityInProgress] = useState(false);
+
+  // Map state
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const tempMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const [addFacilityMode, setAddFacilityMode] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
   const fetchHouses = useCallback(async () => {
     try {
       setLoading(true);
@@ -58,9 +120,208 @@ const MapManagement: React.FC = () => {
     }
   }, []);
 
+  const fetchFacilities = useCallback(async () => {
+    try {
+      const data = await adminApi.getFacilities();
+      setFacilities(data.facilities || []);
+    } catch (err: unknown) {
+      console.error('Failed to load facilities:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchHouses();
-  }, [fetchHouses]);
+    fetchFacilities();
+  }, [fetchHouses, fetchFacilities]);
+
+  // Initialize map (re-run when loading changes since the container isn't rendered while loading)
+  useEffect(() => {
+    if (loading) return;
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [49.8671, 40.4093], // Baku, Azerbaijan
+      zoom: 15,
+    });
+
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    map.on('load', () => {
+      setMapLoaded(true);
+    });
+
+    mapRef.current = map;
+
+    return () => {
+      // Cleanup markers
+      markersRef.current.forEach(m => m.remove());
+      markersRef.current = [];
+      if (tempMarkerRef.current) {
+        tempMarkerRef.current.remove();
+        tempMarkerRef.current = null;
+      }
+      map.remove();
+      mapRef.current = null;
+      setMapLoaded(false);
+    };
+  }, [loading]);
+
+  // Update facility markers on map
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded) return;
+
+    // Clear existing markers
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+
+    // Add facility markers
+    facilities.forEach(facility => {
+      const typeInfo = FACILITY_TYPES.find(ft => ft.value === facility.type);
+      const color = typeInfo?.color || '#6B7280';
+      const icon = typeInfo?.icon || '📍';
+
+      const el = document.createElement('div');
+      el.className = 'map-facility-marker';
+      el.style.cssText = `
+        width: 36px;
+        height: 36px;
+        background-color: ${color};
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        border: 3px solid white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        cursor: pointer;
+      `;
+      el.textContent = icon;
+      el.title = `${facility.name} (${typeInfo?.label || facility.type})`;
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([facility.longitude, facility.latitude])
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }).setHTML(`
+            <div style="padding: 4px;">
+              <strong>${icon} ${facility.name}</strong><br/>
+              <span style="color: #6b7280; font-size: 0.85em;">${typeInfo?.label || facility.type}</span>
+              ${facility.description ? `<br/><span style="font-size: 0.85em;">${facility.description}</span>` : ''}
+            </div>
+          `)
+        )
+        .addTo(mapRef.current!);
+
+      markersRef.current.push(marker);
+    });
+
+    // Add vendor house markers
+    houses.forEach(house => {
+      if (house.latitude && house.longitude) {
+        const el = document.createElement('div');
+        el.className = 'map-house-marker';
+        el.style.cssText = `
+          width: 32px;
+          height: 32px;
+          background-color: #3B82F6;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: bold;
+          color: white;
+          border: 2px solid white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          cursor: pointer;
+        `;
+        el.textContent = '🏠';
+        el.title = `House ${house.houseNumber}`;
+
+        const marker = new mapboxgl.Marker({ element: el })
+          .setLngLat([house.longitude, house.latitude])
+          .setPopup(
+            new mapboxgl.Popup({ offset: 25 }).setHTML(`
+              <div style="padding: 4px;">
+                <strong>🏠 ${house.houseNumber}</strong>
+                ${house.description ? `<br/><span style="font-size: 0.85em;">${house.description}</span>` : ''}
+              </div>
+            `)
+          )
+          .addTo(mapRef.current!);
+
+        markersRef.current.push(marker);
+      }
+    });
+  }, [facilities, houses, mapLoaded]);
+
+  // Handle map click for facility placement
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded) return;
+
+    const map = mapRef.current;
+
+    const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
+      if (!addFacilityMode) return;
+
+      const { lng, lat } = e.lngLat;
+
+      // Remove previous temp marker
+      if (tempMarkerRef.current) {
+        tempMarkerRef.current.remove();
+        tempMarkerRef.current = null;
+      }
+
+      // Create temp marker at click location
+      const el = document.createElement('div');
+      el.className = 'map-temp-marker';
+      el.style.cssText = `
+        width: 40px;
+        height: 40px;
+        background-color: #EF4444;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(239,68,68,0.5);
+        cursor: pointer;
+        animation: pulse-marker 1.5s infinite;
+      `;
+      el.textContent = '📍';
+
+      const tempMarker = new mapboxgl.Marker({ element: el })
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+      tempMarkerRef.current = tempMarker;
+
+      // Pre-fill lat/lng in form and show the form
+      setFacilityFormData(prev => ({
+        ...prev,
+        latitude: lat.toFixed(6),
+        longitude: lng.toFixed(6),
+      }));
+      setShowFacilityForm(true);
+      setFacilityFormErrors({});
+    };
+
+    map.on('click', handleMapClick);
+
+    // Update cursor when in add mode
+    if (addFacilityMode) {
+      map.getCanvas().style.cursor = 'crosshair';
+    } else {
+      map.getCanvas().style.cursor = '';
+    }
+
+    return () => {
+      map.off('click', handleMapClick);
+      map.getCanvas().style.cursor = '';
+    };
+  }, [addFacilityMode, mapLoaded]);
 
   const handleEdit = (house: VendorHouse) => {
     setEditingHouse(house);
@@ -236,6 +497,139 @@ const MapManagement: React.FC = () => {
     }
   };
 
+  // Facility handlers
+  const handleFacilityFormChange = (field: keyof FacilityFormData, value: string) => {
+    setFacilityFormData((prev) => ({ ...prev, [field]: value }));
+    if (facilityFormErrors[field]) {
+      setFacilityFormErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[field];
+        return updated;
+      });
+    }
+  };
+
+  const validateFacilityForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!facilityFormData.name.trim()) errors.name = 'Facility name is required';
+    if (!facilityFormData.type) errors.type = 'Facility type is required';
+    if (!facilityFormData.latitude || isNaN(parseFloat(facilityFormData.latitude))) {
+      errors.latitude = 'Valid latitude is required';
+    }
+    if (!facilityFormData.longitude || isNaN(parseFloat(facilityFormData.longitude))) {
+      errors.longitude = 'Valid longitude is required';
+    }
+    setFacilityFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleCreateFacility = async () => {
+    if (!validateFacilityForm()) return;
+
+    try {
+      setSavingFacility(true);
+      setError('');
+      setSuccessMessage('');
+
+      const typeInfo = FACILITY_TYPES.find((ft) => ft.value === facilityFormData.type);
+
+      const result = await adminApi.createFacility({
+        name: facilityFormData.name.trim(),
+        type: facilityFormData.type,
+        description: facilityFormData.description.trim() || undefined,
+        latitude: parseFloat(facilityFormData.latitude),
+        longitude: parseFloat(facilityFormData.longitude),
+        icon: typeInfo?.icon,
+        color: typeInfo?.color,
+      });
+
+      setFacilities((prev) => [...prev, result.facility].sort((a, b) => a.name.localeCompare(b.name)));
+      setSuccessMessage(result.message || 'Facility created successfully');
+      setShowFacilityForm(false);
+      setAddFacilityMode(false);
+
+      // Remove temp marker
+      if (tempMarkerRef.current) {
+        tempMarkerRef.current.remove();
+        tempMarkerRef.current = null;
+      }
+
+      setFacilityFormData({
+        name: '',
+        type: 'restaurant',
+        description: '',
+        latitude: '40.4093',
+        longitude: '49.8671',
+      });
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        setError(axiosErr.response?.data?.error || 'Failed to create facility');
+      } else {
+        setError('Failed to create facility');
+      }
+    } finally {
+      setSavingFacility(false);
+    }
+  };
+
+  const handleDeleteFacility = async () => {
+    if (!deletingFacility) return;
+    try {
+      setDeletingFacilityInProgress(true);
+      setError('');
+      setSuccessMessage('');
+      const result = await adminApi.deleteFacility(deletingFacility.id);
+      setFacilities((prev) => prev.filter((f) => f.id !== deletingFacility.id));
+      setSuccessMessage(result.message || 'Facility deleted successfully');
+      setDeletingFacility(null);
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        setError(axiosErr.response?.data?.error || 'Failed to delete facility');
+      } else {
+        setError('Failed to delete facility');
+      }
+      setDeletingFacility(null);
+    } finally {
+      setDeletingFacilityInProgress(false);
+    }
+  };
+
+  const handleCancelFacilityForm = () => {
+    setShowFacilityForm(false);
+    // Remove temp marker
+    if (tempMarkerRef.current) {
+      tempMarkerRef.current.remove();
+      tempMarkerRef.current = null;
+    }
+    setFacilityFormData({
+      name: '',
+      type: 'restaurant',
+      description: '',
+      latitude: '40.4093',
+      longitude: '49.8671',
+    });
+    setFacilityFormErrors({});
+  };
+
+  const toggleAddFacilityMode = () => {
+    if (addFacilityMode) {
+      // Exiting mode
+      setAddFacilityMode(false);
+      if (tempMarkerRef.current) {
+        tempMarkerRef.current.remove();
+        tempMarkerRef.current = null;
+      }
+    } else {
+      // Entering mode
+      setAddFacilityMode(true);
+      setShowFacilityForm(false);
+      setSuccessMessage('');
+      setError('');
+    }
+  };
+
   const handlePanoramaUploadClick = (houseId: string) => {
     setUploadingPanoramaId(houseId);
     setSuccessMessage('');
@@ -304,7 +698,7 @@ const MapManagement: React.FC = () => {
       <div className="map-mgmt-header">
         <h2>{t('admin.mapManagement', { defaultValue: 'Map Management' })}</h2>
         <p className="map-mgmt-subtitle">
-          Manage vendor houses, their properties, and availability.
+          Manage vendor houses, facilities, and their locations on the map.
         </p>
       </div>
 
@@ -315,6 +709,48 @@ const MapManagement: React.FC = () => {
       {error && (
         <div className="error-message">{error}</div>
       )}
+
+      {/* ======================== */}
+      {/* Interactive Map Section */}
+      {/* ======================== */}
+      <div className="map-section">
+        <div className="map-section-header">
+          <h3>Interactive Map</h3>
+          <div className="map-section-actions">
+            <button
+              className={`btn ${addFacilityMode ? 'btn-active-mode' : 'btn-primary'}`}
+              onClick={toggleAddFacilityMode}
+              data-testid="add-facility-mode-btn"
+            >
+              {addFacilityMode ? '✕ Cancel Placement' : '📍 Add Facility'}
+            </button>
+          </div>
+        </div>
+        {addFacilityMode && (
+          <div className="map-instruction-banner">
+            <span className="instruction-icon">👆</span>
+            <span>Click on the map to place a new facility. A form will appear to enter the details.</span>
+          </div>
+        )}
+        <div
+          ref={mapContainerRef}
+          className={`map-container ${addFacilityMode ? 'map-placement-mode' : ''}`}
+          style={{ height: '450px', borderRadius: '8px', overflow: 'hidden' }}
+        />
+        <div className="map-legend">
+          <span className="legend-item">
+            <span className="legend-icon" style={{ backgroundColor: '#3B82F6', borderRadius: '4px' }}>🏠</span>
+            Vendor Houses
+          </span>
+          {FACILITY_TYPES.slice(0, 5).map(ft => (
+            <span key={ft.value} className="legend-item">
+              <span className="legend-icon" style={{ backgroundColor: ft.color }}>{ft.icon}</span>
+              {ft.label}
+            </span>
+          ))}
+          <span className="legend-item legend-more">+ more</span>
+        </div>
+      </div>
 
       {/* Edit Modal */}
       {editingHouse && (
@@ -539,6 +975,237 @@ const MapManagement: React.FC = () => {
           </table>
         </div>
       )}
+
+      {/* ======================== */}
+      {/* Facilities Section */}
+      {/* ======================== */}
+      <div className="facilities-section">
+        <div className="facilities-header">
+          <h2>Facilities</h2>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setShowFacilityForm(true);
+              setSuccessMessage('');
+              setError('');
+            }}
+          >
+            + Add Facility
+          </button>
+        </div>
+
+        {/* Create Facility Modal */}
+        {showFacilityForm && (
+          <div className="edit-modal-overlay" onClick={handleCancelFacilityForm}>
+            <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="edit-modal-header">
+                <h3>Add New Facility</h3>
+                <button
+                  className="btn-close"
+                  onClick={handleCancelFacilityForm}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="edit-modal-body">
+                <div className={`form-group ${facilityFormErrors.name ? 'has-error' : ''}`}>
+                  <label htmlFor="facilityName">Facility Name *</label>
+                  <input
+                    id="facilityName"
+                    type="text"
+                    value={facilityFormData.name}
+                    onChange={(e) => handleFacilityFormChange('name', e.target.value)}
+                    className={facilityFormErrors.name ? 'input-error' : ''}
+                    placeholder="e.g. Main Restaurant"
+                  />
+                  {facilityFormErrors.name && (
+                    <span className="field-error">{facilityFormErrors.name}</span>
+                  )}
+                </div>
+
+                <div className={`form-group ${facilityFormErrors.type ? 'has-error' : ''}`}>
+                  <label htmlFor="facilityType">Type *</label>
+                  <select
+                    id="facilityType"
+                    value={facilityFormData.type}
+                    onChange={(e) => handleFacilityFormChange('type', e.target.value)}
+                    className="facility-type-select"
+                  >
+                    {FACILITY_TYPES.map((ft) => (
+                      <option key={ft.value} value={ft.value}>
+                        {ft.icon} {ft.label}
+                      </option>
+                    ))}
+                  </select>
+                  {facilityFormErrors.type && (
+                    <span className="field-error">{facilityFormErrors.type}</span>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="facilityDescription">Description</label>
+                  <textarea
+                    id="facilityDescription"
+                    rows={2}
+                    value={facilityFormData.description}
+                    onChange={(e) => handleFacilityFormChange('description', e.target.value)}
+                    placeholder="Optional description"
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className={`form-group ${facilityFormErrors.latitude ? 'has-error' : ''}`}>
+                    <label htmlFor="facilityLatitude">Latitude *</label>
+                    <input
+                      id="facilityLatitude"
+                      type="number"
+                      step="0.0001"
+                      value={facilityFormData.latitude}
+                      onChange={(e) => handleFacilityFormChange('latitude', e.target.value)}
+                      className={facilityFormErrors.latitude ? 'input-error' : ''}
+                      placeholder="40.4093"
+                    />
+                    {facilityFormErrors.latitude && (
+                      <span className="field-error">{facilityFormErrors.latitude}</span>
+                    )}
+                  </div>
+                  <div className={`form-group ${facilityFormErrors.longitude ? 'has-error' : ''}`}>
+                    <label htmlFor="facilityLongitude">Longitude *</label>
+                    <input
+                      id="facilityLongitude"
+                      type="number"
+                      step="0.0001"
+                      value={facilityFormData.longitude}
+                      onChange={(e) => handleFacilityFormChange('longitude', e.target.value)}
+                      className={facilityFormErrors.longitude ? 'input-error' : ''}
+                      placeholder="49.8671"
+                    />
+                    {facilityFormErrors.longitude && (
+                      <span className="field-error">{facilityFormErrors.longitude}</span>
+                    )}
+                  </div>
+                </div>
+
+                {addFacilityMode && (
+                  <div className="location-hint">
+                    <span>📍</span> Location selected from map click
+                  </div>
+                )}
+              </div>
+
+              <div className="edit-modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleCancelFacilityForm}
+                  disabled={savingFacility}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleCreateFacility}
+                  disabled={savingFacility}
+                >
+                  {savingFacility ? 'Creating...' : 'Create Facility'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Facility Confirmation */}
+        {deletingFacility && (
+          <div className="edit-modal-overlay" onClick={() => setDeletingFacility(null)}>
+            <div className="edit-modal delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="edit-modal-header">
+                <h3>Delete Facility</h3>
+                <button className="btn-close" onClick={() => setDeletingFacility(null)} aria-label="Close">
+                  &times;
+                </button>
+              </div>
+              <div className="edit-modal-body">
+                <p className="delete-warning">
+                  Are you sure you want to delete facility <strong>{deletingFacility.name}</strong>?
+                </p>
+                <p className="delete-note">This action cannot be undone.</p>
+              </div>
+              <div className="edit-modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setDeletingFacility(null)}
+                  disabled={deletingFacilityInProgress}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={handleDeleteFacility}
+                  disabled={deletingFacilityInProgress}
+                >
+                  {deletingFacilityInProgress ? 'Deleting...' : 'Delete Facility'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Facilities Table */}
+        {facilities.length === 0 ? (
+          <div className="no-houses">
+            <p>No facilities found.</p>
+            <p>Click "Add Facility" to create one, or use the map above to place facilities.</p>
+          </div>
+        ) : (
+          <div className="houses-table-container">
+            <table className="houses-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Location</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {facilities.map((facility) => {
+                  const typeInfo = FACILITY_TYPES.find((ft) => ft.value === facility.type);
+                  return (
+                    <tr key={facility.id}>
+                      <td>
+                        <strong>{facility.name}</strong>
+                      </td>
+                      <td>
+                        <span className="facility-type-badge" style={{ backgroundColor: typeInfo?.color || '#6B7280' }}>
+                          {typeInfo?.icon || '?'} {typeInfo?.label || facility.type}
+                        </span>
+                      </td>
+                      <td className="description-cell">{facility.description || '—'}</td>
+                      <td className="location-cell">
+                        {facility.latitude.toFixed(4)}, {facility.longitude.toFixed(4)}
+                      </td>
+                      <td className="actions-cell">
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => {
+                            setDeletingFacility(facility);
+                            setSuccessMessage('');
+                            setError('');
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
