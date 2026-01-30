@@ -97,6 +97,16 @@ const MapManagement: React.FC = () => {
   const [facilityFormErrors, setFacilityFormErrors] = useState<Record<string, string>>({});
   const [deletingFacility, setDeletingFacility] = useState<Facility | null>(null);
   const [deletingFacilityInProgress, setDeletingFacilityInProgress] = useState(false);
+  const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
+  const [editFacilityFormData, setEditFacilityFormData] = useState<FacilityFormData>({
+    name: '',
+    type: 'restaurant',
+    description: '',
+    latitude: '',
+    longitude: '',
+  });
+  const [editFacilityFormErrors, setEditFacilityFormErrors] = useState<Record<string, string>>({});
+  const [savingEditFacility, setSavingEditFacility] = useState(false);
 
   // Map state
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -593,6 +603,98 @@ const MapManagement: React.FC = () => {
       setDeletingFacility(null);
     } finally {
       setDeletingFacilityInProgress(false);
+    }
+  };
+
+  // Edit facility handlers
+  const handleEditFacility = (facility: Facility) => {
+    setEditingFacility(facility);
+    setEditFacilityFormData({
+      name: facility.name,
+      type: facility.type,
+      description: facility.description || '',
+      latitude: String(facility.latitude),
+      longitude: String(facility.longitude),
+    });
+    setEditFacilityFormErrors({});
+    setSuccessMessage('');
+    setError('');
+  };
+
+  const handleCancelEditFacility = () => {
+    setEditingFacility(null);
+    setEditFacilityFormData({
+      name: '',
+      type: 'restaurant',
+      description: '',
+      latitude: '',
+      longitude: '',
+    });
+    setEditFacilityFormErrors({});
+  };
+
+  const handleEditFacilityFormChange = (field: keyof FacilityFormData, value: string) => {
+    setEditFacilityFormData((prev) => ({ ...prev, [field]: value }));
+    if (editFacilityFormErrors[field]) {
+      setEditFacilityFormErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[field];
+        return updated;
+      });
+    }
+  };
+
+  const validateEditFacilityForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!editFacilityFormData.name.trim()) errors.name = 'Facility name is required';
+    if (!editFacilityFormData.type) errors.type = 'Facility type is required';
+    if (!editFacilityFormData.latitude || isNaN(parseFloat(editFacilityFormData.latitude))) {
+      errors.latitude = 'Valid latitude is required';
+    }
+    if (!editFacilityFormData.longitude || isNaN(parseFloat(editFacilityFormData.longitude))) {
+      errors.longitude = 'Valid longitude is required';
+    }
+    setEditFacilityFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSaveEditFacility = async () => {
+    if (!editingFacility || !validateEditFacilityForm()) return;
+
+    try {
+      setSavingEditFacility(true);
+      setError('');
+      setSuccessMessage('');
+
+      const typeInfo = FACILITY_TYPES.find((ft) => ft.value === editFacilityFormData.type);
+
+      const result = await adminApi.updateFacility(editingFacility.id, {
+        name: editFacilityFormData.name.trim(),
+        type: editFacilityFormData.type,
+        description: editFacilityFormData.description.trim() || undefined,
+        latitude: parseFloat(editFacilityFormData.latitude),
+        longitude: parseFloat(editFacilityFormData.longitude),
+        icon: typeInfo?.icon,
+        color: typeInfo?.color,
+      });
+
+      // Update local state
+      setFacilities((prev) =>
+        prev
+          .map((f) => (f.id === editingFacility.id ? result.facility : f))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      );
+      setSuccessMessage(result.message || 'Facility updated successfully');
+      setEditingFacility(null);
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        setError(axiosErr.response?.data?.error || 'Failed to update facility');
+      } else {
+        setError('Failed to update facility');
+      }
+    } finally {
+      setSavingEditFacility(false);
     }
   };
 
@@ -1115,6 +1217,121 @@ const MapManagement: React.FC = () => {
           </div>
         )}
 
+        {/* Edit Facility Modal */}
+        {editingFacility && (
+          <div className="edit-modal-overlay" onClick={handleCancelEditFacility}>
+            <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="edit-modal-header">
+                <h3>Edit Facility: {editingFacility.name}</h3>
+                <button
+                  className="btn-close"
+                  onClick={handleCancelEditFacility}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="edit-modal-body">
+                <div className={`form-group ${editFacilityFormErrors.name ? 'has-error' : ''}`}>
+                  <label htmlFor="editFacilityName">Facility Name *</label>
+                  <input
+                    id="editFacilityName"
+                    type="text"
+                    value={editFacilityFormData.name}
+                    onChange={(e) => handleEditFacilityFormChange('name', e.target.value)}
+                    className={editFacilityFormErrors.name ? 'input-error' : ''}
+                    placeholder="e.g. Main Restaurant"
+                  />
+                  {editFacilityFormErrors.name && (
+                    <span className="field-error">{editFacilityFormErrors.name}</span>
+                  )}
+                </div>
+
+                <div className={`form-group ${editFacilityFormErrors.type ? 'has-error' : ''}`}>
+                  <label htmlFor="editFacilityType">Type *</label>
+                  <select
+                    id="editFacilityType"
+                    value={editFacilityFormData.type}
+                    onChange={(e) => handleEditFacilityFormChange('type', e.target.value)}
+                    className="facility-type-select"
+                  >
+                    {FACILITY_TYPES.map((ft) => (
+                      <option key={ft.value} value={ft.value}>
+                        {ft.icon} {ft.label}
+                      </option>
+                    ))}
+                  </select>
+                  {editFacilityFormErrors.type && (
+                    <span className="field-error">{editFacilityFormErrors.type}</span>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="editFacilityDescription">Description</label>
+                  <textarea
+                    id="editFacilityDescription"
+                    rows={2}
+                    value={editFacilityFormData.description}
+                    onChange={(e) => handleEditFacilityFormChange('description', e.target.value)}
+                    placeholder="Optional description"
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className={`form-group ${editFacilityFormErrors.latitude ? 'has-error' : ''}`}>
+                    <label htmlFor="editFacilityLatitude">Latitude *</label>
+                    <input
+                      id="editFacilityLatitude"
+                      type="number"
+                      step="0.0001"
+                      value={editFacilityFormData.latitude}
+                      onChange={(e) => handleEditFacilityFormChange('latitude', e.target.value)}
+                      className={editFacilityFormErrors.latitude ? 'input-error' : ''}
+                      placeholder="40.4093"
+                    />
+                    {editFacilityFormErrors.latitude && (
+                      <span className="field-error">{editFacilityFormErrors.latitude}</span>
+                    )}
+                  </div>
+                  <div className={`form-group ${editFacilityFormErrors.longitude ? 'has-error' : ''}`}>
+                    <label htmlFor="editFacilityLongitude">Longitude *</label>
+                    <input
+                      id="editFacilityLongitude"
+                      type="number"
+                      step="0.0001"
+                      value={editFacilityFormData.longitude}
+                      onChange={(e) => handleEditFacilityFormChange('longitude', e.target.value)}
+                      className={editFacilityFormErrors.longitude ? 'input-error' : ''}
+                      placeholder="49.8671"
+                    />
+                    {editFacilityFormErrors.longitude && (
+                      <span className="field-error">{editFacilityFormErrors.longitude}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="edit-modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleCancelEditFacility}
+                  disabled={savingEditFacility}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleSaveEditFacility}
+                  disabled={savingEditFacility}
+                >
+                  {savingEditFacility ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Delete Facility Confirmation */}
         {deletingFacility && (
           <div className="edit-modal-overlay" onClick={() => setDeletingFacility(null)}>
@@ -1187,6 +1404,12 @@ const MapManagement: React.FC = () => {
                         {facility.latitude.toFixed(4)}, {facility.longitude.toFixed(4)}
                       </td>
                       <td className="actions-cell">
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleEditFacility(facility)}
+                        >
+                          Edit
+                        </button>
                         <button
                           className="btn btn-sm btn-danger"
                           onClick={() => {
