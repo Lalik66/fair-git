@@ -1,10 +1,12 @@
 # Fair Marketplace - Development Progress
 
-## Current Status: 228/240 features passing (95.0%)
+## Current Status: 233/240 features passing (97.1%)
 
 ## Session 22 - January 31, 2026
 
 ### Completed This Session:
+- **Feature 20: Create vendor house via map click** (verified via Feature 127 testing)
+
 - **Feature 127: Admin manages map objects (full workflow)**
   - Implemented "Create Vendor House" functionality (was completely missing from UI)
   - Backend: Added POST `/admin/vendor-houses` endpoint with validation, duplicate checking, activity logging
@@ -21,6 +23,32 @@
     - Public map: verified house markers (with popups showing vendor info, area, price, 360° button)
     - Public map: verified facility markers (with popups showing name, type, description)
   - Cleaned up all test data after verification
+
+- **Feature 150: Delete parent removes children from views**
+  - Created test house DELETE-TEST-150, verified on public map (5 markers)
+  - Deleted from admin, verified public map updated (4 markers)
+  - No orphan references after deletion
+
+- **Feature 153: Delete updates related dropdowns**
+  - Created house "999", verified in admin table
+  - Deleted house "999", verified removed from admin table and public map
+  - Public map properly reflects deleted items
+
+- **Feature 210: Facility types all available**
+  - Opened Add Facility form, verified type dropdown contains all 7 required types:
+    Restaurant, Cafe, Kids Zone, Restroom, Taxi, Bus Stop, Parking
+  - Plus 3 bonus types: Info Point, First Aid, ATM
+  - Each type has correct emoji icon
+
+- **Feature 215: Vendor house disabled from public view**
+  - Edited H-104, unchecked "Enabled (visible on map)" → status changed to "Disabled"
+  - Public map showed 3 markers (H-104 hidden)
+  - Re-enabled H-104 → public map showed 4 markers again
+
+### Remaining 7 Features (Require Unimplemented Infrastructure):
+- Features 2, 3, 6, 221: Require Google OAuth (not implemented)
+- Feature 225: Requires Cloudinary integration (images stored locally)
+- Features 151, 152: Require application deletion (no admin endpoint/UI)
 
 ### Regression Testing:
 - Verified Map Management page loads correctly with existing houses and facilities
