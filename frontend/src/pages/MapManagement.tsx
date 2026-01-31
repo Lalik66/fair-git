@@ -46,6 +46,15 @@ const FACILITY_TYPES = [
   { value: 'atm', label: 'ATM', icon: '🏧', color: '#059669' },
 ];
 
+interface CreateHouseFormData {
+  houseNumber: string;
+  areaSqm: string;
+  price: string;
+  description: string;
+  latitude: string;
+  longitude: string;
+}
+
 interface EditFormData {
   houseNumber: string;
   areaSqm: string;
@@ -107,6 +116,20 @@ const MapManagement: React.FC = () => {
   });
   const [editFacilityFormErrors, setEditFacilityFormErrors] = useState<Record<string, string>>({});
   const [savingEditFacility, setSavingEditFacility] = useState(false);
+
+  // Add house state
+  const [showCreateHouseForm, setShowCreateHouseForm] = useState(false);
+  const [createHouseFormData, setCreateHouseFormData] = useState<CreateHouseFormData>({
+    houseNumber: '',
+    areaSqm: '',
+    price: '',
+    description: '',
+    latitude: '40.4093',
+    longitude: '49.8671',
+  });
+  const [createHouseFormErrors, setCreateHouseFormErrors] = useState<Record<string, string>>({});
+  const [creatingHouse, setCreatingHouse] = useState(false);
+  const [addHouseMode, setAddHouseMode] = useState(false);
 
   // Map state
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -266,14 +289,14 @@ const MapManagement: React.FC = () => {
     });
   }, [facilities, houses, mapLoaded]);
 
-  // Handle map click for facility placement
+  // Handle map click for facility or house placement
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
 
     const map = mapRef.current;
 
     const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
-      if (!addFacilityMode) return;
+      if (!addFacilityMode && !addHouseMode) return;
 
       const { lng, lat } = e.lngLat;
 
@@ -289,18 +312,18 @@ const MapManagement: React.FC = () => {
       el.style.cssText = `
         width: 40px;
         height: 40px;
-        background-color: #EF4444;
-        border-radius: 50%;
+        background-color: ${addHouseMode ? '#3B82F6' : '#EF4444'};
+        border-radius: ${addHouseMode ? '8px' : '50%'};
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 20px;
         border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(239,68,68,0.5);
+        box-shadow: 0 2px 8px ${addHouseMode ? 'rgba(59,130,246,0.5)' : 'rgba(239,68,68,0.5)'};
         cursor: pointer;
         animation: pulse-marker 1.5s infinite;
       `;
-      el.textContent = '📍';
+      el.textContent = addHouseMode ? '🏠' : '📍';
 
       const tempMarker = new mapboxgl.Marker({ element: el })
         .setLngLat([lng, lat])
@@ -308,20 +331,31 @@ const MapManagement: React.FC = () => {
 
       tempMarkerRef.current = tempMarker;
 
-      // Pre-fill lat/lng in form and show the form
-      setFacilityFormData(prev => ({
-        ...prev,
-        latitude: lat.toFixed(6),
-        longitude: lng.toFixed(6),
-      }));
-      setShowFacilityForm(true);
-      setFacilityFormErrors({});
+      if (addHouseMode) {
+        // Pre-fill lat/lng in house form and show the form
+        setCreateHouseFormData(prev => ({
+          ...prev,
+          latitude: lat.toFixed(6),
+          longitude: lng.toFixed(6),
+        }));
+        setShowCreateHouseForm(true);
+        setCreateHouseFormErrors({});
+      } else {
+        // Pre-fill lat/lng in facility form and show the form
+        setFacilityFormData(prev => ({
+          ...prev,
+          latitude: lat.toFixed(6),
+          longitude: lng.toFixed(6),
+        }));
+        setShowFacilityForm(true);
+        setFacilityFormErrors({});
+      }
     };
 
     map.on('click', handleMapClick);
 
     // Update cursor when in add mode
-    if (addFacilityMode) {
+    if (addFacilityMode || addHouseMode) {
       map.getCanvas().style.cursor = 'crosshair';
     } else {
       map.getCanvas().style.cursor = '';
@@ -329,9 +363,14 @@ const MapManagement: React.FC = () => {
 
     return () => {
       map.off('click', handleMapClick);
-      map.getCanvas().style.cursor = '';
+      try {
+        const canvas = map.getCanvas();
+        if (canvas) canvas.style.cursor = '';
+      } catch {
+        // Map may have been removed already
+      }
     };
-  }, [addFacilityMode, mapLoaded]);
+  }, [addFacilityMode, addHouseMode, mapLoaded]);
 
   const handleEdit = (house: VendorHouse) => {
     setEditingHouse(house);
@@ -726,10 +765,123 @@ const MapManagement: React.FC = () => {
     } else {
       // Entering mode
       setAddFacilityMode(true);
+      setAddHouseMode(false); // Disable house mode if active
       setShowFacilityForm(false);
       setSuccessMessage('');
       setError('');
     }
+  };
+
+  // Add House handlers
+  const toggleAddHouseMode = () => {
+    if (addHouseMode) {
+      setAddHouseMode(false);
+      if (tempMarkerRef.current) {
+        tempMarkerRef.current.remove();
+        tempMarkerRef.current = null;
+      }
+    } else {
+      setAddHouseMode(true);
+      setAddFacilityMode(false); // Disable facility mode if active
+      setShowCreateHouseForm(false);
+      setSuccessMessage('');
+      setError('');
+    }
+  };
+
+  const handleCreateHouseFormChange = (field: keyof CreateHouseFormData, value: string) => {
+    setCreateHouseFormData(prev => ({ ...prev, [field]: value }));
+    if (createHouseFormErrors[field]) {
+      setCreateHouseFormErrors(prev => {
+        const updated = { ...prev };
+        delete updated[field];
+        return updated;
+      });
+    }
+  };
+
+  const validateCreateHouseForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!createHouseFormData.houseNumber.trim()) errors.houseNumber = 'House number is required';
+    if (!createHouseFormData.latitude || isNaN(parseFloat(createHouseFormData.latitude))) {
+      errors.latitude = 'Valid latitude is required';
+    }
+    if (!createHouseFormData.longitude || isNaN(parseFloat(createHouseFormData.longitude))) {
+      errors.longitude = 'Valid longitude is required';
+    }
+    if (createHouseFormData.areaSqm && (isNaN(parseFloat(createHouseFormData.areaSqm)) || parseFloat(createHouseFormData.areaSqm) < 0)) {
+      errors.areaSqm = 'Area must be a valid non-negative number';
+    }
+    if (createHouseFormData.price && (isNaN(parseFloat(createHouseFormData.price)) || parseFloat(createHouseFormData.price) < 0)) {
+      errors.price = 'Price must be a valid non-negative number';
+    }
+    setCreateHouseFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleCreateHouse = async () => {
+    if (!validateCreateHouseForm()) return;
+
+    try {
+      setCreatingHouse(true);
+      setError('');
+      setSuccessMessage('');
+
+      const result = await adminApi.createVendorHouse({
+        houseNumber: createHouseFormData.houseNumber.trim(),
+        areaSqm: createHouseFormData.areaSqm ? parseFloat(createHouseFormData.areaSqm) : null,
+        price: createHouseFormData.price ? parseFloat(createHouseFormData.price) : null,
+        description: createHouseFormData.description.trim() || null,
+        latitude: parseFloat(createHouseFormData.latitude),
+        longitude: parseFloat(createHouseFormData.longitude),
+      });
+
+      setHouses(prev => [...prev, result.vendorHouse].sort((a, b) => a.houseNumber.localeCompare(b.houseNumber)));
+      setSuccessMessage(result.message || 'Vendor house created successfully');
+      setShowCreateHouseForm(false);
+      setAddHouseMode(false);
+
+      // Remove temp marker
+      if (tempMarkerRef.current) {
+        tempMarkerRef.current.remove();
+        tempMarkerRef.current = null;
+      }
+
+      setCreateHouseFormData({
+        houseNumber: '',
+        areaSqm: '',
+        price: '',
+        description: '',
+        latitude: '40.4093',
+        longitude: '49.8671',
+      });
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        setError(axiosErr.response?.data?.error || 'Failed to create vendor house');
+      } else {
+        setError('Failed to create vendor house');
+      }
+    } finally {
+      setCreatingHouse(false);
+    }
+  };
+
+  const handleCancelCreateHouseForm = () => {
+    setShowCreateHouseForm(false);
+    if (tempMarkerRef.current) {
+      tempMarkerRef.current.remove();
+      tempMarkerRef.current = null;
+    }
+    setCreateHouseFormData({
+      houseNumber: '',
+      areaSqm: '',
+      price: '',
+      description: '',
+      latitude: '40.4093',
+      longitude: '49.8671',
+    });
+    setCreateHouseFormErrors({});
   };
 
   const handlePanoramaUploadClick = (houseId: string) => {
@@ -820,6 +972,13 @@ const MapManagement: React.FC = () => {
           <h3>Interactive Map</h3>
           <div className="map-section-actions">
             <button
+              className={`btn ${addHouseMode ? 'btn-active-mode' : 'btn-secondary'}`}
+              onClick={toggleAddHouseMode}
+              data-testid="add-house-mode-btn"
+            >
+              {addHouseMode ? '✕ Cancel Placement' : '🏠 Add House'}
+            </button>
+            <button
               className={`btn ${addFacilityMode ? 'btn-active-mode' : 'btn-primary'}`}
               onClick={toggleAddFacilityMode}
               data-testid="add-facility-mode-btn"
@@ -828,6 +987,12 @@ const MapManagement: React.FC = () => {
             </button>
           </div>
         </div>
+        {addHouseMode && (
+          <div className="map-instruction-banner" style={{ borderLeftColor: '#3B82F6' }}>
+            <span className="instruction-icon">👆</span>
+            <span>Click on the map to place a new vendor house. A form will appear to enter the details.</span>
+          </div>
+        )}
         {addFacilityMode && (
           <div className="map-instruction-banner">
             <span className="instruction-icon">👆</span>
@@ -836,7 +1001,7 @@ const MapManagement: React.FC = () => {
         )}
         <div
           ref={mapContainerRef}
-          className={`map-container ${addFacilityMode ? 'map-placement-mode' : ''}`}
+          className={`map-container ${addFacilityMode || addHouseMode ? 'map-placement-mode' : ''}`}
           style={{ height: '450px', borderRadius: '8px', overflow: 'hidden' }}
         />
         <div className="map-legend">
@@ -1005,11 +1170,147 @@ const MapManagement: React.FC = () => {
         </div>
       )}
 
+      {/* Create House Modal */}
+      {showCreateHouseForm && (
+        <div className="edit-modal-overlay" onClick={handleCancelCreateHouseForm}>
+          <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="edit-modal-header">
+              <h3>Add New Vendor House</h3>
+              <button
+                className="btn-close"
+                onClick={handleCancelCreateHouseForm}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="edit-modal-body">
+              <div className={`form-group ${createHouseFormErrors.houseNumber ? 'has-error' : ''}`}>
+                <label htmlFor="newHouseNumber">House Number *</label>
+                <input
+                  id="newHouseNumber"
+                  type="text"
+                  value={createHouseFormData.houseNumber}
+                  onChange={(e) => handleCreateHouseFormChange('houseNumber', e.target.value)}
+                  className={createHouseFormErrors.houseNumber ? 'input-error' : ''}
+                  placeholder="e.g. H-201"
+                />
+                {createHouseFormErrors.houseNumber && (
+                  <span className="field-error">{createHouseFormErrors.houseNumber}</span>
+                )}
+              </div>
+
+              <div className={`form-group ${createHouseFormErrors.areaSqm ? 'has-error' : ''}`}>
+                <label htmlFor="newHouseArea">Area (m²)</label>
+                <input
+                  id="newHouseArea"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={createHouseFormData.areaSqm}
+                  onChange={(e) => handleCreateHouseFormChange('areaSqm', e.target.value)}
+                  className={createHouseFormErrors.areaSqm ? 'input-error' : ''}
+                  placeholder="e.g. 45"
+                />
+                {createHouseFormErrors.areaSqm && (
+                  <span className="field-error">{createHouseFormErrors.areaSqm}</span>
+                )}
+              </div>
+
+              <div className={`form-group ${createHouseFormErrors.price ? 'has-error' : ''}`}>
+                <label htmlFor="newHousePrice">Price (AZN)</label>
+                <input
+                  id="newHousePrice"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={createHouseFormData.price}
+                  onChange={(e) => handleCreateHouseFormChange('price', e.target.value)}
+                  className={createHouseFormErrors.price ? 'input-error' : ''}
+                  placeholder="e.g. 500"
+                />
+                {createHouseFormErrors.price && (
+                  <span className="field-error">{createHouseFormErrors.price}</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="newHouseDescription">Description</label>
+                <textarea
+                  id="newHouseDescription"
+                  rows={2}
+                  value={createHouseFormData.description}
+                  onChange={(e) => handleCreateHouseFormChange('description', e.target.value)}
+                  placeholder="Optional description"
+                />
+              </div>
+
+              <div className="form-row">
+                <div className={`form-group ${createHouseFormErrors.latitude ? 'has-error' : ''}`}>
+                  <label htmlFor="newHouseLatitude">Latitude *</label>
+                  <input
+                    id="newHouseLatitude"
+                    type="number"
+                    step="0.0001"
+                    value={createHouseFormData.latitude}
+                    onChange={(e) => handleCreateHouseFormChange('latitude', e.target.value)}
+                    className={createHouseFormErrors.latitude ? 'input-error' : ''}
+                    placeholder="40.4093"
+                  />
+                  {createHouseFormErrors.latitude && (
+                    <span className="field-error">{createHouseFormErrors.latitude}</span>
+                  )}
+                </div>
+                <div className={`form-group ${createHouseFormErrors.longitude ? 'has-error' : ''}`}>
+                  <label htmlFor="newHouseLongitude">Longitude *</label>
+                  <input
+                    id="newHouseLongitude"
+                    type="number"
+                    step="0.0001"
+                    value={createHouseFormData.longitude}
+                    onChange={(e) => handleCreateHouseFormChange('longitude', e.target.value)}
+                    className={createHouseFormErrors.longitude ? 'input-error' : ''}
+                    placeholder="49.8671"
+                  />
+                  {createHouseFormErrors.longitude && (
+                    <span className="field-error">{createHouseFormErrors.longitude}</span>
+                  )}
+                </div>
+              </div>
+
+              {addHouseMode && (
+                <div className="location-hint">
+                  <span>📍</span> Location selected from map click
+                </div>
+              )}
+            </div>
+
+            <div className="edit-modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={handleCancelCreateHouseForm}
+                disabled={creatingHouse}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleCreateHouse}
+                disabled={creatingHouse}
+              >
+                {creatingHouse ? 'Creating...' : 'Create House'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Vendor Houses Table */}
       {houses.length === 0 ? (
         <div className="no-houses">
           <p>No vendor houses found.</p>
-          <p>Vendor houses are created through fair setup or database seeding.</p>
+          <p>Click "🏠 Add House" above the map to create a new vendor house.</p>
         </div>
       ) : (
         <div className="houses-table-container">

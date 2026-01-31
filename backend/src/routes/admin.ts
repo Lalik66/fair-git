@@ -2065,6 +2065,112 @@ router.post('/vendor-houses/:houseId/panorama-upload', panoramaUpload.single('pa
   }
 });
 
+// Create a new vendor house
+router.post('/vendor-houses', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { houseNumber, areaSqm, price, description, latitude, longitude } = req.body;
+
+    if (!houseNumber || !houseNumber.trim()) {
+      res.status(400).json({ error: 'House number is required' });
+      return;
+    }
+
+    if (latitude === undefined || longitude === undefined || latitude === null || longitude === null) {
+      res.status(400).json({ error: 'Latitude and longitude are required' });
+      return;
+    }
+
+    const lat = parseFloat(String(latitude));
+    const lng = parseFloat(String(longitude));
+    if (isNaN(lat) || isNaN(lng)) {
+      res.status(400).json({ error: 'Latitude and longitude must be valid numbers' });
+      return;
+    }
+
+    // Check for duplicate house number
+    const existingHouse = await prisma.vendorHouse.findUnique({
+      where: { houseNumber: houseNumber.trim() },
+    });
+    if (existingHouse) {
+      res.status(400).json({ error: 'A vendor house with this number already exists' });
+      return;
+    }
+
+    const createData: Record<string, unknown> = {
+      houseNumber: houseNumber.trim(),
+      latitude: lat,
+      longitude: lng,
+    };
+
+    if (areaSqm !== undefined && areaSqm !== null && areaSqm !== '') {
+      const area = parseFloat(String(areaSqm));
+      if (isNaN(area) || area < 0) {
+        res.status(400).json({ error: 'Area must be a valid non-negative number' });
+        return;
+      }
+      createData.areaSqm = area;
+    }
+
+    if (price !== undefined && price !== null && price !== '') {
+      const p = parseFloat(String(price));
+      if (isNaN(p) || p < 0) {
+        res.status(400).json({ error: 'Price must be a valid non-negative number' });
+        return;
+      }
+      createData.price = p;
+    }
+
+    if (description !== undefined && description !== null) {
+      createData.description = String(description).trim() || null;
+    }
+
+    const vendorHouse = await prisma.vendorHouse.create({
+      data: createData as {
+        houseNumber: string;
+        latitude: number;
+        longitude: number;
+        areaSqm?: number;
+        price?: number;
+        description?: string | null;
+      },
+    });
+
+    // Log activity
+    const adminUser = (req as Record<string, unknown>).user as { userId?: string } | undefined;
+    if (adminUser?.userId) {
+      try {
+        await prisma.activityLog.create({
+          data: {
+            userId: adminUser.userId,
+            action: 'CREATE_VENDOR_HOUSE',
+            details: `Created vendor house ${vendorHouse.houseNumber}`,
+          },
+        });
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
+    }
+
+    res.status(201).json({
+      message: `Vendor house "${vendorHouse.houseNumber}" created successfully`,
+      vendorHouse: {
+        id: vendorHouse.id,
+        houseNumber: vendorHouse.houseNumber,
+        areaSqm: vendorHouse.areaSqm,
+        price: vendorHouse.price,
+        description: vendorHouse.description,
+        latitude: vendorHouse.latitude,
+        longitude: vendorHouse.longitude,
+        panorama360Url: vendorHouse.panorama360Url,
+        isEnabled: vendorHouse.isEnabled,
+      },
+    });
+  } catch (error) {
+    console.error('Create vendor house error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get all vendor houses
 router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -2076,6 +2182,8 @@ router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> 
         areaSqm: true,
         price: true,
         description: true,
+        latitude: true,
+        longitude: true,
         panorama360Url: true,
         isEnabled: true,
       },

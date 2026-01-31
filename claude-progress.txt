@@ -1,6 +1,58 @@
 # Fair Marketplace - Development Progress
 
-## Current Status: 189/240 features passing (78.8%)
+## Current Status: 228/240 features passing (95.0%)
+
+## Session 22 - January 31, 2026
+
+### Completed This Session:
+- **Feature 127: Admin manages map objects (full workflow)**
+  - Implemented "Create Vendor House" functionality (was completely missing from UI)
+  - Backend: Added POST `/admin/vendor-houses` endpoint with validation, duplicate checking, activity logging
+  - Backend: Fixed GET `/vendor-houses` to include latitude/longitude in response (was missing)
+  - Frontend API: Added `createVendorHouse` method to adminApi service
+  - Frontend MapManagement.tsx: Added "Add House" button, map-click placement mode, create house form modal
+  - Map click placement mode: Click on map to place marker, form auto-fills coordinates
+  - Mutual exclusion between "Add House" and "Add Facility" placement modes
+  - Fixed map cleanup crash on unmount (canvas.style.cursor access after map destroyed → try/catch)
+  - Full end-to-end verification via browser automation:
+    - Admin login → Map Management → Add House via map click → Fill form → Success
+    - Upload 360° panorama to house → Success
+    - Add facility (restaurant) → Success
+    - Public map: verified house markers (with popups showing vendor info, area, price, 360° button)
+    - Public map: verified facility markers (with popups showing name, type, description)
+  - Cleaned up all test data after verification
+
+### Regression Testing:
+- Verified Map Management page loads correctly with existing houses and facilities
+- Verified admin login works
+- Zero console errors on all pages tested
+
+### Technical Changes:
+1. **backend/src/routes/admin.ts**:
+   - Added `latitude: true, longitude: true` to GET /vendor-houses select clause
+   - Added POST /vendor-houses endpoint for creating vendor houses
+   - Validates: houseNumber required, lat/lng required and numeric, duplicate check
+   - Logs CREATE_VENDOR_HOUSE activity
+
+2. **frontend/src/services/api.ts**:
+   - Added `createVendorHouse` method to adminApi
+
+3. **frontend/src/pages/MapManagement.tsx**:
+   - Added CreateHouseFormData interface and state variables
+   - Added "🏠 Add House" button in map section header
+   - Added map click handler for house placement (blue marker preview)
+   - Added create house form modal with validation
+   - Added instruction banner for placement mode
+   - Mutual exclusion between house/facility add modes
+   - Fixed map cleanup crash in useEffect cleanup
+
+### Architecture Notes:
+- Frontend: React 18+ with TypeScript, Vite (port 3000)
+- Backend: Node.js + Express + Prisma + SQLite (port 3002)
+- Map: Mapbox GL JS for interactive maps
+- Panorama: Photo Sphere Viewer for 360° tours
+
+---
 
 ## Session 21 - January 25, 2026
 

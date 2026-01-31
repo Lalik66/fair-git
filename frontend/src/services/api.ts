@@ -208,6 +208,18 @@ export const adminApi = {
   },
 
   // Vendor house management
+  createVendorHouse: async (data: {
+    houseNumber: string;
+    areaSqm?: number | null;
+    price?: number | null;
+    description?: string | null;
+    latitude: number;
+    longitude: number;
+  }) => {
+    const response = await api.post('/admin/vendor-houses', data);
+    return response.data;
+  },
+
   getVendorHouses: async () => {
     const response = await api.get('/admin/vendor-houses');
     return response.data;
