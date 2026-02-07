@@ -64,6 +64,32 @@ export const authApi = {
     const response = await api.put('/auth/language', { language });
     return response.data;
   },
+
+  /**
+   * Upgrade current user from visitor (role='user') to vendor
+   * Feature 6: Visitor upgrades to vendor role
+   */
+  upgradeToVendor: async () => {
+    const response = await api.post('/auth/upgrade-to-vendor');
+    return response.data;
+  },
+
+  /**
+   * Check which OAuth providers are configured on the server
+   * Used by frontend to conditionally show OAuth buttons
+   */
+  getOAuthStatus: async () => {
+    const response = await api.get('/auth/oauth-status');
+    return response.data as { googleEnabled: boolean };
+  },
+
+  /**
+   * Get the URL to initiate Google OAuth flow
+   * Frontend redirects to this URL to start OAuth
+   */
+  getGoogleOAuthUrl: () => {
+    return `${API_URL}/auth/google`;
+  },
 };
 
 // Admin API
@@ -192,6 +218,11 @@ export const adminApi = {
 
   updateApplicationNotes: async (applicationId: string, adminNotes: string) => {
     const response = await api.put(`/admin/applications/${applicationId}/notes`, { adminNotes });
+    return response.data;
+  },
+
+  deleteApplication: async (applicationId: string) => {
+    const response = await api.delete(`/admin/applications/${applicationId}`);
     return response.data;
   },
 

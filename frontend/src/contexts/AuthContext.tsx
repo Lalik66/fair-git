@@ -17,8 +17,10 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithToken: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -95,6 +97,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  /**
+   * Login with a JWT token (used for OAuth callback)
+   * The token is received from the OAuth redirect URL
+   */
+  const loginWithToken = async (token: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Store token first so the API can use it
+      localStorage.setItem('token', token);
+
+      // Fetch user data using the token
+      const { user: currentUser } = await authApi.getMe();
+
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(currentUser));
+      setUser(currentUser);
+
+      // Apply user's language preference
+      applyUserLanguage(currentUser.preferredLanguage);
+    } catch (err: any) {
+      // Clear invalid token
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      const errorMessage = err.response?.data?.error || 'OAuth login failed. Please try again.';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       await authApi.logout();
@@ -113,7 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, clearError }}>
+    <AuthContext.Provider value={{ user, loading, error, login, loginWithToken, logout, clearError, setUser }}>
       {children}
     </AuthContext.Provider>
   );

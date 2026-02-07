@@ -1,11 +1,24 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { rateLimit } from 'express-rate-limit';
+import passport from 'passport';
 import { prisma } from '../index';
 import { authenticateToken } from '../middleware/auth';
+import { isGoogleOAuthConfigured } from '../config/passport';
 
 const router = Router();
+
+// JWT_SECRET validation - fail loudly in production if not set
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  console.error('JWT_SECRET environment variable is required');
+  // In development, use a default; in production, this should be set
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable is required in production');
+  }
+}
+const JWT_SECRET = jwtSecret || 'development-secret-do-not-use-in-production';
 
 // Login rate limiter - 5 attempts per 15 minutes per IP
 const loginRateLimiter = rateLimit({
@@ -64,7 +77,7 @@ router.post('/login', loginRateLimiter, async (req: Request, res: Response): Pro
     // Generate JWT token
     const token = jwt.sign(
       { userId: user.id },
-      process.env.JWT_SECRET || 'secret',
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -160,6 +173,92 @@ router.put('/language', authenticateToken, async (req: Request, res: Response): 
   }
 });
 
+// =====================================
+// Google OAuth Routes (Features 2, 3, 6, 221)
+// =====================================
+
+/**
+ * GET /api/auth/oauth-status
+ * Check if OAuth providers are configured (for frontend to conditionally show buttons)
+ */
+router.get('/oauth-status', (req: Request, res: Response): void => {
+  res.json({
+    googleEnabled: isGoogleOAuthConfigured(),
+  });
+});
+
+/**
+ * GET /api/auth/google
+ * Initiate Google OAuth flow (Feature 6)
+ * Redirects user to Google's consent screen
+ */
+router.get('/google', (req: Request, res: Response, next: NextFunction): void => {
+  if (!isGoogleOAuthConfigured()) {
+    res.status(404).json({ error: 'Google OAuth is not configured on this server' });
+    return;
+  }
+
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false,
+  })(req, res, next);
+});
+
+/**
+ * GET /api/auth/google/callback
+ * Handle Google OAuth callback
+ * - Feature 2: Creates new account if user doesn't exist
+ * - Feature 3: Logs in existing user
+ * - Feature 221: Links Google account to existing email account
+ */
+router.get(
+  '/google/callback',
+  (req: Request, res: Response, next: NextFunction): void => {
+    if (!isGoogleOAuthConfigured()) {
+      res.status(404).json({ error: 'Google OAuth is not configured on this server' });
+      return;
+    }
+
+    passport.authenticate('google', {
+      session: false,
+      failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=oauth_failed`,
+    }, (err: Error | null, user: any) => {
+      if (err) {
+        console.error('Google OAuth callback error:', err);
+        const errorMessage = encodeURIComponent(err.message || 'Authentication failed');
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=${errorMessage}`);
+        return;
+      }
+
+      if (!user) {
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=oauth_failed`);
+        return;
+      }
+
+      // Check if user is active
+      if (!user.isActive) {
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=account_deactivated`);
+        return;
+      }
+
+      // Generate JWT token (same as regular login)
+      const token = jwt.sign(
+        { userId: user.id },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      // Redirect to frontend OAuth callback page with token
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      res.redirect(`${frontendUrl}/oauth-callback?token=${token}`);
+    })(req, res, next);
+  }
+);
+
+// =====================================
+// Password-based Authentication Routes
+// =====================================
+
 // Change password
 router.post('/change-password', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -204,6 +303,73 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// =====================================
+// Role Upgrade Routes (Feature 6)
+// =====================================
+
+/**
+ * POST /api/auth/upgrade-to-vendor
+ * Allow a visitor (role='user') to upgrade their account to vendor
+ * Feature 6: Visitor upgrades to vendor role
+ */
+router.post('/upgrade-to-vendor', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Only visitors (role='user') can upgrade to vendor
+    if (user.role !== 'user') {
+      res.status(400).json({
+        error: user.role === 'vendor'
+          ? 'You are already a vendor'
+          : 'Only visitors can upgrade to vendor role'
+      });
+      return;
+    }
+
+    // Upgrade role to vendor and create vendor profile in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Update user role
+      const updatedUser = await tx.user.update({
+        where: { id: req.user!.id },
+        data: { role: 'vendor' },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          preferredLanguage: true,
+          mustChangePassword: true,
+        },
+      });
+
+      // Create vendor profile
+      await tx.vendorProfile.create({
+        data: {
+          userId: req.user!.id,
+        },
+      });
+
+      return updatedUser;
+    });
+
+    res.json({
+      message: 'Successfully upgraded to vendor role',
+      user: result
+    });
+  } catch (error) {
+    console.error('Upgrade to vendor error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

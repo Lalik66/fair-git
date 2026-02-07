@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
+import OAuthCallback from './pages/OAuthCallback';
 import AdminDashboard from './pages/AdminDashboard';
 import ChangePassword from './pages/ChangePassword';
 import VendorBookings from './pages/VendorBookings';
@@ -12,6 +13,7 @@ import VendorApplications from './pages/VendorApplications';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import MapPage from './pages/MapPage';
+import UserProfile from './pages/UserProfile';
 import { authApi } from './services/api';
 
 // Navigation component
@@ -88,13 +90,13 @@ const Navigation: React.FC = () => {
   const getDashboardUrl = () => {
     if (user?.role === 'admin') return '/admin';
     if (user?.role === 'vendor') return '/vendor';
-    return '/';
+    return '/profile'; // Regular users go to their profile
   };
 
   const getProfileUrl = () => {
     if (user?.role === 'admin') return '/admin'; // Admin can update profile in dashboard
     if (user?.role === 'vendor') return '/vendor/profile';
-    return '/';
+    return '/profile'; // Regular users go to profile page
   };
 
   const getUserInitials = () => {
@@ -305,6 +307,7 @@ const AppContent: React.FC = () => {
           <Route path="/map" element={<MapPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/oauth-callback" element={<OAuthCallback />} />
 
           {/* Change Password Route - Protected but accessible when mustChangePassword is true */}
           <Route
@@ -312,6 +315,16 @@ const AppContent: React.FC = () => {
             element={
               <ProtectedRoute allowMustChangePassword>
                 <ChangePassword />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* User Profile Route - Protected for regular users */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <UserProfile />
               </ProtectedRoute>
             }
           />

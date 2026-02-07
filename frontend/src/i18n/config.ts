@@ -58,6 +58,7 @@ const resources = {
         logout: 'Sign Out',
         password: 'Password',
         googleLogin: 'Sign in with Google',
+        orContinueWith: 'or continue with',
         selectRole: 'Select Your Role',
         roleVisitor: 'Visitor',
         roleVendor: 'Vendor',
@@ -65,6 +66,14 @@ const resources = {
           visitor: 'Browse fairs and explore vendors',
           vendor: 'Apply for vendor spaces and manage your business',
         },
+        // OAuth-related messages
+        oauthError: 'Authentication Error',
+        oauthFailed: 'Google authentication failed. Please try again.',
+        accountDeactivated: 'Your account has been deactivated.',
+        noToken: 'No authentication token received.',
+        authenticating: 'Completing authentication...',
+        pleaseWait: 'Please wait while we log you in.',
+        redirecting: 'Redirecting to login...',
       },
 
       // Map
@@ -154,6 +163,25 @@ const resources = {
         myBookings: 'My Bookings',
         profile: 'Profile',
         applyForHouse: 'Apply for House',
+      },
+
+      // User Profile (Visitor)
+      user: {
+        accountInfo: 'Account Information',
+        email: 'Email',
+        firstName: 'First Name',
+        lastName: 'Last Name',
+        role: 'Role',
+        becomeVendor: 'Become a Vendor',
+        becomeVendorDescription: 'Upgrade your account to a vendor account to apply for vendor spaces at fairs, manage your business profile, and participate in upcoming events.',
+        becomeVendorButton: 'Become a Vendor',
+        benefit1: 'Apply for vendor spaces',
+        benefit2: 'Manage your business profile',
+        benefit3: 'Participate in fair events',
+        confirmUpgrade: 'Confirm Account Upgrade',
+        confirmUpgradeMessage: 'Are you sure you want to upgrade your account to a vendor account? This will give you access to the vendor dashboard where you can manage your business and apply for fair spaces.',
+        upgradeError: 'Failed to upgrade to vendor. Please try again.',
+        upgradeSuccess: 'Successfully upgraded to vendor!',
       },
 
       // About
@@ -256,6 +284,7 @@ const resources = {
         logout: 'Çıxış',
         password: 'Şifrə',
         googleLogin: 'Google ilə daxil ol',
+        orContinueWith: 'və ya davam edin',
         selectRole: 'Rolunuzu seçin',
         roleVisitor: 'Ziyarətçi',
         roleVendor: 'Satıcı',
@@ -263,6 +292,14 @@ const resources = {
           visitor: 'Yarmarkalara baxın və satıcıları araşdırın',
           vendor: 'Satıcı yerləri üçün müraciət edin və biznesinizi idarə edin',
         },
+        // OAuth-related messages
+        oauthError: 'Doğrulama Xətası',
+        oauthFailed: 'Google doğrulaması uğursuz oldu. Yenidən cəhd edin.',
+        accountDeactivated: 'Hesabınız deaktiv edilib.',
+        noToken: 'Doğrulama tokeni alınmadı.',
+        authenticating: 'Doğrulama tamamlanır...',
+        pleaseWait: 'Xahiş edirik, giriş edərkən gözləyin.',
+        redirecting: 'Giriş səhifəsinə yönləndirilir...',
       },
 
       // Map
@@ -352,6 +389,25 @@ const resources = {
         myBookings: 'Rezervasiyalarım',
         profile: 'Profil',
         applyForHouse: 'Ev üçün Müraciət Et',
+      },
+
+      // User Profile (Visitor)
+      user: {
+        accountInfo: 'Hesab Məlumatları',
+        email: 'E-poçt',
+        firstName: 'Ad',
+        lastName: 'Soyad',
+        role: 'Rol',
+        becomeVendor: 'Satıcı Olun',
+        becomeVendorDescription: 'Hesabınızı satıcı hesabına yüksəldin ki, yarmarkalarda satıcı yerləri üçün müraciət edə, biznes profilinizi idarə edə və gələcək tədbirlərdə iştirak edə biləsiniz.',
+        becomeVendorButton: 'Satıcı Olun',
+        benefit1: 'Satıcı yerləri üçün müraciət edin',
+        benefit2: 'Biznes profilinizi idarə edin',
+        benefit3: 'Yarmarka tədbirlərində iştirak edin',
+        confirmUpgrade: 'Hesab Yüksəltməsini Təsdiq Edin',
+        confirmUpgradeMessage: 'Hesabınızı satıcı hesabına yüksəltmək istədiyinizə əminsiniz? Bu sizə biznesinizi idarə edə və yarmarka yerləri üçün müraciət edə biləcəyiniz satıcı idarə panelinə giriş imkanı verəcək.',
+        upgradeError: 'Satıcıya yüksəltmək alınmadı. Yenidən cəhd edin.',
+        upgradeSuccess: 'Satıcıya uğurla yüksəldildi!',
       },
 
       // About
