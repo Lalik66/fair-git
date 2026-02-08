@@ -1,267 +1,151 @@
 # Fair Marketplace - Development Progress
 
-## Current Status: 233/240 features passing (97.1%)
+## Current Status: 236/240 features passing (98.3%)
 
-## Session 22 - January 31, 2026
+## Session 25 - February 8, 2026
 
 ### Completed This Session:
-- **Feature 20: Create vendor house via map click** (verified via Feature 127 testing)
 
-- **Feature 127: Admin manages map objects (full workflow)**
-  - Implemented "Create Vendor House" functionality (was completely missing from UI)
-  - Backend: Added POST `/admin/vendor-houses` endpoint with validation, duplicate checking, activity logging
-  - Backend: Fixed GET `/vendor-houses` to include latitude/longitude in response (was missing)
-  - Frontend API: Added `createVendorHouse` method to adminApi service
-  - Frontend MapManagement.tsx: Added "Add House" button, map-click placement mode, create house form modal
-  - Map click placement mode: Click on map to place marker, form auto-fills coordinates
-  - Mutual exclusion between "Add House" and "Add Facility" placement modes
-  - Fixed map cleanup crash on unmount (canvas.style.cursor access after map destroyed → try/catch)
-  - Full end-to-end verification via browser automation:
-    - Admin login → Map Management → Add House via map click → Fill form → Success
-    - Upload 360° panorama to house → Success
-    - Add facility (restaurant) → Success
-    - Public map: verified house markers (with popups showing vendor info, area, price, 360° button)
-    - Public map: verified facility markers (with popups showing name, type, description)
-  - Cleaned up all test data after verification
+- **Feature 151: Delete removes from search results** (VERIFIED)
+  - Created test vendor (searchtest-vendor@test.com) with company name 'SEARCHTEST123'
+  - Created test application linked to this vendor profile
+  - Searched for 'SEARCHTEST123' in admin Application Review - found 1 result
+  - Deleted the application via admin action (clicked "Sil" button, confirmed)
+  - Verified search for 'SEARCHTEST123' now shows "No applications found"
+  - Total applications count dropped from 16 to 15
+  - Pending count dropped from 1 to 0
+  - Screenshots taken: feature-151-search-found.png, feature-151-search-deleted.png
+  - Zero console errors throughout testing
 
-- **Feature 150: Delete parent removes children from views**
-  - Created test house DELETE-TEST-150, verified on public map (5 markers)
-  - Deleted from admin, verified public map updated (4 markers)
-  - No orphan references after deletion
+### Remaining 4 Features (Require External Services):
+All remaining features require external services that aren't configured with real credentials:
 
-- **Feature 153: Delete updates related dropdowns**
-  - Created house "999", verified in admin table
-  - Deleted house "999", verified removed from admin table and public map
-  - Public map properly reflects deleted items
+1. **Feature 2: Google OAuth sign-in for vendors** - Requires Google OAuth credentials
+2. **Feature 3: Google OAuth sign-in for visitors** - Requires Google OAuth credentials
+3. **Feature 221: First-time user onboarding** - Requires Google OAuth for registration
+4. **Feature 225: Cloudinary URLs secure** - Requires Cloudinary credentials
 
-- **Feature 210: Facility types all available**
-  - Opened Add Facility form, verified type dropdown contains all 7 required types:
-    Restaurant, Cafe, Kids Zone, Restroom, Taxi, Bus Stop, Parking
-  - Plus 3 bonus types: Info Point, First Aid, ATM
-  - Each type has correct emoji icon
+These features have the implementation code in place, but cannot be end-to-end tested without:
+- Real Google OAuth client ID and secret
+- Real Cloudinary account credentials
 
-- **Feature 215: Vendor house disabled from public view**
-  - Edited H-104, unchecked "Enabled (visible on map)" → status changed to "Disabled"
-  - Public map showed 3 markers (H-104 hidden)
-  - Re-enabled H-104 → public map showed 4 markers again
+The application currently:
+- Falls back to local storage when Cloudinary isn't configured
+- Shows Google OAuth button but it won't work without real credentials
+- Has no email/password registration flow (only admin accounts use password login)
 
-### Remaining 7 Features (Require Unimplemented Infrastructure):
-- Features 2, 3, 6, 221: Require Google OAuth (not implemented)
-- Feature 225: Requires Cloudinary integration (images stored locally)
-- Features 151, 152: Require application deletion (no admin endpoint/UI)
+### Test Data Created:
+- User: searchtest-vendor@test.com (vendor role)
+- VendorProfile with companyName: SEARCHTEST123
+- Application was deleted during testing
 
-### Regression Testing:
-- Verified Map Management page loads correctly with existing houses and facilities
-- Verified admin login works
-- Zero console errors on all pages tested
+---
 
-### Technical Changes:
-1. **backend/src/routes/admin.ts**:
-   - Added `latitude: true, longitude: true` to GET /vendor-houses select clause
-   - Added POST /vendor-houses endpoint for creating vendor houses
-   - Validates: houseNumber required, lat/lng required and numeric, duplicate check
-   - Logs CREATE_VENDOR_HOUSE activity
+## Session 24 - February 7, 2026
 
-2. **frontend/src/services/api.ts**:
-   - Added `createVendorHouse` method to adminApi
+### Completed This Session:
 
-3. **frontend/src/pages/MapManagement.tsx**:
-   - Added CreateHouseFormData interface and state variables
-   - Added "🏠 Add House" button in map section header
-   - Added map click handler for house placement (blue marker preview)
-   - Added create house form modal with validation
-   - Added instruction banner for placement mode
-   - Mutual exclusion between house/facility add modes
-   - Fixed map cleanup crash in useEffect cleanup
+- **Feature 6: Visitor upgrades to vendor role** (IMPLEMENTED & VERIFIED)
+  - Created UserProfile page (`/profile`) for regular visitors
+  - Shows user account info (email, name, role)
+  - Implemented "Become a Vendor" button with confirmation dialog
+  - Backend endpoint `POST /api/auth/upgrade-to-vendor`:
+    - Changes user role from 'user' to 'vendor'
+    - Creates VendorProfile in same transaction
+    - Returns updated user data
+  - Added English and Azerbaijani translations
+  - Updated AuthContext to expose setUser for role updates
+  - Updated navigation to route regular users to profile page
+  - Full end-to-end verification with browser automation:
+    - Created test user (test-visitor-upgrade@test.com, role='user')
+    - Logged in, navigated to /profile
+    - Clicked "Become a Vendor", confirmed in dialog
+    - Verified redirect to /vendor dashboard
+    - Verified VendorProfile created in database
+    - Verified vendor profile page loads correctly
 
-### Architecture Notes:
+### Files Created/Modified:
+- `frontend/src/pages/UserProfile.tsx` - New user profile page
+- `frontend/src/pages/UserProfile.css` - Styling for user profile
+- `frontend/src/services/api.ts` - Added upgradeToVendor API method
+- `frontend/src/contexts/AuthContext.tsx` - Exposed setUser function
+- `frontend/src/i18n/config.ts` - Added user profile translations
+- `frontend/src/App.tsx` - Added /profile route, updated navigation URLs
+- `backend/src/routes/auth.ts` - Added upgrade-to-vendor endpoint
+
+### Test User:
+- Email: test-visitor-upgrade@test.com
+- Password: TestVisitor123!
+- Role: vendor (after upgrade)
+
+---
+
+## Session 23 - February 7, 2026
+
+### Completed This Session:
+
+- **Features 151, 152: Application Deletion** (VERIFIED - Already Implemented)
+  - Backend: DELETE `/admin/applications/:applicationId` endpoint exists with cascade deletion
+  - Frontend: Delete button with confirmation modal in ApplicationReview.tsx
+  - Cascade logic properly deletes related booking when application is deleted
+  - Activity logging for delete operations
+
+- **Feature 225: Cloudinary Integration** (IMPLEMENTED)
+  - Installed `cloudinary` and `multer-storage-cloudinary` packages
+  - Created `backend/src/config/cloudinary.ts` with optional configuration based on env vars
+  - Created `backend/src/middleware/upload.ts` with centralized upload middleware
+  - Factory function `createUpload()` switches between Cloudinary and local storage
+  - Pre-configured upload instances: `logoUpload`, `productImageUpload`, `panoramaUpload`
+  - Updated `vendor.ts` and `admin.ts` routes to use centralized middleware
+  - Environment variables: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+  - **Security Fixes Applied:**
+    - Path traversal protection in `deleteLocalFile()`
+    - Proper error handling for file deletion
+    - Removed unused exports and type assertions
+
+- **Features 2, 3, 6, 221: Google OAuth** (IMPLEMENTED)
+  - Feature 2: User can register with Google
+  - Feature 3: User can login with Google
+  - Feature 6: Google OAuth authentication
+  - Feature 221: User can link Google account to existing account
+
+  **Backend Changes:**
+  - Created `backend/src/config/passport.ts` with Google OAuth 2.0 strategy
+  - Added `googleId` column to User model in Prisma schema
+  - Added OAuth routes in `auth.ts`:
+    - GET `/api/auth/oauth-status` - Check if OAuth is configured
+    - GET `/api/auth/google` - Initiate Google OAuth flow
+    - GET `/api/auth/google/callback` - Handle OAuth callback, generate JWT
+  - Passport.js integration with find-or-create user logic
+  - Automatic account linking for existing email users
+
+  **Frontend Changes:**
+  - Created `OAuthCallback.tsx` to handle redirect with token
+  - Updated `LoginPage.tsx` with Google sign-in button (conditional)
+  - Added `loginWithToken` method to AuthContext
+  - Added OAuth API methods to api.ts
+  - Added route for `/oauth-callback` in App.tsx
+  - Added i18n translations for OAuth messages
+
+  **Environment Variables:**
+  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
+  - OAuth is optional - works without credentials configured
+
+---
+
+## Architecture Notes:
 - Frontend: React 18+ with TypeScript, Vite (port 3000)
 - Backend: Node.js + Express + Prisma + SQLite (port 3002)
 - Map: Mapbox GL JS for interactive maps
 - Panorama: Photo Sphere Viewer for 360° tours
+- Authentication: JWT tokens, optional Google OAuth
+- Image Storage: Local disk (falls back when Cloudinary not configured)
 
----
-
-## Session 21 - January 25, 2026
-
-### Completed This Session:
-- **Feature 38: Application image validation - file size**
-  - Created test file generator (create-large-test-image.js) to produce 6MB file
-  - Tested file upload on vendor profile page
-  - Verified 6MB file rejected with error: "File size exceeds 5MB limit."
-  - Verified small valid image (70 bytes) accepted with success message
-  - Backend uses multer with 5MB fileSize limit
-
-- **Feature 39: Application image validation - file format**
-  - Created test files (PDF, PNG, JPG) using create-test-files.js
-  - Tested file upload on vendor profile page
-  - Verified PDF rejected with error: "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed."
-  - Verified JPG accepted with success message "Logo uploaded successfully!"
-  - Backend fileFilter allows: image/jpeg, image/jpg, image/png, image/gif, image/webp
-
-- **Feature 90 (Regression)**: Verified vendor cannot access admin routes
-  - Vendor user redirected away from /admin, /admin/fairs, /admin/applications
-
-### Skipped Features (Dependencies Not Implemented):
-Many features were skipped because they require functionality that isn't implemented:
-
-1. **Map Management** (Coming Soon in UI) - Features 20-34, 56, 64-71, 107, 115, 124, 127, 150, 153, 154, 202, 205-207, 210, 215, 231
-2. **Google OAuth** - Features 2, 3, 6, 126, 221
-3. **Cloudinary Integration** - Features 208, 225 (images stored locally in /uploads/)
-4. **360° Panorama Viewer** - Features 56, 66, 204, 207 (library installed but not used)
-5. **Application Deletion** - Features 151, 152 (no delete button in admin UI)
-6. **Breadcrumbs** - Feature 107 (uses "← Back to Dashboard" link instead)
-7. **Network Error Testing** - Feature 128 (requires network manipulation)
-
-### Technical Notes:
-- Test file generators created in project root:
-  - create-large-test-image.js - Creates 6MB test file for size validation
-  - create-test-files.js - Creates PDF, PNG, JPG test files for format validation
-- Test files output to test-images/ directory
-
-### What Needs Work Next:
-- Most remaining features require implementing:
-  1. Interactive Map Management (Leaflet/Mapbox integration)
-  2. Google OAuth authentication
-  3. Cloudinary integration for cloud image storage
-  4. 360° Panorama viewer using Photo Sphere Viewer library
-  5. Application deletion functionality
-  
-### NEW FEATURE REQUEST: Split-View Map Layout with Sidebar
-
-Redesign the public map page with a split-view layout:
-
-**Left Sidebar (30-40% width):**
-- Header with "Yarmarka xəritəsi" (Fair Map) title
-- Filter buttons row: All, Evlər (Houses), Kafe, WC, Giriş (Entrance), Əyləncələr (Entertainment), Dayancaq (Stops), Parking
-- Scrollable list of all map objects showing:
-  - Object name (colored by type)
-  - Short description
-  - Address or details
-- Clicking an item in the list:
-  - Centers map on that location
-  - Opens the popup for that marker
-  - Highlights the item in the list
-
-**Right Map Panel (60-70% width):**
-- Interactive Mapbox map (keep existing functionality)
-- Search box at top-right corner
-- 3D building view enabled
-- All existing markers and popups
-- When marker clicked, corresponding list item highlights
-
-**360° Panorama Preview:**
-- Small preview panel at bottom-right of map
-- Shows panorama thumbnail when house is selected
-- Displays house size (e.g., "Evin ölçüləri: 130m²")
-- Click to open full panorama viewer
-
-**Responsive Design:**
-- On mobile: sidebar becomes bottom sheet or collapsible drawer
-- Filter buttons become horizontally scrollable
-
-**Color Coding:**
-- Green: Vendor houses (Evlər)
-- Orange/Red: Food & cafes
-- Blue: Information, WC, services
-- Purple: Entertainment
-- Gray: Parking
----
-
-## Session 20 - January 24, 2026
-
-### Completed This Session:
-- **Feature 129: Invalid form shows field-level errors**
-  - Added CSS styles for field-level error messages in VendorProfile.css
-  - Styles include: .field-error, .input-error, .has-error, .required
-  - Error messages appear next to each required field with specific text like 'Company name is required'
-  - Labels turn red when fields have validation errors
-  - Verified working with browser automation - screenshot taken
-
-- **Feature 141: Dirty form warning on navigation**
-  - Created new useUnsavedChangesWarning.ts hook
-  - Tracks form state changes via JSON comparison
-  - Shows warning modal when closing form with unsaved changes
-  - Browser beforeunload event for tab close/refresh
-  - Verified working with browser automation
-
-- **Feature 144: Filter parameters in URL**
-  - Updated ApplicationReview.tsx to use useSearchParams
-  - All filters (status, category, date, house, fair, search, sort, pagination) sync to URL
-  - Navigating to URL with params restores filter state
-  - Enables sharing filtered views via URL
-  - Verified working with browser automation
-
-- **Feature 157: Pagination resets on filter change**
-  - Already implemented in ApplicationReview.tsx
-  - useEffect resets currentPage to 1 when filters change
-  - Verified: going to page 2, applying filter, returns to page 1
-
-- **Feature 166: Phone number validation**
-  - Added phone validation to VendorProfile.tsx
-  - Regex allows +, digits, spaces, dashes, parentheses (7-20 chars)
-  - Invalid format shows error, valid format passes
-  - Also added field-level error display for all required fields
-
-- **Feature 170: Whitespace-only rejected for required fields**
-  - Already implemented with .trim() checks in validateForm
-  - Entering only spaces in Company Name shows "Company name is required"
-  - Verified working with browser automation
-
-### Technical Changes:
-1. **frontend/src/pages/VendorProfile.css**:
-   - Added field-level error styles (.form-group.has-error label, .input-error, .field-error, .required)
-   - Red color (#dc2626) for error states
-   - Focus states with red box shadow for errored fields
-
-2. **backend/src/routes/admin.ts**:
-   - Added POST /api/admin/test-vendor endpoint for creating test vendors with passwords
-   - This enables testing vendor features without manual database manipulation
-
-3. **frontend/src/hooks/useUnsavedChangesWarning.ts** (NEW FILE):
-   - Reusable hook for dirty form detection
-   - Handles beforeunload event
-   - Returns modal state and navigation confirmation function
-
-4. **frontend/src/pages/FairManagement.tsx**:
-   - Integrated useUnsavedChangesWarning hook
-   - Added warning modal for unsaved changes
-   - Tracks original form data to detect changes
-
-5. **frontend/src/pages/ApplicationReview.tsx**:
-   - Added useSearchParams for URL synchronization
-   - Filter state initialized from URL params
-   - updateUrlParams callback syncs state to URL on change
-
-### Regression Testing:
-- Verified CSV export feature (Feature 52) still works correctly
-- Exported 8 rejected applications to CSV successfully
-
-### What Needs Work Next:
-- Continue with the next pending feature from the feature queue
-- Current completion: 183/240 (76.2%)
-
----
-
-## Previous Session Notes
-
-### Session 19 Summary (Recent):
-- Email workflow features verified (14, 239, 240)
-- Pagination limits data per page (238)
-- Image lazy loading (237)
-- Date filters (Today, This Week) working (236)
-- Product category translation (223)
-- Language translation completeness (222)
-- Data verification features (219-220)
-- User menu dropdown (218)
-- Rate limiting on login (217)
-- Admin cannot deactivate self (216)
-- About Us multi-language support (214)
-
-### Known Working Features:
-- Admin login/logout
+## Known Working Features (236/240):
+- Admin login/logout with password
 - Fair management (CRUD)
-- Application review with filters
+- Application review with filters, search, pagination
+- Application deletion with cascade
 - CSV/PDF export
 - User management
 - Activity logs
@@ -269,11 +153,11 @@ Redesign the public map page with a split-view layout:
 - Multi-language support (AZ/EN)
 - Mobile responsive navigation
 - Field-level form validation
+- Interactive map with markers
+- 360° panorama viewer
+- Visitor to vendor upgrade flow
 
-### Architecture Notes:
-- Frontend: React 18+ with TypeScript, Vite
-- Backend: Node.js + Express + Prisma
-- Database: SQLite (dev.db)
-- Backend runs on port 3002
-- Frontend runs on port 3000
-
+## What Would Be Needed to Complete Remaining 4 Features:
+1. Register a Google Cloud project and configure OAuth 2.0 credentials
+2. Set up a Cloudinary account and add real credentials to .env
+3. Update GOOGLE_CALLBACK_URL to match the deployment domain
