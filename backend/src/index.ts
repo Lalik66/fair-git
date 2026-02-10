@@ -2,11 +2,14 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import session from 'express-session';
 import dotenv from 'dotenv';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { rateLimit } from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
+import passport from 'passport';
+import { initializePassport } from './config/passport';
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +42,23 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// Session middleware (required for Google OAuth state handling)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'development-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  },
+}));
+
+// Initialize Passport for OAuth authentication
+initializePassport();
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
