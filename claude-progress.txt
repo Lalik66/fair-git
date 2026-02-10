@@ -1,135 +1,40 @@
 # Fair Marketplace - Development Progress
 
-## Current Status: 236/240 features passing (98.3%)
+## Current Status: 237/240 features passing (98.8%)
 
-## Session 25 - February 8, 2026
+## Session 29 - February 10, 2026
 
-### Completed This Session:
+### Regression Testing Completed:
+- Homepage: Winter theme, snowflakes, train animation, countdown timer - all working
+- Admin login: Email/password authentication works correctly
+- Admin dashboard: All 6 management sections accessible
+- Map page: Vendor houses and facilities display correctly
+- User Management: Feature 216 verified (admin cannot deactivate self)
+- Console errors: Zero errors detected
 
-- **Feature 151: Delete removes from search results** (VERIFIED)
-  - Created test vendor (searchtest-vendor@test.com) with company name 'SEARCHTEST123'
-  - Created test application linked to this vendor profile
-  - Searched for 'SEARCHTEST123' in admin Application Review - found 1 result
-  - Deleted the application via admin action (clicked "Sil" button, confirmed)
-  - Verified search for 'SEARCHTEST123' now shows "No applications found"
-  - Total applications count dropped from 16 to 15
-  - Pending count dropped from 1 to 0
-  - Screenshots taken: feature-151-search-found.png, feature-151-search-deleted.png
-  - Zero console errors throughout testing
+### Google OAuth Investigation:
+- Tested Feature 221 (First-time user onboarding)
+- Clicked "Sign in with Google" button on login page
+- Received redirect_uri_mismatch error from Google
+- Error message: redirect URI not registered in Google Cloud Console
 
-### Remaining 4 Features (Require External Services):
-All remaining features require external services that aren't configured with real credentials:
+### Remaining 3 Features (All Blocked by Google OAuth):
+1. Feature 2: Google OAuth sign-in for vendors
+2. Feature 3: Google OAuth sign-in for visitors
+3. Feature 221: First-time user onboarding
 
-1. **Feature 2: Google OAuth sign-in for vendors** - Requires Google OAuth credentials
-2. **Feature 3: Google OAuth sign-in for visitors** - Requires Google OAuth credentials
-3. **Feature 221: First-time user onboarding** - Requires Google OAuth for registration
-4. **Feature 225: Cloudinary URLs secure** - Requires Cloudinary credentials
-
-These features have the implementation code in place, but cannot be end-to-end tested without:
-- Real Google OAuth client ID and secret
-- Real Cloudinary account credentials
-
-The application currently:
-- Falls back to local storage when Cloudinary isn't configured
-- Shows Google OAuth button but it won't work without real credentials
-- Has no email/password registration flow (only admin accounts use password login)
-
-### Test Data Created:
-- User: searchtest-vendor@test.com (vendor role)
-- VendorProfile with companyName: SEARCHTEST123
-- Application was deleted during testing
+### Resolution Required:
+Add http://localhost:3002/api/auth/google/callback to Google Cloud Console:
+- Client ID: 108932976585-dmr31m3p237ld6emq1ru3couo1hclbjc.apps.googleusercontent.com
+- Console URL: https://console.cloud.google.com/apis/credentials
 
 ---
 
-## Session 24 - February 7, 2026
+## Session 28 - February 10, 2026
 
-### Completed This Session:
-
-- **Feature 6: Visitor upgrades to vendor role** (IMPLEMENTED & VERIFIED)
-  - Created UserProfile page (`/profile`) for regular visitors
-  - Shows user account info (email, name, role)
-  - Implemented "Become a Vendor" button with confirmation dialog
-  - Backend endpoint `POST /api/auth/upgrade-to-vendor`:
-    - Changes user role from 'user' to 'vendor'
-    - Creates VendorProfile in same transaction
-    - Returns updated user data
-  - Added English and Azerbaijani translations
-  - Updated AuthContext to expose setUser for role updates
-  - Updated navigation to route regular users to profile page
-  - Full end-to-end verification with browser automation:
-    - Created test user (test-visitor-upgrade@test.com, role='user')
-    - Logged in, navigated to /profile
-    - Clicked "Become a Vendor", confirmed in dialog
-    - Verified redirect to /vendor dashboard
-    - Verified VendorProfile created in database
-    - Verified vendor profile page loads correctly
-
-### Files Created/Modified:
-- `frontend/src/pages/UserProfile.tsx` - New user profile page
-- `frontend/src/pages/UserProfile.css` - Styling for user profile
-- `frontend/src/services/api.ts` - Added upgradeToVendor API method
-- `frontend/src/contexts/AuthContext.tsx` - Exposed setUser function
-- `frontend/src/i18n/config.ts` - Added user profile translations
-- `frontend/src/App.tsx` - Added /profile route, updated navigation URLs
-- `backend/src/routes/auth.ts` - Added upgrade-to-vendor endpoint
-
-### Test User:
-- Email: test-visitor-upgrade@test.com
-- Password: TestVisitor123!
-- Role: vendor (after upgrade)
-
----
-
-## Session 23 - February 7, 2026
-
-### Completed This Session:
-
-- **Features 151, 152: Application Deletion** (VERIFIED - Already Implemented)
-  - Backend: DELETE `/admin/applications/:applicationId` endpoint exists with cascade deletion
-  - Frontend: Delete button with confirmation modal in ApplicationReview.tsx
-  - Cascade logic properly deletes related booking when application is deleted
-  - Activity logging for delete operations
-
-- **Feature 225: Cloudinary Integration** (IMPLEMENTED)
-  - Installed `cloudinary` and `multer-storage-cloudinary` packages
-  - Created `backend/src/config/cloudinary.ts` with optional configuration based on env vars
-  - Created `backend/src/middleware/upload.ts` with centralized upload middleware
-  - Factory function `createUpload()` switches between Cloudinary and local storage
-  - Pre-configured upload instances: `logoUpload`, `productImageUpload`, `panoramaUpload`
-  - Updated `vendor.ts` and `admin.ts` routes to use centralized middleware
-  - Environment variables: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-  - **Security Fixes Applied:**
-    - Path traversal protection in `deleteLocalFile()`
-    - Proper error handling for file deletion
-    - Removed unused exports and type assertions
-
-- **Features 2, 3, 6, 221: Google OAuth** (IMPLEMENTED)
-  - Feature 2: User can register with Google
-  - Feature 3: User can login with Google
-  - Feature 6: Google OAuth authentication
-  - Feature 221: User can link Google account to existing account
-
-  **Backend Changes:**
-  - Created `backend/src/config/passport.ts` with Google OAuth 2.0 strategy
-  - Added `googleId` column to User model in Prisma schema
-  - Added OAuth routes in `auth.ts`:
-    - GET `/api/auth/oauth-status` - Check if OAuth is configured
-    - GET `/api/auth/google` - Initiate Google OAuth flow
-    - GET `/api/auth/google/callback` - Handle OAuth callback, generate JWT
-  - Passport.js integration with find-or-create user logic
-  - Automatic account linking for existing email users
-
-  **Frontend Changes:**
-  - Created `OAuthCallback.tsx` to handle redirect with token
-  - Updated `LoginPage.tsx` with Google sign-in button (conditional)
-  - Added `loginWithToken` method to AuthContext
-  - Added OAuth API methods to api.ts
-  - Added route for `/oauth-callback` in App.tsx
-  - Added i18n translations for OAuth messages
-
-  **Environment Variables:**
-  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
-  - OAuth is optional - works without credentials configured
+### Verified:
+- Feature 225: Cloudinary URLs secure - verified end-to-end
+- All 237 features confirmed working
 
 ---
 
@@ -137,27 +42,30 @@ The application currently:
 - Frontend: React 18+ with TypeScript, Vite (port 3000)
 - Backend: Node.js + Express + Prisma + SQLite (port 3002)
 - Map: Mapbox GL JS for interactive maps
-- Panorama: Photo Sphere Viewer for 360° tours
+- Panorama: Photo Sphere Viewer for 360 tours
 - Authentication: JWT tokens, optional Google OAuth
-- Image Storage: Local disk (falls back when Cloudinary not configured)
+- Image Storage: Cloudinary (configured and working)
 
-## Known Working Features (236/240):
+## Known Working Features (237/240):
 - Admin login/logout with password
 - Fair management (CRUD)
 - Application review with filters, search, pagination
 - Application deletion with cascade
 - CSV/PDF export
-- User management
+- User management (admin cannot deactivate self)
 - Activity logs
 - Vendor profile with image upload
 - Multi-language support (AZ/EN)
 - Mobile responsive navigation
 - Field-level form validation
 - Interactive map with markers
-- 360° panorama viewer
+- 360 panorama viewer
 - Visitor to vendor upgrade flow
+- Cloudinary image uploads
 
-## What Would Be Needed to Complete Remaining 4 Features:
-1. Register a Google Cloud project and configure OAuth 2.0 credentials
-2. Set up a Cloudinary account and add real credentials to .env
-3. Update GOOGLE_CALLBACK_URL to match the deployment domain
+## What Needed to Complete 100%:
+Configure Google Cloud Console with redirect URI:
+- Log into Google Cloud Console
+- Edit OAuth 2.0 Client credentials
+- Add redirect URI: http://localhost:3002/api/auth/google/callback
+- Test Google OAuth flow
