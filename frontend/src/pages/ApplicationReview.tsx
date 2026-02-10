@@ -103,6 +103,9 @@ const ApplicationReview: React.FC = () => {
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesText, setNotesText] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Pagination state - also from URL
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10));
@@ -276,6 +279,27 @@ const ApplicationReview: React.FC = () => {
       closeRejectModal();
     } finally {
       setRejecting(false);
+    }
+  };
+
+  const handleDeleteApplication = async () => {
+    if (!applicationToDelete) return;
+    try {
+      setDeleting(true);
+      setError(null);
+      await adminApi.deleteApplication(applicationToDelete);
+      setSuccessMessage('Application deleted successfully.');
+      setDeleteModalOpen(false);
+      setApplicationToDelete(null);
+      // Refresh data to update table and stats
+      await fetchData();
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: any) {
+      console.error('Failed to delete application:', err);
+      setError(err.response?.data?.error || 'Failed to delete application');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -933,6 +957,14 @@ const ApplicationReview: React.FC = () => {
                         </button>
                       </>
                     )}
+                    <button
+                      className="btn btn-danger btn-sm"
+                      title={t('delete', 'Sil')}
+                      onClick={() => { setApplicationToDelete(app.id); setDeleteModalOpen(true); }}
+                      disabled={deleting || approving || rejecting}
+                    >
+                      {t('delete', 'Sil')}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -1290,6 +1322,37 @@ const ApplicationReview: React.FC = () => {
                 disabled={rejecting || !rejectReason.trim()}
               >
                 {rejecting ? 'Rejecting...' : 'Confirm Rejection'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="modal-overlay" onClick={() => setDeleteModalOpen(false)}>
+          <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{t('confirmDelete', 'Confirm Delete')}</h2>
+              <button className="modal-close" onClick={() => setDeleteModalOpen(false)}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <p>{t('deleteWarning', 'Are you sure you want to delete this application? This action cannot be undone.')}</p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={deleting}
+              >
+                {t('cancel', 'L\u0259\u011fv et')}
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleDeleteApplication}
+                disabled={deleting}
+              >
+                {deleting ? `${t('deleting', 'Silinir')}...` : t('delete', 'Sil')}
               </button>
             </div>
           </div>

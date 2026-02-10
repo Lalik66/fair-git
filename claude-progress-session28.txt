@@ -1,0 +1,43 @@
+# Fair Marketplace - Development Progress
+
+## Session 28 - February 10, 2026
+
+### Current Status:
+- **237/240 features passing (98.8% complete)**
+- All remaining 3 features require Google OAuth external service
+
+### Regression Testing Completed:
+- Homepage: Working correctly with winter theme, countdown timer, train animation
+- Map page: Functional with vendor houses and facilities (markers visible at different coordinates)
+- Admin login: Email/password authentication works perfectly
+- Admin dashboard: All 6 management sections accessible
+- API security: 401 responses for unauthenticated requests (Feature 92 verified)
+
+### Features Analyzed:
+The 3 remaining features all require Google OAuth:
+1. **Feature 2**: Google OAuth sign-in for vendors
+2. **Feature 3**: Google OAuth sign-in for visitors
+3. **Feature 221**: First-time user onboarding
+
+All 3 show `redirect_uri_mismatch` error because Google Cloud Console
+isn't configured with correct redirect URI (http://localhost:3002/api/auth/google/callback)
+
+### Technical Notes:
+- Backend running on port 3002
+- Frontend running on port 3000 with proxy to backend
+- Google OAuth credentials are configured but redirect URI needs to be added in Google Cloud Console
+- Email/password authentication works as fallback
+
+### What's Needed to Complete:
+To pass the remaining 3 Google OAuth features:
+1. Add `http://localhost:3002/api/auth/google/callback` as authorized redirect URI in Google Cloud Console
+2. Test Google OAuth login flow for vendors
+3. Test Google OAuth login flow for visitors
+4. Test complete first-time user onboarding workflow
+
+### Screenshots Taken:
+- regression-homepage-session28.png
+- regression-map-session28.png
+- regression-map-zoomed.png
+- feature-221-login-page.png
+- regression-admin-dashboard-session28.png

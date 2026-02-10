@@ -99,8 +99,8 @@ const MapManagement: React.FC = () => {
     name: '',
     type: 'restaurant',
     description: '',
-    latitude: '40.4093',
-    longitude: '49.8671',
+    latitude: '40.37094989291927',
+    longitude: '49.83690275228737',
   });
   const [savingFacility, setSavingFacility] = useState(false);
   const [facilityFormErrors, setFacilityFormErrors] = useState<Record<string, string>>({});

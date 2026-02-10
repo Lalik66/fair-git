@@ -92,6 +92,8 @@ model Fair {
   bookings        Booking[]
 
   @@map("fairs")
+  @@index([status])
+  @@index([status, startDate])
 }
 
 // Vendor houses table
@@ -113,6 +115,7 @@ model VendorHouse {
   bookings        Booking[]
 
   @@map("vendor_houses")
+  @@index([isEnabled])
 }
 
 // Facilities table
@@ -130,6 +133,7 @@ model Facility {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("facilities")
+  @@index([type])
 }
 
 // Applications table
@@ -178,6 +182,8 @@ model Booking {
   fair            Fair          @relation(fields: [fairId], references: [id], onDelete: Cascade)
 
   @@map("bookings")
+  @@index([fairId, bookingStatus, isArchived])
+  @@index([vendorHouseId])
 }
 
 // Admin activity logs table

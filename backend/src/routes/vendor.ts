@@ -1,74 +1,15 @@
 import { Router, Request, Response } from 'express';
-import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { prisma } from '../index';
 import { authenticateToken, requireVendor } from '../middleware/auth';
+import { deleteFromCloud, deleteLocalFile } from '../utils/upload';
+import { logoUpload, productImageUpload, getUploadedFileUrl, isCloudinaryConfigured } from '../middleware/upload';
 
 const router = Router();
 
-// Configure multer for logo uploads
-const logoStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../../uploads/logos');
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `logo-${uniqueSuffix}${ext}`);
-  },
-});
-
-const logoUpload = multer({
-  storage: logoStorage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'));
-    }
-  },
-});
-
-// Configure multer for product image uploads
-const productImageStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../../uploads/products');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `product-${uniqueSuffix}${ext}`);
-  },
-});
-
-const productImageUpload = multer({
-  storage: productImageStorage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'));
-    }
-  },
-});
+// Note: Logo and product image upload middleware is now imported from '../middleware/upload'
+// which automatically uses Cloudinary storage when configured, or local disk storage as fallback
 
 // All vendor routes require authentication and vendor role
 router.use(authenticateToken);
@@ -569,22 +510,28 @@ router.post('/logo', logoUpload.single('logo'), async (req: Request, res: Respon
       return;
     }
 
-    // Delete old logo file if it exists
+    // Delete old logo (cloud or local)
     if (vendorProfile.logoUrl) {
-      const oldLogoPath = vendorProfile.logoUrl.replace('/uploads/', '');
-      const fullOldPath = path.join(__dirname, '../../uploads/', oldLogoPath);
-      if (fs.existsSync(fullOldPath)) {
-        fs.unlinkSync(fullOldPath);
+      if (vendorProfile.logoUrl.includes('cloudinary')) {
+        await deleteFromCloud(vendorProfile.logoUrl);
+      } else {
+        const oldLogoPath = vendorProfile.logoUrl.replace('/uploads/', '');
+        const fullOldPath = path.join(__dirname, '../../uploads/', oldLogoPath);
+        if (fs.existsSync(fullOldPath)) {
+          fs.unlinkSync(fullOldPath);
+        }
       }
     }
 
-    // Construct the URL for the uploaded file
-    const logoUrl = `/uploads/logos/${req.file.filename}`;
+    // Get the uploaded file URL
+    // When Cloudinary is configured, multer-storage-cloudinary uploads directly and stores URL in file.path
+    // When using local storage, we construct the URL from the filename
+    const finalUrl = getUploadedFileUrl(req.file, 'logos');
 
     // Update the vendor profile with the new logo URL
     const updatedProfile = await prisma.vendorProfile.update({
       where: { id: vendorProfile.id },
-      data: { logoUrl },
+      data: { logoUrl: finalUrl },
     });
 
     res.json({
@@ -614,11 +561,11 @@ router.delete('/logo', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Delete the logo file
-    const logoPath = vendorProfile.logoUrl.replace('/uploads/', '');
-    const fullPath = path.join(__dirname, '../../uploads/', logoPath);
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
+    // Delete the logo file (cloud or local)
+    if (vendorProfile.logoUrl.includes('cloudinary')) {
+      await deleteFromCloud(vendorProfile.logoUrl);
+    } else {
+      deleteLocalFile(vendorProfile.logoUrl);
     }
 
     // Update the vendor profile to remove the logo URL
@@ -656,8 +603,14 @@ router.post('/product-images', productImageUpload.single('image'), async (req: R
 
     // Check if already at max (5 images)
     if (vendorProfile.productImages.length >= 5) {
-      // Delete the uploaded file
-      fs.unlinkSync(req.file.path);
+      // Delete the uploaded file (only for local storage - Cloudinary files are already uploaded)
+      if (!isCloudinaryConfigured() && req.file.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          console.error('Failed to delete temporary file:', e);
+        }
+      }
       res.status(400).json({ error: 'Maximum of 5 product images allowed' });
       return;
     }
@@ -667,12 +620,16 @@ router.post('/product-images', productImageUpload.single('image'), async (req: R
       Math.max(max, img.orderIndex), -1);
     const nextOrderIndex = maxOrderIndex + 1;
 
+    // Get the uploaded file URL
+    // When Cloudinary is configured, multer-storage-cloudinary uploads directly and stores URL in file.path
+    // When using local storage, we construct the URL from the filename
+    const finalUrl = getUploadedFileUrl(req.file, 'products');
+
     // Create the product image record
-    const imageUrl = `/uploads/products/${req.file.filename}`;
     const productImage = await prisma.vendorProductImage.create({
       data: {
         vendorProfileId: vendorProfile.id,
-        imageUrl,
+        imageUrl: finalUrl,
         orderIndex: nextOrderIndex,
       },
     });
@@ -718,11 +675,11 @@ router.delete('/product-images/:imageId', async (req: Request, res: Response): P
       return;
     }
 
-    // Delete the file
-    const imagePath = productImage.imageUrl.replace('/uploads/', '');
-    const fullPath = path.join(__dirname, '../../uploads/', imagePath);
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
+    // Delete the file (cloud or local)
+    if (productImage.imageUrl.includes('cloudinary')) {
+      await deleteFromCloud(productImage.imageUrl);
+    } else {
+      deleteLocalFile(productImage.imageUrl);
     }
 
     // Delete the database record

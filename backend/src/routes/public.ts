@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
+import { getColorCategory, getEmoji } from '../utils/mapHelpers';
 
 const router = Router();
 
@@ -354,6 +355,186 @@ router.get('/about-us', async (req: Request, res: Response): Promise<void> => {
     res.json({ content: contentMap });
   } catch (error) {
     console.error('Get about us error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get unified map objects (vendor houses + facilities) with search and filtering
+router.get('/map-objects', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { search, types, fairId } = req.query;
+
+    const searchStr = typeof search === 'string' ? search.trim() : '';
+    const typesArr = typeof types === 'string' && types.trim()
+      ? types.split(',').map((t) => t.trim().toLowerCase())
+      : [];
+
+    // Determine the target fair: explicit fairId > active fair > earliest upcoming fair
+    let targetFairId: string | null = null;
+
+    if (fairId && typeof fairId === 'string') {
+      targetFairId = fairId;
+    } else {
+      const activeFair = await prisma.fair.findFirst({
+        where: { status: 'active' },
+        select: { id: true },
+      });
+      if (activeFair) {
+        targetFairId = activeFair.id;
+      } else {
+        const upcomingFair = await prisma.fair.findFirst({
+          where: { status: 'upcoming' },
+          orderBy: { startDate: 'asc' },
+          select: { id: true },
+        });
+        if (upcomingFair) {
+          targetFairId = upcomingFair.id;
+        }
+      }
+    }
+
+    // Determine whether to include vendor houses and which facility types to query
+    const includeVendorHouses = typesArr.length === 0 || typesArr.includes('vendor_house');
+    const facilityTypes = typesArr.length === 0
+      ? [] // empty means all facility types
+      : typesArr.filter((t) => t !== 'vendor_house');
+    const includeFacilities = typesArr.length === 0 || facilityTypes.length > 0;
+
+    // Build unified response array
+    interface MapObject {
+      id: string;
+      type: string;
+      label: string;
+      description: string | null;
+      latitude: number;
+      longitude: number;
+      color: string;
+      emoji: string;
+      isAvailable?: boolean | null;
+      houseNumber?: string;
+      areaSqm?: number | null;
+      price?: number | null;
+      panorama360Url?: string | null;
+      photoUrl?: string | null;
+    }
+
+    const results: MapObject[] = [];
+
+    // Query vendor houses if needed
+    if (includeVendorHouses) {
+      const houseWhere: Record<string, unknown> = { isEnabled: true };
+
+      if (searchStr) {
+        houseWhere.OR = [
+          { houseNumber: { contains: searchStr } },
+          { description: { contains: searchStr } },
+        ];
+      }
+
+      const houses = await prisma.vendorHouse.findMany({
+        where: houseWhere,
+        select: {
+          id: true,
+          houseNumber: true,
+          areaSqm: true,
+          price: true,
+          description: true,
+          latitude: true,
+          longitude: true,
+          panorama360Url: true,
+        },
+        orderBy: { houseNumber: 'asc' },
+      });
+
+      // Find occupied house IDs from bookings for the target fair
+      let occupiedHouseIds: Set<string> = new Set();
+
+      if (targetFairId) {
+        const activeBookings = await prisma.booking.findMany({
+          where: {
+            fairId: targetFairId,
+            bookingStatus: { in: ['pending', 'approved'] },
+            isArchived: false,
+          },
+          select: { vendorHouseId: true },
+        });
+        occupiedHouseIds = new Set(activeBookings.map((b) => b.vendorHouseId));
+      }
+
+      for (const house of houses) {
+        results.push({
+          id: house.id,
+          type: 'vendor_house',
+          label: `House ${house.houseNumber}`,
+          description: house.description,
+          latitude: house.latitude,
+          longitude: house.longitude,
+          color: getColorCategory('vendor_house'),
+          emoji: getEmoji('vendor_house'),
+          isAvailable: targetFairId ? !occupiedHouseIds.has(house.id) : null,
+          houseNumber: house.houseNumber,
+          areaSqm: house.areaSqm,
+          price: house.price,
+          panorama360Url: house.panorama360Url,
+        });
+      }
+    }
+
+    // Query facilities if needed
+    if (includeFacilities) {
+      const facilityWhere: Record<string, unknown> = {};
+
+      // Filter by specific facility types if provided
+      if (facilityTypes.length > 0) {
+        facilityWhere.type = { in: facilityTypes };
+      }
+
+      if (searchStr) {
+        facilityWhere.OR = [
+          { name: { contains: searchStr } },
+          { description: { contains: searchStr } },
+        ];
+      }
+
+      const facilities = await prisma.facility.findMany({
+        where: facilityWhere,
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          description: true,
+          latitude: true,
+          longitude: true,
+          photoUrl: true,
+        },
+        orderBy: { name: 'asc' },
+      });
+
+      for (const facility of facilities) {
+        results.push({
+          id: facility.id,
+          type: facility.type,
+          label: facility.name,
+          description: facility.description,
+          latitude: facility.latitude,
+          longitude: facility.longitude,
+          color: getColorCategory(facility.type),
+          emoji: getEmoji(facility.type),
+          photoUrl: facility.photoUrl,
+        });
+      }
+    }
+
+    // Set cache headers: public data that changes infrequently
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+
+    res.json({
+      fairId: targetFairId,
+      count: results.length,
+      objects: results,
+    });
+  } catch (error) {
+    console.error('Get map objects error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

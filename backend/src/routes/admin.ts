@@ -1,42 +1,15 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { prisma } from '../index';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { deleteFromCloud } from '../utils/upload';
+import { panoramaUpload, getUploadedFileUrl, isCloudinaryConfigured } from '../middleware/upload';
 
-// Configure multer for panorama image uploads
-const panoramaStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../../uploads/panoramas');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `panorama-${uniqueSuffix}${ext}`);
-  },
-});
-
-const panoramaUpload = multer({
-  storage: panoramaStorage,
-  limits: {
-    fileSize: 20 * 1024 * 1024, // 20MB limit for panoramic images
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed for panoramic images.'));
-    }
-  },
-});
+// Note: Panorama upload middleware is now imported from '../middleware/upload'
+// which automatically uses Cloudinary storage when configured, or local disk storage as fallback
 
 const router = Router();
 
@@ -641,6 +614,44 @@ router.put('/applications/:applicationId/reject', async (req: Request, res: Resp
   } catch (error) {
     console.error('Reject application error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete application (with cascade to related booking)
+router.delete('/applications/:applicationId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { applicationId } = req.params;
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: { booking: true },
+    });
+
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    // Delete related booking first if exists
+    if (application.booking) {
+      await prisma.booking.delete({ where: { applicationId: applicationId } });
+    }
+
+    await prisma.application.delete({ where: { id: applicationId } });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'delete_application',
+        details: JSON.stringify({ applicationId, vendor: application.vendorProfileId }),
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting application:', error);
+    res.status(500).json({ error: 'Failed to delete application' });
   }
 });
 
@@ -2029,26 +2040,38 @@ router.post('/vendor-houses/:houseId/panorama-upload', panoramaUpload.single('pa
     });
 
     if (!vendorHouse) {
-      // Clean up uploaded file
-      fs.unlinkSync(req.file.path);
+      // Clean up uploaded file (only for local storage - Cloudinary files are already uploaded)
+      if (!isCloudinaryConfigured() && req.file.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          console.error('Failed to delete temporary file:', e);
+        }
+      }
       res.status(404).json({ error: 'Vendor house not found' });
       return;
     }
 
-    // Delete old panorama file if it exists and is a local file
-    if (vendorHouse.panorama360Url && vendorHouse.panorama360Url.startsWith('/uploads/panoramas/')) {
-      const oldFilePath = path.join(__dirname, '../..', vendorHouse.panorama360Url);
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath);
+    // Delete old panorama file if it exists
+    if (vendorHouse.panorama360Url) {
+      if (vendorHouse.panorama360Url.includes('cloudinary')) {
+        await deleteFromCloud(vendorHouse.panorama360Url);
+      } else if (vendorHouse.panorama360Url.startsWith('/uploads/panoramas/')) {
+        const oldFilePath = path.join(__dirname, '../..', vendorHouse.panorama360Url);
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
       }
     }
 
-    // Build the URL for the uploaded file
-    const panorama360Url = `/uploads/panoramas/${req.file.filename}`;
+    // Get the uploaded file URL
+    // When Cloudinary is configured, multer-storage-cloudinary uploads directly and stores URL in file.path
+    // When using local storage, we construct the URL from the filename
+    const finalUrl = getUploadedFileUrl(req.file, 'panoramas');
 
     const updated = await prisma.vendorHouse.update({
       where: { id: houseId },
-      data: { panorama360Url },
+      data: { panorama360Url: finalUrl },
     });
 
     res.json({
