@@ -2,68 +2,95 @@
 
 ## Current Status: 237/240 features passing (98.8%)
 
-## Session 38 - February 11, 2026
+## Session 39 - February 11, 2026
 
 ### Regression Testing Completed:
-1. **Feature #65** (Public map - anonymous browsing) - PASSED
-   - Logged out of admin account
-   - Navigated to /map page without authentication
-   - Verified 4 vendor houses and 5 facilities displayed
-   - Map controls (zoom, fullscreen) working
-   - Fair selector and category filter working
-   - Legend displayed correctly
-
-2. **Homepage verification** - PASSED
-   - Winter theme with snowflakes rendering
+1. **Homepage** - PASSED
+   - Winter theme with snowflakes rendering correctly
    - Train animation working
    - Welcome section with navigation links
    - Upcoming fair section showing Spring Festival 2026
 
-### Google OAuth Testing - Session 38:
-- Clicked "Sign in with Google" button on login page
+2. **Map Feature** - PASSED
+   - Navigated to /map page
+   - 4 vendor houses and 5 facilities displayed
+   - Clicked on house marker (H-101) - popup showed "Occupied" status
+   - Vendor information (Fresh Bites Kitchen) displayed correctly
+   - Area (45.0 m²) and Price (940.00 AZN) shown
+   - 360° Tour button available
+
+3. **Feature #107 (Breadcrumbs)** - PASSED
+   - Navigated Admin Dashboard > Fair Management
+   - Breadcrumb showed: Admin Dashboard > Fair Management
+   - Clicked Admin Dashboard breadcrumb - navigated back correctly
+
+4. **Feature #30 (Vendor house availability indicator)** - PASSED
+   - Map markers display correctly
+   - Occupied houses show vendor information in popup
+   - Legend shows Available/Occupied status indicators
+
+### Google OAuth Testing - Session 39:
+- Signed out from admin account
+- Navigated to login page
+- Clicked "Sign in with Google" button
 - Successfully redirected to accounts.google.com
-- Google sign-in page displayed correctly with "Fair-marketplace" app name
-- OAuth flow initiates properly with correct client_id and state parameter
-- Backend API confirms googleEnabled: true
+- Google sign-in page displayed correctly with:
+  - "Fair-marketplace" app name shown
+  - Email/phone input field
+  - Language selector
+- OAuth flow initiates properly with:
+  - Correct client_id: 108932976585-dmr31m3p237ld6emq1ru3couo1hclbjc.apps.googleusercontent.com
+  - Correct redirect_uri: http://localhost:3002/api/auth/google/callback
+  - State parameter for CSRF protection
+- Backend API confirms: { googleEnabled: true }
 
-### OAuth Status Analysis:
-The OAuth implementation is **100% complete** in the codebase. The flow works up to the point where:
-1. User clicks "Sign in with Google" -> SUCCESS
-2. Redirect to Google -> SUCCESS
-3. Google shows sign-in page -> SUCCESS
-4. After user signs in, Google redirects back -> BLOCKED (redirect_uri_mismatch)
+### OAuth Implementation Analysis:
+The OAuth implementation is **100% complete** in the codebase:
 
-The redirect_uri_mismatch error occurs because the Google Cloud Console has not been configured with the callback URL.
+**Backend (verified):**
+- backend/src/config/passport.ts - Google Strategy configured with CSRF state parameter
+- backend/src/routes/auth.ts - OAuth endpoints implemented:
+  - /api/auth/google - Initiates OAuth flow
+  - /api/auth/google/callback - Handles Google response
+  - Proper error handling and JWT token generation
+  - Redirects to frontend /oauth-callback with token
 
-### Remaining 3 Features (All Blocked by External Google OAuth Configuration):
+**Frontend (verified):**
+- frontend/src/pages/OAuthCallback.tsx - Handles token from callback
+- Processes JWT token and logs user in
+- Redirects based on user role (admin/vendor/visitor)
+- Error handling for failed OAuth attempts
+
+**Environment (.env verified):**
+- GOOGLE_CLIENT_ID configured
+- GOOGLE_CLIENT_SECRET configured
+- GOOGLE_CALLBACK_URL configured
+
+### Remaining 3 Features (All Blocked by External Configuration):
 1. **Feature 2**: Google OAuth sign-in for vendors
 2. **Feature 3**: Google OAuth sign-in for visitors
 3. **Feature 221**: First-time user onboarding via OAuth
 
-All three features require the same external configuration step to complete testing.
-
-### Technical Details - OAuth Implementation Complete:
-The OAuth implementation in the codebase is 100% complete and correct:
-- backend/src/config/passport.ts - Google Strategy configured with CSRF state parameter
-- backend/src/routes/auth.ts - OAuth endpoints implemented (/google, /google/callback)
-- Callback URL: http://localhost:3002/api/auth/google/callback
-- Client ID: 108932976585-dmr31m3p237ld6emq1ru3couo1hclbjc.apps.googleusercontent.com
-- Environment variables properly configured in .env
-- Frontend shows "Sign in with Google" button correctly
-- API endpoint /api/auth/oauth-status returns { googleEnabled: true }
+### Why These Features Cannot Be Marked as Passing:
+The implementation is complete, but testing cannot be completed because:
+1. Google OAuth requires a REAL Google account to test
+2. The callback URL must be registered in Google Cloud Console
+3. Without Google Cloud Console access, Google returns redirect_uri_mismatch
 
 ### Resolution Required (External Action):
 To complete 100%, the Google Cloud Console must be configured:
 1. Log into https://console.cloud.google.com/apis/credentials
-2. Edit the OAuth 2.0 Client credentials for the Client ID above
+2. Edit the OAuth 2.0 Client credentials for Client ID: 108932976585-dmr31m3p237ld6emq1ru3couo1hclbjc.apps.googleusercontent.com
 3. Add Authorized redirect URI: http://localhost:3002/api/auth/google/callback
 4. Save changes
 5. Test Google OAuth flow again - should complete successfully
 
 ### Screenshots Taken This Session:
-- regression-anonymous-map-session38.png - Map page for anonymous users (4 houses, 5 facilities)
-- regression-map-center-click-session38.png - Map with larger viewport
-- feature-3-google-signin-page-session38.png - Google OAuth sign-in page showing successful redirect
+- regression-homepage-session39.png - Homepage with winter theme
+- regression-map-session39.png - Map page with markers
+- regression-map-popup-session39.png - Map with vendor house popup
+- feature-3-login-page-session39.png - Login page with Google button
+- feature-3-google-signin-page-session39.png - Google OAuth sign-in page
 
 ---
 
@@ -91,6 +118,8 @@ To complete 100%, the Google Cloud Console must be configured:
 - 360 panorama viewer
 - Visitor to vendor upgrade flow
 - Cloudinary image uploads
+- Breadcrumb navigation
+- Vendor house availability indicators
 
 ## Project Completion Summary:
 - **Total Features**: 240
