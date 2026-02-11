@@ -2,27 +2,28 @@
 
 ## Current Status: 237/240 features passing (98.8%)
 
-## Session 35 - February 11, 2026
+## Session 36 - February 11, 2026
 
 ### Regression Testing Completed:
 - Homepage: Winter theme with snowflakes and train animation - working perfectly
-- Admin login: Successfully logged in with admin@fairmarketplace.com / AdminPass123!
-- Admin dashboard: All 6 management sections accessible and functional
-- Application Review: Working with 15 applications, filters, search, pagination, export buttons
-- Map page: Mapbox loading with 4 vendor houses and 5 facilities
-- About Us page: Mission, History, Upcoming Events, Past Events all displaying correctly
-- Console errors: Zero JavaScript errors (except expected 401 from failed login attempt)
+- Map page: Mapbox loading with vendor houses and facilities, popups working
+- Admin Dashboard: All management sections accessible and functional
+- Application Review: Working with 15 applications, filters, search, pagination
+- Field-level form validation: Working (shows error messages for required fields)
+- Timestamps: Properly formatted (e.g., "16 Jan 2026, 16:09")
 
 ### Google OAuth Testing:
 - Tested Google OAuth flow - confirmed redirect_uri_mismatch error (Error 400)
 - Error URL shows: redirect_uri=http://localhost:3002/api/auth/google/callback
-- Backend OAuth configuration verified working
+- Backend OAuth configuration verified working (passport.ts properly configured)
 - The error occurs because Google Cloud Console has not been configured with the redirect URI
 
 ### Remaining 3 Features (All Blocked by External Google OAuth Configuration):
 1. **Feature 2**: Google OAuth sign-in for vendors
 2. **Feature 3**: Google OAuth sign-in for visitors
 3. **Feature 221**: First-time user onboarding via OAuth
+
+All three features have been skipped (moved to end of queue) because they require external Google Cloud Console configuration.
 
 ### Technical Details - OAuth Implementation Complete:
 The OAuth implementation in the codebase is 100% complete and correct:
@@ -41,13 +42,13 @@ To complete 100%, the Google Cloud Console must be configured:
 5. Test Google OAuth flow again
 
 ### Screenshots Taken This Session:
-- regression-homepage-session35.png - Homepage with winter theme
-- regression-admin-dashboard-session35.png - Admin dashboard working
-- regression-application-review-session35.png - Application review page working
-- feature-3-login-page-session35.png - Login page with Google OAuth button
-- feature-3-oauth-error-session35.png - Google OAuth error (redirect_uri_mismatch)
-- regression-map-session35.png - Map page with markers
-- regression-about-session35.png - About Us page
+- regression-homepage-session36.png - Homepage with winter theme
+- regression-map-session36.png - Map page with markers
+- regression-map-popup-session36.png - Vendor house popup
+- regression-field-validation-session36.png - Form validation error message
+- regression-application-review-session36.png - Application review page
+- feature-3-login-page-session36.png - Login page with Google OAuth button
+- feature-3-oauth-error-session36.png - Google OAuth error (redirect_uri_mismatch)
 
 ---
 
