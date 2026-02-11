@@ -23,6 +23,7 @@ const OAuthCallback: React.FC = () => {
     const handleOAuthCallback = async () => {
       const token = searchParams.get('token');
       const errorParam = searchParams.get('error');
+      const isNewUser = searchParams.get('newUser') === 'true';
 
       // Handle OAuth errors from backend
       if (errorParam) {
@@ -66,6 +67,12 @@ const OAuthCallback: React.FC = () => {
         const userStr = localStorage.getItem('user');
         if (userStr) {
           const user = JSON.parse(userStr);
+
+          // For new OAuth users, redirect to role selection (Feature 3 & 221)
+          if (isNewUser) {
+            navigate('/select-role');
+            return;
+          }
 
           // Check if user must change password (unlikely for OAuth users, but check anyway)
           if (user.mustChangePassword) {

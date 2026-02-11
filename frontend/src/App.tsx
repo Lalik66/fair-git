@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import OAuthCallback from './pages/OAuthCallback';
+import RoleSelection from './pages/RoleSelection';
 import AdminDashboard from './pages/AdminDashboard';
 import ChangePassword from './pages/ChangePassword';
 import VendorBookings from './pages/VendorBookings';
@@ -308,6 +309,16 @@ const AppContent: React.FC = () => {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/oauth-callback" element={<OAuthCallback />} />
+
+          {/* Role Selection Route - For first-time OAuth users (Feature 3 & 221) */}
+          <Route
+            path="/select-role"
+            element={
+              <ProtectedRoute>
+                <RoleSelection />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Change Password Route - Protected but accessible when mustChangePassword is true */}
           <Route

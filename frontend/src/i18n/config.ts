@@ -20,6 +20,7 @@ const resources = {
         confirm: 'Confirm',
         yes: 'Yes',
         no: 'No',
+        continue: 'Continue',
       },
 
       // Navigation
@@ -74,6 +75,10 @@ const resources = {
         authenticating: 'Completing authentication...',
         pleaseWait: 'Please wait while we log you in.',
         redirecting: 'Redirecting to login...',
+        // Role selection (Feature 3 & 221)
+        welcomeNewUser: 'Welcome to Fair Marketplace!',
+        selectRoleRequired: 'Please select a role to continue',
+        roleNote: 'You can upgrade to vendor later from your profile settings.',
       },
 
       // Map
@@ -246,6 +251,7 @@ const resources = {
         confirm: 'Təsdiq et',
         yes: 'Bəli',
         no: 'Xeyr',
+        continue: 'Davam et',
       },
 
       // Navigation
@@ -300,6 +306,10 @@ const resources = {
         authenticating: 'Doğrulama tamamlanır...',
         pleaseWait: 'Xahiş edirik, giriş edərkən gözləyin.',
         redirecting: 'Giriş səhifəsinə yönləndirilir...',
+        // Role selection (Feature 3 & 221)
+        welcomeNewUser: 'Fair Marketplace-ə xoş gəlmisiniz!',
+        selectRoleRequired: 'Davam etmək üçün rol seçin',
+        roleNote: 'Profil parametrlərindən daha sonra satıcıya yüksəldə bilərsiniz.',
       },
 
       // Map

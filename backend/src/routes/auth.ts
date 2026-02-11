@@ -249,8 +249,10 @@ router.get(
       );
 
       // Redirect to frontend OAuth callback page with token
+      // Include isNewUser flag for first-time OAuth users (Feature 3 & 221: Role selection)
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      res.redirect(`${frontendUrl}/oauth-callback?token=${token}`);
+      const isNewUser = (user as any).isNewUser ? '&newUser=true' : '';
+      res.redirect(`${frontendUrl}/oauth-callback?token=${token}${isNewUser}`);
     })(req, res, next);
   }
 );
@@ -303,6 +305,105 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// =====================================
+// Role Selection Routes (Feature 3 & 221)
+// =====================================
+
+/**
+ * POST /api/auth/select-role
+ * Allow a new OAuth user to select their role (visitor or vendor)
+ * Feature 3: Google OAuth sign-in for visitors
+ * Feature 221: First-time user onboarding via OAuth
+ */
+router.post('/select-role', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { role } = req.body;
+
+    // Validate role
+    if (!role || !['user', 'vendor'].includes(role)) {
+      res.status(400).json({ error: 'Invalid role. Must be "user" (visitor) or "vendor"' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Role selection is typically for new OAuth users
+    // Allow changing from 'user' role
+    if (user.role !== 'user' && role !== user.role) {
+      res.status(400).json({
+        error: 'Role has already been set. Use upgrade-to-vendor endpoint instead.'
+      });
+      return;
+    }
+
+    if (role === 'vendor') {
+      // Upgrade to vendor and create vendor profile
+      const result = await prisma.$transaction(async (tx) => {
+        const updatedUser = await tx.user.update({
+          where: { id: req.user!.id },
+          data: { role: 'vendor' },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            preferredLanguage: true,
+            mustChangePassword: true,
+          },
+        });
+
+        // Create vendor profile if it doesn't exist
+        const existingProfile = await tx.vendorProfile.findUnique({
+          where: { userId: req.user!.id }
+        });
+
+        if (!existingProfile) {
+          await tx.vendorProfile.create({
+            data: { userId: req.user!.id },
+          });
+        }
+
+        return updatedUser;
+      });
+
+      res.json({
+        message: 'Role set to vendor successfully',
+        user: result
+      });
+    } else {
+      // Keep as visitor (user role)
+      const updatedUser = await prisma.user.findUnique({
+        where: { id: req.user!.id },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          preferredLanguage: true,
+          mustChangePassword: true,
+        },
+      });
+
+      res.json({
+        message: 'Role set to visitor successfully',
+        user: updatedUser
+      });
+    }
+  } catch (error) {
+    console.error('Select role error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -101,26 +101,24 @@ export const initializePassport = (): void => {
             return done(null, user);
           }
 
-          // No user exists - create new account (Feature 2: Register with Google)
+          // No user exists - create new account (Feature 2 & 3: Register with Google)
+          // Create with role='user' (visitor) - they can choose to become vendor later
+          // or we redirect to role selection for first-time users
           user = await prisma.user.create({
             data: {
               email: email.toLowerCase(),
               googleId,
               firstName,
               lastName,
-              role: 'vendor', // Default role for new OAuth users
+              role: 'user', // Default to visitor - needs role selection (Feature 3)
               passwordHash: null, // No password for OAuth-only users
               isActive: true,
               lastLogin: new Date(),
             },
           });
 
-          // Create vendor profile for new vendor users
-          await prisma.vendorProfile.create({
-            data: {
-              userId: user.id,
-            },
-          });
+          // Mark this as a new user for the callback handler
+          (user as any).isNewUser = true;
 
           return done(null, user);
         } catch (error) {

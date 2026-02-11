@@ -75,6 +75,16 @@ export const authApi = {
   },
 
   /**
+   * Select role for first-time OAuth users
+   * Feature 3: Google OAuth sign-in for visitors
+   * Feature 221: First-time user onboarding via OAuth
+   */
+  selectRole: async (role: 'user' | 'vendor') => {
+    const response = await api.post('/auth/select-role', { role });
+    return response.data;
+  },
+
+  /**
    * Check which OAuth providers are configured on the server
    * Used by frontend to conditionally show OAuth buttons
    */
