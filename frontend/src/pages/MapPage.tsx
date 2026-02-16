@@ -89,7 +89,7 @@ const MapPage: React.FC = () => {
 
   // Default map center (Baku, Azerbaijan)
   const defaultCenter: [number, number] = [49.83690275228737, 40.37094989291927];
-  const defaultZoom = 15;
+  const defaultZoom = 17;
 
   // Load fairs on mount
   useEffect(() => {
@@ -157,6 +157,12 @@ const MapPage: React.FC = () => {
       zoom: defaultZoom,
     });
 
+    // Ensure zoom is applied after the map style loads and container has dimensions
+    map.current.once('load', () => {
+      map.current?.setZoom(defaultZoom);
+      map.current?.resize();
+    });
+
     // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
@@ -183,6 +189,14 @@ const MapPage: React.FC = () => {
       });
     }
   }, [selectedFairId, fairs]);
+
+  // Resize and set zoom when loading completes (container may have gained dimensions)
+  useEffect(() => {
+    if (!loading && map.current) {
+      map.current.resize();
+      map.current.setZoom(defaultZoom);
+    }
+  }, [loading]);
 
   // Update markers when data changes
   useEffect(() => {
@@ -256,11 +270,9 @@ const MapPage: React.FC = () => {
             <p><strong>${t('map.price', 'Price')}:</strong> ${house.price?.toFixed(2)} AZN</p>
             ${house.description ? `<p>${house.description}</p>` : ''}
           </div>
-          ${house.panorama360Url ? `
-            <button class="btn btn-sm btn-panorama" onclick="window.dispatchEvent(new CustomEvent('openPanorama', { detail: '${house.id}' }))">
-              ${t('map.view360', 'View 360°')}
-            </button>
-          ` : ''}
+          <button class="btn btn-sm btn-panorama" onclick="window.dispatchEvent(new CustomEvent('openPanorama', { detail: '${house.id}' }))">
+            ${t('map.view360', 'View 360°')}${!house.panorama360Url ? ' (Demo)' : ''}
+          </button>
           ${isAvailable && user?.role === 'vendor' ? `
             <button class="btn btn-sm btn-primary" onclick="window.dispatchEvent(new CustomEvent('applyForHouse', { detail: '${house.id}' }))">
               ${t('map.applyNow', 'Apply Now')}
@@ -317,7 +329,8 @@ const MapPage: React.FC = () => {
     const handleOpenPanorama = (e: CustomEvent) => {
       const houseId = e.detail;
       const house = vendorHouses.find(h => h.id === houseId);
-      if (house && house.panorama360Url) {
+      // Allow opening panorama even without URL - demo fallback will be used
+      if (house) {
         setPanoramaHouse(house);
       }
     };
@@ -600,7 +613,7 @@ const MapPage: React.FC = () => {
       </div>
 
       {/* Panorama Viewer Modal */}
-      {panoramaHouse && panoramaHouse.panorama360Url && (
+      {panoramaHouse && (
         <PanoramaViewer
           panoramaUrl={panoramaHouse.panorama360Url}
           houseNumber={panoramaHouse.houseNumber}

@@ -13,7 +13,7 @@ import VendorProfile from './pages/VendorProfile';
 import VendorApplications from './pages/VendorApplications';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
-import MapPage from './pages/MapPage';
+import { SplitViewMapLayout } from './components/map';
 import UserProfile from './pages/UserProfile';
 import { authApi } from './services/api';
 
@@ -192,8 +192,6 @@ const Navigation: React.FC = () => {
   );
 };
 
-// MapPage and AboutPage imported from pages/
-
 const VendorDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
@@ -305,7 +303,7 @@ const AppContent: React.FC = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
-          <Route path="/map" element={<MapPage />} />
+          <Route path="/map" element={<SplitViewMapLayout />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/oauth-callback" element={<OAuthCallback />} />

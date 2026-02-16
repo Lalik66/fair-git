@@ -175,13 +175,16 @@ const MapManagement: React.FC = () => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [49.8671, 40.4093], // Baku, Azerbaijan
-      zoom: 15,
+      center: [49.83690275228737, 40.37094989291927], // Baku, Azerbaijan
+      zoom: 18,
     });
 
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    map.on('load', () => {
+    // Ensure zoom is applied after the map style loads and container has dimensions
+    map.once('load', () => {
+      map.setZoom(18);
+      map.resize();
       setMapLoaded(true);
     });
 

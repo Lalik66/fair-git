@@ -444,6 +444,11 @@ export const publicApi = {
     const response = await api.get('/public/facilities');
     return response.data;
   },
+
+  getMapObjects: async (params?: { search?: string; types?: string; fairId?: string }) => {
+    const response = await api.get('/public/map-objects', { params });
+    return response.data;
+  },
 };
 
 // Admin About Us API

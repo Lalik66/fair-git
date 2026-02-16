@@ -62,7 +62,10 @@
 .hero-section {
   text-align: center;
   padding: 80px 20px;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+  background-image: linear-gradient(rgba(39, 92, 19, 0), rgba(45, 135, 85, 0)), url('/edited-image.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   color: white;
 }
 
@@ -136,7 +139,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+  background: linear-gradient(135deg, #1c1736 0%, #2e6188bf 100%);
   color: white;
   padding: 20px 24px;
   border-radius: 12px;

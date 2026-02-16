@@ -172,6 +172,35 @@ The application uses PostgreSQL with the following main tables:
 - `POST /api/admin/vendor-houses` - Add vendor house
 - Full CRUD for all entities
 
+## Demo 360° Panorama
+
+The application includes a demo 360° panorama feature that provides a fallback for vendor houses without their own panoramic images.
+
+### Demo Photo Location
+- `frontend/public/fevvareler.jpg` - Demo 360° equirectangular panorama image
+
+### How It Works
+- All vendor houses show a "View 360°" button, even without a custom panorama URL
+- If no custom panorama is set, the demo image is used as a fallback
+- "(Demo)" indicator is shown when using the fallback image
+
+### Replacing the Demo Panorama
+Two options:
+1. **Via Admin Panel**: Admin => Map Management => Upload 360° panorama for a vendor house
+2. **Manual Replacement**: Replace `frontend/public/fevvareler.jpg` with your 360° equirectangular image (same filename)
+
+### Setting Demo for Database
+Run the seed script to set the demo panorama on vendor house H-102:
+```bash
+cd backend
+node prisma/seed-demo-panorama.js
+```
+
+### Requirements for Custom Panoramas
+- Format: JPEG or PNG
+- Aspect ratio: 2:1 (equirectangular projection)
+- Recommended resolution: 4096x2048 or higher
+
 ## Development
 
 ### Running Tests

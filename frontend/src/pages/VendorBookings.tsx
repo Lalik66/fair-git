@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { vendorApi } from '../services/api';
 import PanoramaViewer from '../components/PanoramaViewer';
+import { DEMO_PANORAMA_URL } from '../types/map';
 import './VendorBookings.css';
 
 interface Booking {
@@ -32,7 +33,7 @@ const VendorBookings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPanorama, setShowPanorama] = useState(false);
-  const [selectedPanorama, setSelectedPanorama] = useState<{ url: string; houseNumber: string } | null>(null);
+  const [selectedPanorama, setSelectedPanorama] = useState<{ url: string; houseNumber: string; isDemo?: boolean } | null>(null);
 
   useEffect(() => {
     fetchBookings();
@@ -89,8 +90,9 @@ const VendorBookings: React.FC = () => {
     }
   };
 
-  const handleView360Tour = (panoramaUrl: string, houseNumber: string) => {
-    setSelectedPanorama({ url: panoramaUrl, houseNumber });
+  const handleView360Tour = (panoramaUrl: string | null, houseNumber: string) => {
+    // Use demo panorama as fallback when no URL provided
+    setSelectedPanorama({ url: panoramaUrl || DEMO_PANORAMA_URL, houseNumber, isDemo: !panoramaUrl });
     setShowPanorama(true);
   };
 
@@ -195,16 +197,14 @@ const VendorBookings: React.FC = () => {
                 <span className="booked-date">
                   Booked: {formatDate(booking.createdAt)}
                 </span>
-                {booking.housePanorama360Url && (
-                  <button
-                    className="btn btn-360-tour"
-                    onClick={() => handleView360Tour(booking.housePanorama360Url!, booking.houseNumber)}
-                    title="View 360° panoramic tour of your house"
-                  >
-                    <span className="tour-icon">🔄</span>
-                    360° Tour
-                  </button>
-                )}
+                <button
+                  className="btn btn-360-tour"
+                  onClick={() => handleView360Tour(booking.housePanorama360Url, booking.houseNumber)}
+                  title="View 360° panoramic tour of your house"
+                >
+                  <span className="tour-icon">🔄</span>
+                  360° Tour{!booking.housePanorama360Url ? ' (Demo)' : ''}
+                </button>
               </div>
             </div>
           ))}
