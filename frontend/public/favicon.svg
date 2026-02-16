@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Market stall/tent roof with festive stripes -->
+  <path d="M4 24 L32 4 L60 24 L60 28 L4 28 Z" fill="#E74C3C"/>
+  <path d="M10 24 L18 12 L26 24 Z" fill="#F5F5F5"/>
+  <path d="M22 24 L30 12 L38 24 Z" fill="#E74C3C"/>
+  <path d="M34 24 L42 12 L50 24 Z" fill="#F5F5F5"/>
+
+  <!-- Stall front/counter -->
+  <rect x="8" y="28" width="48" height="28" rx="2" fill="#2ECC71"/>
+
+  <!-- Stall opening/window -->
+  <rect x="14" y="32" width="36" height="18" rx="2" fill="#27AE60"/>
+
+  <!-- Counter shelf -->
+  <rect x="14" y="44" width="36" height="4" fill="#1ABC9C"/>
+
+  <!-- Products on display (colorful circles representing goods) -->
+  <circle cx="22" cy="40" r="4" fill="#F39C12"/>
+  <circle cx="32" cy="38" r="5" fill="#9B59B6"/>
+  <circle cx="42" cy="40" r="4" fill="#3498DB"/>
+
+  <!-- Decorative bunting/flags -->
+  <polygon points="16,28 20,28 18,32" fill="#F1C40F"/>
+  <polygon points="28,28 32,28 30,32" fill="#E74C3C"/>
+  <polygon points="40,28 44,28 42,32" fill="#3498DB"/>
+
+  <!-- Ground line -->
+  <rect x="4" y="56" width="56" height="4" rx="2" fill="#8E44AD"/>
+</svg>

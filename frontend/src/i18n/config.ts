@@ -92,6 +92,10 @@ const resources = {
         filterByCategory: 'Filter by Category',
         allCategories: 'All Categories',
         filteredResults: 'Showing {{count}} houses',
+        searchLocation: 'Search address or place...',
+        search: 'Search...',
+        selectFairLabel: 'Select a fair',
+        allFairs: 'All fairs',
       },
 
       // Categories
@@ -323,6 +327,10 @@ const resources = {
         filterByCategory: 'Kateqoriyaya görə filtrləyin',
         allCategories: 'Bütün Kateqoriyalar',
         filteredResults: '{{count}} ev göstərilir',
+        searchLocation: 'Ünvan və ya yer axtar...',
+        search: 'Axtar...',
+        selectFairLabel: 'Yarmarkanı seçin',
+        allFairs: 'Bütün yarmarkalar',
       },
 
       // Categories

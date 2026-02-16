@@ -1,15 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMapInteraction } from '../../hooks/useMapInteraction';
 import Sidebar from './Sidebar';
-import MapPanel from './MapPanel';
+import MapPanel, { MapPanelRef } from './MapPanel';
+import GeocoderSearch from './GeocoderSearch';
 import PanoramaViewer from '../PanoramaViewer';
 import './SplitViewMapLayout.css';
+
+// Get Mapbox token
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MAPBOX_TOKEN = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
 
 const SplitViewMapLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [panoramaState, setPanoramaState] = useState<{ url: string | null; houseNumber: string } | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const mapRef = useRef<MapPanelRef>(null);
 
   // Get initial fair ID from URL
   const initialFairId = searchParams.get('fairId');
@@ -83,6 +89,14 @@ const SplitViewMapLayout: React.FC = () => {
       ? [selectedFair.mapCenterLng, selectedFair.mapCenterLat]
       : undefined;
 
+  // Handle geocoder location selection
+  const handleLocationSelect = useCallback((lng: number, lat: number, zoom?: number) => {
+    mapRef.current?.flyTo(lng, lat, zoom);
+  }, []);
+
+  // Proximity for geocoder - use fair center or Baku as default
+  const geocoderProximity: [number, number] = mapCenter || [49.8671, 40.4093]; // Baku center
+
   return (
     <div className="split-view-container">
       {error && (
@@ -109,14 +123,26 @@ const SplitViewMapLayout: React.FC = () => {
         />
       )}
 
-      {/* Map panel */}
-      <MapPanel
-        objects={filteredObjects}
-        selectedObjectId={selectedObjectId}
-        onObjectSelect={setSelectedObjectId}
-        mapCenter={mapCenter}
-        className="split-view-map"
-      />
+      {/* Map panel with geocoder search */}
+      <div className="map-wrapper">
+        {/* Geocoder Search - positioned on top of map */}
+        <GeocoderSearch
+          onLocationSelect={handleLocationSelect}
+          mapboxToken={MAPBOX_TOKEN}
+          proximity={geocoderProximity}
+          country="az"
+          className="map-geocoder"
+        />
+
+        <MapPanel
+          ref={mapRef}
+          objects={filteredObjects}
+          selectedObjectId={selectedObjectId}
+          onObjectSelect={setSelectedObjectId}
+          mapCenter={mapCenter}
+          className="split-view-map"
+        />
+      </div>
 
       {/* Mobile bottom sheet placeholder - can be expanded later */}
       {isMobile && (

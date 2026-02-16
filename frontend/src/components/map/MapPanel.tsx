@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEmojiForType } from '../../types/map';
@@ -15,13 +15,17 @@ interface MapPanelProps {
   className?: string;
 }
 
-const MapPanel: React.FC<MapPanelProps> = ({
+export interface MapPanelRef {
+  flyTo: (lng: number, lat: number, zoom?: number) => void;
+}
+
+const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   objects,
   selectedObjectId,
   onObjectSelect,
   mapCenter,
   className = '',
-}) => {
+}, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -49,6 +53,33 @@ const MapPanel: React.FC<MapPanelProps> = ({
     // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
     map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+
+    // Add geolocation control
+    const geolocateControl = new mapboxgl.GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: true
+      },
+      trackUserLocation: true,
+      showUserLocation: true,
+      showUserHeading: true,
+      fitBoundsOptions: {
+        maxZoom: 16
+      }
+    });
+    map.current.addControl(geolocateControl, 'top-right');
+
+    // Handle geolocation errors gracefully
+    geolocateControl.on('error', (error: GeolocationPositionError) => {
+      let message = 'Məkanınızı təyin etmək mümkün olmadı.';
+      if (error.code === error.PERMISSION_DENIED) {
+        message = 'Məkan icazəsi rədd edildi. Brauzer parametrlərindən icazə verin.';
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        message = 'Məkan məlumatı mövcud deyil.';
+      } else if (error.code === error.TIMEOUT) {
+        message = 'Məkan sorğusu vaxt aşımına uğradı.';
+      }
+      console.warn('Geolocation error:', message, error);
+    });
 
     // Close popup and deselect when clicking on map
     map.current.on('click', (e) => {
@@ -208,21 +239,25 @@ const MapPanel: React.FC<MapPanelProps> = ({
     }
   }, [selectedObjectId, objects]);
 
-  // Expose flyTo method for external use
-  const flyTo = useCallback((lng: number, lat: number, zoom?: number) => {
-    if (!map.current) return;
-    map.current.flyTo({
-      center: [lng, lat],
-      zoom: zoom || map.current.getZoom(),
-      duration: 800,
-    });
-  }, []);
+  // Expose flyTo method for external use via ref
+  useImperativeHandle(ref, () => ({
+    flyTo: (lng: number, lat: number, zoom?: number) => {
+      if (!map.current) return;
+      map.current.flyTo({
+        center: [lng, lat],
+        zoom: zoom || 17,
+        duration: 1000,
+      });
+    },
+  }), []);
 
   return (
     <div className={`map-panel ${className}`}>
       <div ref={mapContainer} className="map-container" />
     </div>
   );
-};
+});
+
+MapPanel.displayName = 'MapPanel';
 
 export default MapPanel;

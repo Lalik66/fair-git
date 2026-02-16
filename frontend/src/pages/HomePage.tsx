@@ -185,6 +185,7 @@ const HomePage: React.FC = () => {
           <span className="train-car">🚃</span>
           <span className="train-car">🚃</span>
           <span className="train-car">🚃</span>
+          <span className="train-car">🚃</span>
         </div>
       </div>
     </div>
