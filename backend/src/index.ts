@@ -87,11 +87,13 @@ import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
 import vendorRoutes from './routes/vendor';
 import publicRoutes from './routes/public';
+import userRoutes from './routes/user';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/vendor', vendorRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/user', userRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

@@ -12,6 +12,7 @@ interface MapPanelProps {
   selectedObjectId: string | null;
   onObjectSelect: (id: string | null) => void;
   mapCenter?: [number, number];
+  onGeolocateControlReady?: (control: mapboxgl.GeolocateControl) => void;
   className?: string;
 }
 
@@ -24,12 +25,14 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   selectedObjectId,
   onObjectSelect,
   mapCenter,
+  onGeolocateControlReady,
   className = '',
 }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const popupsRef = useRef<Map<string, mapboxgl.Popup>>(new Map());
+  const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -55,7 +58,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
 
     // Add geolocation control
-    const geolocateControl = new mapboxgl.GeolocateControl({
+    geolocateControlRef.current = new mapboxgl.GeolocateControl({
       positionOptions: {
         enableHighAccuracy: true
       },
@@ -66,10 +69,15 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         maxZoom: 16
       }
     });
-    map.current.addControl(geolocateControl, 'top-right');
+    map.current.addControl(geolocateControlRef.current, 'top-right');
+
+    // Notify parent that geolocateControl is ready
+    if (onGeolocateControlReady) {
+      onGeolocateControlReady(geolocateControlRef.current);
+    }
 
     // Handle geolocation errors gracefully
-    geolocateControl.on('error', (error: GeolocationPositionError) => {
+    geolocateControlRef.current.on('error', (error: GeolocationPositionError) => {
       let message = 'Məkanınızı təyin etmək mümkün olmadı.';
       if (error.code === error.PERMISSION_DENIED) {
         message = 'Məkan icazəsi rədd edildi. Brauzer parametrlərindən icazə verin.';

@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import mapboxgl from 'mapbox-gl';
 import { useMapInteraction } from '../../hooks/useMapInteraction';
+import { useAuth } from '../../contexts/AuthContext';
+import { useLocationTracking } from '../../hooks/useLocationTracking';
 import Sidebar from './Sidebar';
 import MapPanel, { MapPanelRef } from './MapPanel';
 import GeocoderSearch from './GeocoderSearch';
@@ -16,6 +19,16 @@ const SplitViewMapLayout: React.FC = () => {
   const [panoramaState, setPanoramaState] = useState<{ url: string | null; houseNumber: string } | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const mapRef = useRef<MapPanelRef>(null);
+  const [geolocateControl, setGeolocateControl] = useState<mapboxgl.GeolocateControl | null>(null);
+
+  // Get auth state for location tracking
+  const { user } = useAuth();
+
+  // Enable location tracking when user is authenticated and geolocateControl is ready
+  useLocationTracking({
+    geolocateControl,
+    isAuthenticated: !!user,
+  });
 
   // Get initial fair ID from URL
   const initialFairId = searchParams.get('fairId');
@@ -140,6 +153,7 @@ const SplitViewMapLayout: React.FC = () => {
           selectedObjectId={selectedObjectId}
           onObjectSelect={setSelectedObjectId}
           mapCenter={mapCenter}
+          onGeolocateControlReady={setGeolocateControl}
           className="split-view-map"
         />
       </div>
