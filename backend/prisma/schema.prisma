@@ -35,6 +35,8 @@ model User {
   adminLogs           AdminLog[]
   reviewedApplications Application[] @relation("ReviewedBy")
   aboutUsUpdates      AboutUsContent[]
+  following           UserFollow[] @relation("UserFollowing")
+  followers           UserFollow[] @relation("UserFollowers")
 
   @@map("users")
 }
@@ -217,4 +219,21 @@ model AboutUsContent {
   updatedBy   User?    @relation(fields: [updatedById], references: [id])
 
   @@map("about_us_content")
+}
+
+// User follow relationships (asymmetric - like Twitter/Instagram)
+model UserFollow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("user_follows")
+  @@index([followerId])
+  @@index([followingId])
 }

@@ -544,6 +544,50 @@
   height: 32px;
 }
 
+/* Friend markers - distinct purple style */
+.friend-marker {
+  width: 38px;
+  height: 38px;
+  background-color: #8B5CF6 !important;
+  border: 3px solid #7C3AED !important;
+  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.4);
+  animation: friend-pulse 2s ease-in-out infinite;
+}
+
+.friend-marker:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.5);
+}
+
+@keyframes friend-pulse {
+  0%, 100% {
+    box-shadow: 0 3px 10px rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 3px 16px rgba(139, 92, 246, 0.6);
+  }
+}
+
+/* Friend popup styles */
+.friend-popup {
+  background: linear-gradient(135deg, #F5F3FF, #EDE9FE);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.friend-popup h3 {
+  color: #5B21B6;
+  font-size: 1rem;
+  margin: 0 0 6px 0;
+}
+
+.friend-popup .location-time {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #7C3AED;
+  opacity: 0.8;
+}
+
 /* Popup styles */
 .marker-popup {
   padding: 5px;

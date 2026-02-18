@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useCallback, forwardRef, useImperativeHandle 
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEmojiForType } from '../../types/map';
+import type { FriendLocation } from '../../services/friendsService';
 
 // Set Mapbox access token
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,6 +14,8 @@ interface MapPanelProps {
   onObjectSelect: (id: string | null) => void;
   mapCenter?: [number, number];
   onGeolocateControlReady?: (control: mapboxgl.GeolocateControl) => void;
+  /** Friend locations to display on the map */
+  friendLocations?: FriendLocation[];
   className?: string;
 }
 
@@ -26,6 +29,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   onObjectSelect,
   mapCenter,
   onGeolocateControlReady,
+  friendLocations = [],
   className = '',
 }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -33,6 +37,8 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const popupsRef = useRef<Map<string, mapboxgl.Popup>>(new Map());
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
+  // Separate ref for friend markers to manage them independently
+  const friendMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
 
   // Initialize map
   useEffect(() => {
@@ -99,6 +105,10 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     });
 
     return () => {
+      // Clean up friend markers
+      friendMarkersRef.current.forEach((marker) => marker.remove());
+      friendMarkersRef.current.clear();
+
       if (map.current) {
         map.current.remove();
         map.current = null;
@@ -212,6 +222,72 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       popupsRef.current.set(obj.id, popup);
     });
   }, [objects, createPopupContent, onObjectSelect]);
+
+  // Helper function to create friend popup content
+  const createFriendPopupContent = useCallback((friend: FriendLocation): string => {
+    const updatedAt = friend.locationUpdatedAt
+      ? new Date(friend.locationUpdatedAt).toLocaleTimeString()
+      : '';
+
+    return `
+      <div class="marker-popup friend-popup">
+        <h3>👤 ${friend.name}</h3>
+        ${updatedAt ? `<p class="location-time">Son yeniləmə: ${updatedAt}</p>` : ''}
+      </div>
+    `;
+  }, []);
+
+  // Update friend markers efficiently (add/update/remove without recreating all)
+  useEffect(() => {
+    if (!map.current) return;
+
+    const currentFriendIds = new Set(friendLocations.map((f) => f.id));
+    const existingFriendIds = new Set(friendMarkersRef.current.keys());
+
+    // Remove markers for friends no longer in the list
+    existingFriendIds.forEach((id) => {
+      if (!currentFriendIds.has(id)) {
+        const marker = friendMarkersRef.current.get(id);
+        if (marker) {
+          marker.remove();
+          friendMarkersRef.current.delete(id);
+        }
+      }
+    });
+
+    // Add or update friend markers
+    friendLocations.forEach((friend) => {
+      const existingMarker = friendMarkersRef.current.get(friend.id);
+
+      if (existingMarker) {
+        // Update existing marker position
+        existingMarker.setLngLat([friend.lastLongitude, friend.lastLatitude]);
+        // Update popup content
+        const popup = existingMarker.getPopup();
+        if (popup) {
+          popup.setHTML(createFriendPopupContent(friend));
+        }
+      } else {
+        // Create new marker for this friend
+        const el = document.createElement('div');
+        el.className = 'map-marker friend-marker';
+        el.style.backgroundColor = '#8B5CF6'; // Purple color for friends
+        el.style.borderColor = '#7C3AED';
+        el.innerHTML = '<span class="marker-icon">👤</span>';
+        el.title = friend.name;
+
+        const popup = new mapboxgl.Popup({ offset: 25, closeOnClick: true })
+          .setHTML(createFriendPopupContent(friend));
+
+        const marker = new mapboxgl.Marker({ element: el })
+          .setLngLat([friend.lastLongitude, friend.lastLatitude])
+          .setPopup(popup)
+          .addTo(map.current!);
+
+        friendMarkersRef.current.set(friend.id, marker);
+      }
+    });
+  }, [friendLocations, createFriendPopupContent]);
 
   // Handle selection changes - fly to object and open popup
   useEffect(() => {

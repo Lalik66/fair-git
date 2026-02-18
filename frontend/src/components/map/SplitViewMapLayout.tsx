@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import { useMapInteraction } from '../../hooks/useMapInteraction';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
+import { useFriendsLocations } from '../../hooks/useFriendsLocations';
 import Sidebar from './Sidebar';
 import MapPanel, { MapPanelRef } from './MapPanel';
 import GeocoderSearch from './GeocoderSearch';
@@ -28,6 +29,12 @@ const SplitViewMapLayout: React.FC = () => {
   useLocationTracking({
     geolocateControl,
     isAuthenticated: !!user,
+  });
+
+  // Fetch friends' locations when user is authenticated
+  const { friendLocations } = useFriendsLocations({
+    isAuthenticated: !!user,
+    isActive: true,
   });
 
   // Get initial fair ID from URL
@@ -154,6 +161,7 @@ const SplitViewMapLayout: React.FC = () => {
           onObjectSelect={setSelectedObjectId}
           mapCenter={mapCenter}
           onGeolocateControlReady={setGeolocateControl}
+          friendLocations={friendLocations}
           className="split-view-map"
         />
       </div>
