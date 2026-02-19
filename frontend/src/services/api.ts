@@ -464,4 +464,47 @@ export const adminAboutUsApi = {
   },
 };
 
+// Invite API
+export const inviteApi = {
+  /**
+   * Create a new invite link (24h expiry)
+   */
+  create: async () => {
+    const response = await api.post('/invite/create');
+    return response.data as {
+      token: string;
+      url: string;
+      expiresAt: string;
+    };
+  },
+
+  /**
+   * Validate an invite token (no auth required)
+   */
+  validate: async (token: string) => {
+    const response = await api.get(`/invite/${token}`);
+    return response.data as {
+      isValid: boolean;
+      inviterName?: string;
+      inviterId?: string;
+      error?: string;
+      code?: string;
+    };
+  },
+
+  /**
+   * Accept an invite and become friends
+   */
+  accept: async (token: string) => {
+    const response = await api.post(`/invite/${token}/accept`);
+    return response.data as {
+      success: boolean;
+      message: string;
+      inviterName?: string;
+      error?: string;
+      code?: string;
+    };
+  },
+};
+
 export default api;

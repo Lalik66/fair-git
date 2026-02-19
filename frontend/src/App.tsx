@@ -13,6 +13,7 @@ import VendorProfile from './pages/VendorProfile';
 import VendorApplications from './pages/VendorApplications';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
+import InvitePage from './pages/InvitePage';
 import { SplitViewMapLayout } from './components/map';
 import UserProfile from './pages/UserProfile';
 import { authApi } from './services/api';
@@ -307,6 +308,7 @@ const AppContent: React.FC = () => {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/oauth-callback" element={<OAuthCallback />} />
+          <Route path="/invite/:token" element={<InvitePage />} />
 
           {/* Role Selection Route - For first-time OAuth users (Feature 3 & 221) */}
           <Route

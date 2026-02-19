@@ -5,6 +5,7 @@ import { useMapInteraction } from '../../hooks/useMapInteraction';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
 import { useFriendsLocations } from '../../hooks/useFriendsLocations';
+import { inviteApi } from '../../services/api';
 import Sidebar from './Sidebar';
 import MapPanel, { MapPanelRef } from './MapPanel';
 import GeocoderSearch from './GeocoderSearch';
@@ -21,6 +22,10 @@ const SplitViewMapLayout: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const mapRef = useRef<MapPanelRef>(null);
   const [geolocateControl, setGeolocateControl] = useState<mapboxgl.GeolocateControl | null>(null);
+
+  // Invite friend state
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Get auth state for location tracking
   const { user } = useAuth();
@@ -114,6 +119,71 @@ const SplitViewMapLayout: React.FC = () => {
     mapRef.current?.flyTo(lng, lat, zoom);
   }, []);
 
+  // Handle invite friend button click
+  const handleInviteFriend = useCallback(async () => {
+    if (!user) {
+      setInviteMessage({ type: 'error', text: 'Please log in to invite friends' });
+      return;
+    }
+
+    setInviteLoading(true);
+    setInviteMessage(null);
+
+    try {
+      const result = await inviteApi.create();
+
+      // Try Web Share API first
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Fair Marketplace - Friend Invite',
+            text: 'Join me on Fair Marketplace to see my location on the map!',
+            url: result.url,
+          });
+          setInviteMessage({ type: 'success', text: 'Invite shared!' });
+        } catch (shareErr: unknown) {
+          // User cancelled share or share failed - fall back to clipboard
+          if (shareErr instanceof Error && shareErr.name !== 'AbortError') {
+            await copyToClipboard(result.url);
+          }
+        }
+      } else {
+        // Fall back to clipboard
+        await copyToClipboard(result.url);
+      }
+    } catch (err: unknown) {
+      console.error('Failed to create invite:', err);
+      setInviteMessage({ type: 'error', text: 'Failed to create invite link' });
+    } finally {
+      setInviteLoading(false);
+    }
+  }, [user]);
+
+  // Copy URL to clipboard helper
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setInviteMessage({ type: 'success', text: 'Link copied to clipboard!' });
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setInviteMessage({ type: 'success', text: 'Link copied to clipboard!' });
+    }
+  };
+
+  // Auto-dismiss invite message after 3 seconds
+  useEffect(() => {
+    if (inviteMessage) {
+      const timer = setTimeout(() => setInviteMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [inviteMessage]);
+
   // Proximity for geocoder - use fair center or Baku as default
   const geocoderProximity: [number, number] = mapCenter || [49.8671, 40.4093]; // Baku center
 
@@ -153,6 +223,31 @@ const SplitViewMapLayout: React.FC = () => {
           country="az"
           className="map-geocoder"
         />
+
+        {/* Invite Friend Button */}
+        {user && (
+          <button
+            className="invite-friend-btn"
+            onClick={handleInviteFriend}
+            disabled={inviteLoading}
+            title="Invite Friend"
+          >
+            {inviteLoading ? (
+              <span className="invite-loading"></span>
+            ) : (
+              <>
+                <span className="invite-icon">+</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Invite Message Toast */}
+        {inviteMessage && (
+          <div className={`invite-message ${inviteMessage.type}`}>
+            {inviteMessage.text}
+          </div>
+        )}
 
         <MapPanel
           ref={mapRef}

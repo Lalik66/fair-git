@@ -90,6 +90,9 @@ const LoginPage: React.FC = () => {
           } else if (user.role === 'vendor' && from.startsWith('/vendor')) {
             // Vendor can access vendor routes
             navigate(from);
+          } else if (from.startsWith('/invite') || from.startsWith('/map')) {
+            // Any user can be redirected to invite or map
+            navigate(from);
           } else {
             // For other cases, use role-based default
             navigate(user.role === 'admin' ? '/admin' : user.role === 'vendor' ? '/vendor' : '/');

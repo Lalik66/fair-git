@@ -37,6 +37,7 @@ model User {
   aboutUsUpdates      AboutUsContent[]
   following           UserFollow[] @relation("UserFollowing")
   followers           UserFollow[] @relation("UserFollowers")
+  inviteLinks         InviteLink[]
 
   @@map("users")
 }
@@ -236,4 +237,20 @@ model UserFollow {
   @@map("user_follows")
   @@index([followerId])
   @@index([followingId])
+}
+
+// Invite links for friend invitations
+model InviteLink {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  createdById String   @map("created_by_id")
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@map("invite_links")
+  @@index([token])
+  @@index([createdById])
 }
