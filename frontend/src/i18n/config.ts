@@ -236,6 +236,37 @@ const resources = {
         applicationSubmitted: 'Application submitted successfully',
         profileUpdated: 'Profile updated successfully',
       },
+
+      // Friends
+      friends: {
+        panel: {
+          title: 'Friends on the map',
+          addButton: 'Add friend',
+          empty: 'No friends yet',
+          count: 'Friends ({{count}})',
+        },
+        card: {
+          online: 'Online',
+          offline: 'Offline',
+          distance: '{{distance}} km away',
+          lastSeen: 'Last seen {{time}} ago',
+          showOnMap: 'Show on map',
+          distanceUnknown: 'Distance unknown',
+        },
+        sort: {
+          label: 'Sort by',
+          closest: 'Closest first',
+          name: 'Name (A-Z)',
+          online: 'Online first',
+        },
+        invite: {
+          copied: 'Invite link copied!',
+          shared: 'Invite shared!',
+          failed: 'Failed to create invite link',
+          loginRequired: 'Please log in to invite friends',
+        },
+        tab: 'Friends',
+      },
     },
   },
   az: {
@@ -470,6 +501,37 @@ const resources = {
         deleted: 'Uğurla silindi',
         applicationSubmitted: 'Müraciət uğurla göndərildi',
         profileUpdated: 'Profil uğurla yeniləndi',
+      },
+
+      // Friends
+      friends: {
+        panel: {
+          title: 'Xəritədə dostlar',
+          addButton: 'Dost əlavə et',
+          empty: 'Hələ dost yoxdur',
+          count: 'Dostlar ({{count}})',
+        },
+        card: {
+          online: 'Onlayn',
+          offline: 'Oflayn',
+          distance: '{{distance}} km uzaqda',
+          lastSeen: '{{time}} əvvəl görülüb',
+          showOnMap: 'Xəritədə göstər',
+          distanceUnknown: 'Məsafə bilinmir',
+        },
+        sort: {
+          label: 'Sırala',
+          closest: 'Ən yaxın',
+          name: 'Ad (A-Z)',
+          online: 'Əvvəl onlayn',
+        },
+        invite: {
+          copied: 'Dəvət linki kopyalandı!',
+          shared: 'Dəvət paylaşıldı!',
+          failed: 'Dəvət linki yaradılmadı',
+          loginRequired: 'Dostları dəvət etmək üçün daxil olun',
+        },
+        tab: 'Dostlar',
       },
     },
   },

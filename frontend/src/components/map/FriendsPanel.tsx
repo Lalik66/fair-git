@@ -1,0 +1,410 @@
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { distance, point } from '@turf/turf';
+import { getFollowing, getFriendLocations, FollowingUser, FriendLocation } from '../../services/friendsService';
+import { inviteApi } from '../../services/api';
+import './FriendsPanel.css';
+
+// Online threshold: 30 minutes in milliseconds
+const ONLINE_THRESHOLD_MS = 30 * 60 * 1000;
+
+type SortOption = 'online' | 'closest' | 'name';
+
+interface UserLocation {
+  latitude: number;
+  longitude: number;
+}
+
+interface FriendsPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  isMobile: boolean;
+  userLocation?: UserLocation | null;
+  onFlyToFriend?: (lng: number, lat: number) => void;
+}
+
+// Extended friend type with merged location data
+interface FriendWithStatus extends FollowingUser {
+  isOnline: boolean;
+  lastLatitude?: number;
+  lastLongitude?: number;
+  locationUpdatedAt?: string;
+  distanceKm?: number;
+}
+
+const FriendsPanel: React.FC<FriendsPanelProps> = ({
+  isOpen,
+  onClose,
+  isMobile,
+  userLocation,
+  onFlyToFriend,
+}) => {
+  const { t } = useTranslation();
+  const [friends, setFriends] = useState<FollowingUser[]>([]);
+  const [friendLocations, setFriendLocations] = useState<FriendLocation[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>('online');
+
+  // Fetch friends list when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchFriendsData();
+    }
+  }, [isOpen]);
+
+  // Auto-dismiss message after 3 seconds
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  // Close panel on ESC key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isOpen, onClose]);
+
+  const fetchFriendsData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch both friends list and locations in parallel
+      const [followingList, locations] = await Promise.all([
+        getFollowing(),
+        getFriendLocations().catch(() => [] as FriendLocation[]),
+      ]);
+      setFriends(followingList);
+      setFriendLocations(locations);
+    } catch (error) {
+      console.error('Failed to fetch friends:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check if a friend is online based on locationUpdatedAt
+  const isOnline = useCallback((locationUpdatedAt?: string): boolean => {
+    if (!locationUpdatedAt) return false;
+    const updatedAt = new Date(locationUpdatedAt).getTime();
+    const now = Date.now();
+    return now - updatedAt < ONLINE_THRESHOLD_MS;
+  }, []);
+
+  // Calculate distance between user and friend
+  const calculateDistance = useCallback(
+    (friendLat: number, friendLng: number): number | undefined => {
+      if (!userLocation) return undefined;
+      try {
+        const from = point([userLocation.longitude, userLocation.latitude]);
+        const to = point([friendLng, friendLat]);
+        return distance(from, to, { units: 'kilometers' });
+      } catch {
+        return undefined;
+      }
+    },
+    [userLocation]
+  );
+
+  // Format last seen time
+  const formatLastSeen = useCallback((locationUpdatedAt: string): string => {
+    const updatedAt = new Date(locationUpdatedAt).getTime();
+    const now = Date.now();
+    const diffMs = now - updatedAt;
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes}m`;
+    } else if (diffHours < 24) {
+      return `${diffHours}h`;
+    } else {
+      return `${diffDays}d`;
+    }
+  }, []);
+
+  // Merge friends with location data
+  const friendsWithStatus: FriendWithStatus[] = useMemo(() => {
+    const locationMap = new Map<string, FriendLocation>();
+    friendLocations.forEach((loc) => {
+      locationMap.set(loc.id, loc);
+    });
+
+    return friends.map((friend) => {
+      const location = locationMap.get(friend.id);
+      const online = isOnline(location?.locationUpdatedAt);
+      const distanceKm =
+        location && online
+          ? calculateDistance(location.lastLatitude, location.lastLongitude)
+          : undefined;
+
+      return {
+        ...friend,
+        isOnline: online,
+        lastLatitude: location?.lastLatitude,
+        lastLongitude: location?.lastLongitude,
+        locationUpdatedAt: location?.locationUpdatedAt,
+        distanceKm,
+      };
+    });
+  }, [friends, friendLocations, isOnline, calculateDistance]);
+
+  // Sort friends based on selected option
+  const sortedFriends = useMemo(() => {
+    const sorted = [...friendsWithStatus];
+
+    switch (sortOption) {
+      case 'online':
+        // Online first, then by name
+        sorted.sort((a, b) => {
+          if (a.isOnline && !b.isOnline) return -1;
+          if (!a.isOnline && b.isOnline) return 1;
+          return a.name.localeCompare(b.name);
+        });
+        break;
+      case 'closest':
+        // Closest first (friends without distance go to the end)
+        sorted.sort((a, b) => {
+          if (a.distanceKm !== undefined && b.distanceKm !== undefined) {
+            return a.distanceKm - b.distanceKm;
+          }
+          if (a.distanceKm !== undefined) return -1;
+          if (b.distanceKm !== undefined) return 1;
+          return a.name.localeCompare(b.name);
+        });
+        break;
+      case 'name':
+        // Alphabetical by name
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+    }
+
+    return sorted;
+  }, [friendsWithStatus, sortOption]);
+
+  // Copy URL to clipboard helper
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setMessage({ type: 'success', text: t('friends.invite.copied') });
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setMessage({ type: 'success', text: t('friends.invite.copied') });
+    }
+  };
+
+  // Handle invite friend (reuses existing flow)
+  const handleInviteFriend = useCallback(async () => {
+    setInviteLoading(true);
+    setMessage(null);
+
+    try {
+      const result = await inviteApi.create();
+
+      // Try Web Share API first
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Fair Marketplace - Friend Invite',
+            text: 'Join me on Fair Marketplace to see my location on the map!',
+            url: result.url,
+          });
+          setMessage({ type: 'success', text: t('friends.invite.shared') });
+        } catch (shareErr: unknown) {
+          // User cancelled share or share failed - fall back to clipboard
+          if (shareErr instanceof Error && shareErr.name !== 'AbortError') {
+            await copyToClipboard(result.url);
+          }
+        }
+      } else {
+        // Fall back to clipboard
+        await copyToClipboard(result.url);
+      }
+    } catch (err: unknown) {
+      console.error('Failed to create invite:', err);
+      setMessage({ type: 'error', text: t('friends.invite.failed') });
+    } finally {
+      setInviteLoading(false);
+    }
+  }, [t]);
+
+  // Handle show on map click
+  const handleShowOnMap = useCallback(
+    (friend: FriendWithStatus) => {
+      if (friend.lastLongitude && friend.lastLatitude && onFlyToFriend) {
+        onFlyToFriend(friend.lastLongitude, friend.lastLatitude);
+        onClose();
+      }
+    },
+    [onFlyToFriend, onClose]
+  );
+
+  // Get avatar placeholder (first letter of name)
+  const getAvatarLetter = (name: string): string => {
+    return name.charAt(0).toUpperCase();
+  };
+
+  // Get avatar color based on name hash
+  const getAvatarColor = (name: string): string => {
+    const colors = [
+      '#F59E0B', // amber
+      '#10B981', // emerald
+      '#3B82F6', // blue
+      '#8B5CF6', // violet
+      '#EC4899', // pink
+      '#EF4444', // red
+      '#06B6D4', // cyan
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  // Format distance for display
+  const formatDistance = (distanceKm: number): string => {
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)}m`;
+    }
+    return distanceKm.toFixed(1);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop for modal mode */}
+      <div
+        className={`friends-panel-backdrop ${isMobile ? 'mobile' : 'desktop'}`}
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <div className={`friends-panel ${isMobile ? 'mobile' : 'desktop'}`}>
+        {/* Header */}
+        <div className="friends-panel-header">
+          <h2 className="friends-panel-title">{t('friends.panel.title')}</h2>
+          <button className="friends-panel-close" onClick={onClose} aria-label="Close">
+            <span>&times;</span>
+          </button>
+        </div>
+
+        {/* Add Friend Button - prominent green 2GIS-style */}
+        <div className="friends-panel-add-section">
+          <button
+            className="friends-add-btn"
+            onClick={handleInviteFriend}
+            disabled={inviteLoading}
+          >
+            {inviteLoading ? (
+              <span className="friends-add-loading"></span>
+            ) : (
+              <span className="friends-add-icon">+</span>
+            )}
+            <span className="friends-add-text">{t('friends.panel.addButton')}</span>
+          </button>
+        </div>
+
+        {/* Sort Options */}
+        {friends.length > 0 && (
+          <div className="friends-sort-section">
+            <label className="friends-sort-label">{t('friends.sort.label')}:</label>
+            <select
+              className="friends-sort-select"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value as SortOption)}
+            >
+              <option value="online">{t('friends.sort.online')}</option>
+              <option value="closest">{t('friends.sort.closest')}</option>
+              <option value="name">{t('friends.sort.name')}</option>
+            </select>
+          </div>
+        )}
+
+        {/* Message Toast */}
+        {message && (
+          <div className={`friends-message ${message.type}`}>
+            {message.text}
+          </div>
+        )}
+
+        {/* Friends List */}
+        <div className="friends-panel-list">
+          {isLoading ? (
+            <div className="friends-list-loading">
+              <div className="spinner"></div>
+            </div>
+          ) : sortedFriends.length === 0 ? (
+            <div className="friends-list-empty">
+              <div className="empty-icon">👥</div>
+              <p>{t('friends.panel.empty')}</p>
+            </div>
+          ) : (
+            <div className="friends-list">
+              {sortedFriends.map((friend) => (
+                <div key={friend.id} className="friend-item">
+                  <div className="friend-avatar-wrapper">
+                    <div
+                      className="friend-avatar"
+                      style={{ backgroundColor: getAvatarColor(friend.name) }}
+                    >
+                      {getAvatarLetter(friend.name)}
+                    </div>
+                    <span
+                      className={`friend-status-dot ${friend.isOnline ? 'online' : 'offline'}`}
+                      title={friend.isOnline ? t('friends.card.online') : t('friends.card.offline')}
+                    />
+                  </div>
+                  <div className="friend-info">
+                    <div className="friend-name">{friend.name}</div>
+                    <div className="friend-meta">
+                      <span className={`friend-status ${friend.isOnline ? 'online' : 'offline'}`}>
+                        {friend.isOnline ? t('friends.card.online') : t('friends.card.offline')}
+                      </span>
+                      {friend.isOnline && friend.distanceKm !== undefined && (
+                        <span className="friend-distance">
+                          {t('friends.card.distance', { distance: formatDistance(friend.distanceKm) })}
+                        </span>
+                      )}
+                      {!friend.isOnline && friend.locationUpdatedAt && (
+                        <span className="friend-last-seen">
+                          {t('friends.card.lastSeen', { time: formatLastSeen(friend.locationUpdatedAt) })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {friend.isOnline && friend.lastLatitude && friend.lastLongitude && onFlyToFriend && (
+                    <button
+                      className="friend-show-map-btn"
+                      onClick={() => handleShowOnMap(friend)}
+                      title={t('friends.card.showOnMap')}
+                    >
+                      <span className="map-icon">📍</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default FriendsPanel;

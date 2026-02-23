@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import mapboxgl from 'mapbox-gl';
+import { useTranslation } from 'react-i18next';
+import { type GeolocateControl } from 'mapbox-gl';
 import { useMapInteraction } from '../../hooks/useMapInteraction';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
 import { useFriendsLocations } from '../../hooks/useFriendsLocations';
-import { inviteApi } from '../../services/api';
+import { getFollowing } from '../../services/friendsService';
 import Sidebar from './Sidebar';
 import MapPanel, { MapPanelRef } from './MapPanel';
 import GeocoderSearch from './GeocoderSearch';
 import PanoramaViewer from '../PanoramaViewer';
+import FriendsPanel from './FriendsPanel';
 import './SplitViewMapLayout.css';
 
 // Get Mapbox token
@@ -17,15 +19,17 @@ import './SplitViewMapLayout.css';
 const MAPBOX_TOKEN = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
 
 const SplitViewMapLayout: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [panoramaState, setPanoramaState] = useState<{ url: string | null; houseNumber: string } | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const mapRef = useRef<MapPanelRef>(null);
-  const [geolocateControl, setGeolocateControl] = useState<mapboxgl.GeolocateControl | null>(null);
+  const [geolocateControl, setGeolocateControl] = useState<GeolocateControl | null>(null);
 
-  // Invite friend state
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const [inviteMessage, setInviteMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // Friends panel state
+  const [isFriendsPanelOpen, setIsFriendsPanelOpen] = useState(false);
+  const [friendsCount, setFriendsCount] = useState<number>(0);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   // Get auth state for location tracking
   const { user } = useAuth();
@@ -34,7 +38,21 @@ const SplitViewMapLayout: React.FC = () => {
   useLocationTracking({
     geolocateControl,
     isAuthenticated: !!user,
+    onLocationSent: (lat, lng) => {
+      setUserLocation({ latitude: lat, longitude: lng });
+    },
   });
+
+  // Fetch friends count when user is authenticated
+  useEffect(() => {
+    if (user) {
+      getFollowing()
+        .then((friends) => setFriendsCount(friends.length))
+        .catch(() => setFriendsCount(0));
+    } else {
+      setFriendsCount(0);
+    }
+  }, [user]);
 
   // Fetch friends' locations when user is authenticated
   const { friendLocations } = useFriendsLocations({
@@ -119,70 +137,21 @@ const SplitViewMapLayout: React.FC = () => {
     mapRef.current?.flyTo(lng, lat, zoom);
   }, []);
 
-  // Handle invite friend button click
-  const handleInviteFriend = useCallback(async () => {
-    if (!user) {
-      setInviteMessage({ type: 'error', text: 'Please log in to invite friends' });
-      return;
-    }
+  // Handle fly to friend location
+  const handleFlyToFriend = useCallback((lng: number, lat: number) => {
+    mapRef.current?.flyTo(lng, lat, 17);
+  }, []);
 
-    setInviteLoading(true);
-    setInviteMessage(null);
-
-    try {
-      const result = await inviteApi.create();
-
-      // Try Web Share API first
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: 'Fair Marketplace - Friend Invite',
-            text: 'Join me on Fair Marketplace to see my location on the map!',
-            url: result.url,
-          });
-          setInviteMessage({ type: 'success', text: 'Invite shared!' });
-        } catch (shareErr: unknown) {
-          // User cancelled share or share failed - fall back to clipboard
-          if (shareErr instanceof Error && shareErr.name !== 'AbortError') {
-            await copyToClipboard(result.url);
-          }
-        }
-      } else {
-        // Fall back to clipboard
-        await copyToClipboard(result.url);
-      }
-    } catch (err: unknown) {
-      console.error('Failed to create invite:', err);
-      setInviteMessage({ type: 'error', text: 'Failed to create invite link' });
-    } finally {
-      setInviteLoading(false);
+  // Refresh friends count when panel closes
+  const handleFriendsPanelClose = useCallback(() => {
+    setIsFriendsPanelOpen(false);
+    // Refresh count in case friends were added/removed
+    if (user) {
+      getFollowing()
+        .then((friends) => setFriendsCount(friends.length))
+        .catch(() => {});
     }
   }, [user]);
-
-  // Copy URL to clipboard helper
-  const copyToClipboard = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setInviteMessage({ type: 'success', text: 'Link copied to clipboard!' });
-    } catch {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = url;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setInviteMessage({ type: 'success', text: 'Link copied to clipboard!' });
-    }
-  };
-
-  // Auto-dismiss invite message after 3 seconds
-  useEffect(() => {
-    if (inviteMessage) {
-      const timer = setTimeout(() => setInviteMessage(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [inviteMessage]);
 
   // Proximity for geocoder - use fair center or Baku as default
   const geocoderProximity: [number, number] = mapCenter || [49.8671, 40.4093]; // Baku center
@@ -224,29 +193,33 @@ const SplitViewMapLayout: React.FC = () => {
           className="map-geocoder"
         />
 
-        {/* Invite Friend Button */}
-        {user && (
+        {/* Desktop Friends Tab Button */}
+        {user && !isMobile && (
           <button
-            className="invite-friend-btn"
-            onClick={handleInviteFriend}
-            disabled={inviteLoading}
-            title="Invite Friend"
+            className="friends-tab-btn"
+            onClick={() => setIsFriendsPanelOpen(true)}
+            title={t('friends.tab')}
           >
-            {inviteLoading ? (
-              <span className="invite-loading"></span>
-            ) : (
-              <>
-                <span className="invite-icon">+</span>
-              </>
+            <span className="friends-tab-icon">👥</span>
+            <span className="friends-tab-text">{t('friends.tab')}</span>
+            {friendsCount > 0 && (
+              <span className="friends-count-badge">{friendsCount}</span>
             )}
           </button>
         )}
 
-        {/* Invite Message Toast */}
-        {inviteMessage && (
-          <div className={`invite-message ${inviteMessage.type}`}>
-            {inviteMessage.text}
-          </div>
+        {/* Mobile Friends Button */}
+        {user && isMobile && (
+          <button
+            className="friends-tab-btn-mobile"
+            onClick={() => setIsFriendsPanelOpen(true)}
+            title={t('friends.tab')}
+          >
+            👥
+            {friendsCount > 0 && (
+              <span className="friends-count-badge-mobile">{friendsCount}</span>
+            )}
+          </button>
         )}
 
         <MapPanel
@@ -332,6 +305,17 @@ const SplitViewMapLayout: React.FC = () => {
           panoramaUrl={panoramaState.url}
           houseNumber={panoramaState.houseNumber}
           onClose={() => setPanoramaState(null)}
+        />
+      )}
+
+      {/* Friends Panel */}
+      {user && (
+        <FriendsPanel
+          isOpen={isFriendsPanelOpen}
+          onClose={handleFriendsPanelClose}
+          isMobile={isMobile}
+          userLocation={userLocation}
+          onFlyToFriend={handleFlyToFriend}
         />
       )}
     </div>
