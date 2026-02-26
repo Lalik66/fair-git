@@ -1,25 +1,46 @@
 /* Fair Marketplace - Global Styles */
 
+/* Import Poppins and Fredoka fonts for child-friendly, festive design */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap');
+
 /* CSS Variables for Design System */
 :root {
-  /* Primary Colors */
+  /* ===== Fair Marketplace Design System Colors ===== */
+
+  /* Primary Colors (Use 70% of the time) - Festive, child-friendly */
+  --color-warm-yellow: #FFD166;  /* Sunshine, joy, warmth */
+  --color-sky-blue: #06BEE1;     /* Clear skies, openness */
+  --color-mint: #7FCDCD;         /* Fresh, calm, friendly */
+  --color-coral: #FF6B6B;        /* Energy, excitement, food */
+
+  /* Secondary Colors (Use 20% of the time - accents) */
+  --color-soft-purple: #A78BFA;  /* Whimsy, magic */
+  --color-orange: #FFA94D;       /* Warmth, activities */
+
+  /* Neutral/Background (Use 10% of the time) */
+  --color-background: #FDFBF7;   /* Off-white, soft, warm */
+  --color-text-primary: #2D3748; /* Dark gray, readable */
+  --color-text-secondary: #718096; /* Lighter gray */
+  --color-white: #FFFFFF;
+
+  /* Status/Utility Colors */
+  --color-success: #48BB78;
+  --color-error: #F56565;
+  --color-warning: #ED8936;
+  --color-danger: #dc3545;
+  --color-info: #17a2b8;
+
+  /* Legacy Primary Colors (kept for backward compatibility) */
   --color-primary: #2563eb;
   --color-primary-light: #3b82f6;
   --color-primary-dark: #1d4ed8;
 
-  /* Secondary Colors */
+  /* Legacy Secondary Colors */
   --color-secondary: #f59e0b;
   --color-secondary-light: #fbbf24;
   --color-secondary-dark: #d97706;
 
-  /* Status Colors */
-  --color-success: #28a745;
-  --color-danger: #dc3545;
-  --color-warning: #ffc107;
-  --color-info: #17a2b8;
-
-  /* Neutral Colors */
-  --color-white: #ffffff;
+  /* Neutral Gray Scale */
   --color-gray-50: #f9fafb;
   --color-gray-100: #f3f4f6;
   --color-gray-200: #e5e7eb;
@@ -37,15 +58,17 @@
   --color-winter-accent: #7dd3fc;
   --color-winter-snow: #f0f9ff;
 
-  /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Typography - Child-friendly fonts */
+  --font-primary: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-headings: 'Fredoka', 'Poppins', sans-serif;
+  --font-family: var(--font-primary); /* Legacy support */
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.5rem;
   --font-size-4xl: 2.25rem;
   --font-size-5xl: 3rem;
 
@@ -96,17 +119,19 @@ html {
 }
 
 body {
-  font-family: var(--font-family);
+  font-family: var(--font-primary);
   font-size: var(--font-size-base);
   line-height: 1.6;
-  color: var(--color-gray-900);
-  background-color: var(--color-white);
+  letter-spacing: 0.02em;
+  color: var(--color-text-primary, var(--color-gray-900));
+  background-color: var(--color-background, var(--color-white));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-headings);
   font-weight: 600;
   line-height: 1.3;
   margin-bottom: var(--spacing-4);
@@ -161,14 +186,15 @@ a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-2) var(--spacing-4);
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
   font-size: var(--font-size-base);
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 2px solid transparent;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  min-height: 44px; /* Touch target size */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  min-height: 48px; /* Touch target size - 48px per design system */
 }
 
 .btn:disabled {
@@ -176,33 +202,75 @@ a:hover {
   cursor: not-allowed;
 }
 
+/* Primary Button - Coral, pill shape, with shadow */
 .btn-primary {
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  font-family: var(--font-headings);
+  background-color: var(--color-coral, #FF6B6B);
+  color: var(--color-text-primary, #2D3748);
+  border-radius: 9999px; /* Pill shape */
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.35);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.45);
 }
 
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Primary Button - Warm Yellow variant */
+.btn-primary-warm {
+  font-family: var(--font-headings);
+  background-color: var(--color-warm-yellow, #FFD166);
+  color: var(--color-text-primary, #2D3748);
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(255, 209, 102, 0.4);
+}
+
+.btn-primary-warm:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 209, 102, 0.5);
+}
+
+/* Secondary Button - Sky Blue outline */
 .btn-secondary {
-  background-color: var(--color-gray-200);
-  color: var(--color-gray-800);
+  font-family: var(--font-primary);
+  background-color: transparent;
+  color: var(--color-sky-blue, #06BEE1);
+  border: 2px solid var(--color-sky-blue, #06BEE1);
+  border-radius: 12px;
+  min-height: 44px;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--color-gray-300);
+  background-color: rgba(6, 190, 225, 0.1);
+  color: var(--color-sky-blue, #06BEE1);
 }
 
+/* Legacy outline button - now uses sky-blue */
 .btn-outline {
   background-color: transparent;
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--color-sky-blue, #06BEE1);
+  color: var(--color-sky-blue, #06BEE1);
+  border-radius: 12px;
 }
 
 .btn-outline:hover:not(:disabled) {
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  background-color: rgba(6, 190, 225, 0.1);
+  color: var(--color-sky-blue, #06BEE1);
+}
+
+/* Reduced motion support for buttons */
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+  .btn-primary:hover:not(:disabled),
+  .btn-primary-warm:hover:not(:disabled) {
+    transform: none;
+  }
 }
 
 .btn-success {

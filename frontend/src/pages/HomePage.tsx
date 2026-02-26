@@ -106,10 +106,10 @@ const HomePage: React.FC = () => {
 
         <div className="home-actions">
           <Link to="/map" className="btn btn-primary btn-lg">
-            {t('welcome.cta.browseMap', 'Browse Map')}
+            🗺️ {t('welcome.cta.browseMap', 'Browse Map')}
           </Link>
-          <Link to="/login" className="btn btn-outline btn-lg">
-            {t('welcome.cta.applyVendor', 'Apply as Vendor')}
+          <Link to="/login" className="btn btn-secondary btn-lg">
+            📝 {t('welcome.cta.applyVendor', 'Apply as Vendor')}
           </Link>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { type GeolocateControl } from 'mapbox-gl';
@@ -126,11 +126,13 @@ const SplitViewMapLayout: React.FC = () => {
     };
   }, [filteredObjects]);
 
-  // Get map center from selected fair
-  const mapCenter: [number, number] | undefined =
-    selectedFair?.mapCenterLat && selectedFair?.mapCenterLng
-      ? [selectedFair.mapCenterLng, selectedFair.mapCenterLat]
-      : undefined;
+  // Get map center from selected fair (memoized to avoid unnecessary flyTo on re-renders)
+  const mapCenter = useMemo((): [number, number] | undefined => {
+    if (selectedFair?.mapCenterLat != null && selectedFair?.mapCenterLng != null) {
+      return [selectedFair.mapCenterLng, selectedFair.mapCenterLat];
+    }
+    return undefined;
+  }, [selectedFair?.mapCenterLat, selectedFair?.mapCenterLng]);
 
   // Handle geocoder location selection
   const handleLocationSelect = useCallback((lng: number, lat: number, zoom?: number) => {
