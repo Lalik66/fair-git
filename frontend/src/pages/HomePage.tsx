@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { publicApi } from '../services/api';
+import FoxMascot from '../components/FoxMascot';
 import './HomePage.css';
 
 interface Fair {
@@ -25,11 +26,13 @@ interface TimeRemaining {
 const HomePage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [nextFair, setNextFair] = useState<Fair | null>(null);
+  const [upcomingFairs, setUpcomingFairs] = useState<Fair[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<TimeRemaining | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchNextFair();
+    fetchUpcomingFairs();
   }, []);
 
   useEffect(() => {
@@ -72,6 +75,18 @@ const HomePage: React.FC = () => {
       console.error('Error fetching next fair:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUpcomingFairs = async () => {
+    try {
+      const response = await publicApi.getFairs();
+      const fairs = (response.fairs || []).filter(
+        (fair: Fair) => fair.status === 'upcoming' || fair.status === 'active'
+      );
+      setUpcomingFairs(fairs);
+    } catch (error) {
+      console.error('Error fetching upcoming fairs:', error);
     }
   };
 
@@ -176,6 +191,47 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
+      {/* Upcoming Events Section */}
+      {upcomingFairs.length > 0 && (
+        <section className="homepage-upcoming-section">
+          <h2 className="homepage-upcoming-title">
+            <span className="section-icon">🎪</span>
+            {t('welcome.upcomingEvents', 'Upcoming Events')}
+          </h2>
+          <p className="homepage-upcoming-subtitle">
+            {t('welcome.upcomingEventsSubtitle', "Don't miss these exciting fairs!")}
+          </p>
+          <div className="homepage-upcoming-grid">
+            {upcomingFairs.map((fair) => (
+              <div key={fair.id} className="homepage-event-card">
+                <div className="homepage-event-card-header">
+                  <span className={`homepage-event-badge ${fair.status}`}>
+                    {fair.status === 'active'
+                      ? t('welcome.status.live', '🔴 Live Now')
+                      : t('welcome.status.upcoming', '🎯 Coming Soon')}
+                  </span>
+                </div>
+                <h3 className="homepage-event-name">{fair.name}</h3>
+                <div className="homepage-event-dates">
+                  <span className="icon">📅</span> {formatDate(fair.startDate)} – {formatDate(fair.endDate)}
+                </div>
+                {fair.locationAddress && (
+                  <div className="homepage-event-location">
+                    <span className="icon">📍</span> {fair.locationAddress}
+                  </div>
+                )}
+                {getDescription(fair) && (
+                  <p className="homepage-event-description">{getDescription(fair)}</p>
+                )}
+                <Link to="/map" className="btn btn-secondary homepage-event-cta">
+                  🗺️ {t('welcome.viewOnMap', 'View on Map')}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Animated Train */}
       <div className="train-container">
         <div className="train-track"></div>
@@ -188,6 +244,8 @@ const HomePage: React.FC = () => {
           <span className="train-car">🚃</span>
         </div>
       </div>
+
+      <FoxMascot isFairActive={nextFair?.status === 'active'} />
     </div>
   );
 };

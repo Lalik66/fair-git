@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foxie — SVG Mascot Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #FF6B35; --dark: #D94F1A; --bg: #FFF5EC;
+    --card: #fff; --text: #3D2214; --soft: #9B6B52;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); padding: 40px 24px 80px; }
+  h1 { font-family:'Fredoka One',cursive; font-size:2.6rem; color:var(--orange); text-align:center; margin-bottom:6px; }
+  .tagline { text-align:center; color:var(--soft); font-size:1rem; margin-bottom:52px; }
+  .section-title {
+    font-family:'Fredoka One',cursive; font-size:1.4rem; color:var(--text);
+    border-left:5px solid var(--orange); padding-left:12px;
+    margin-bottom:24px; max-width:1060px; margin-left:auto; margin-right:auto;
+  }
+  .grid {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:20px; max-width:1060px; margin:0 auto 56px;
+  }
+  .card {
+    background:var(--card); border-radius:20px; padding:28px 16px 20px;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    box-shadow:0 4px 20px rgba(255,107,53,.10);
+    transition:transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .28s;
+    cursor:pointer; position:relative; overflow:hidden;
+  }
+  .card::before { content:''; position:absolute; top:0; left:0; right:0; height:5px;
+    background:linear-gradient(90deg,var(--orange),#FFD166); }
+  .card:hover { transform:translateY(-8px) scale(1.02); box-shadow:0 18px 40px rgba(255,107,53,.18); }
+  .card-name { font-family:'Fredoka One',cursive; font-size:1.05rem; color:var(--text); }
+  .card-desc { font-size:.8rem; color:var(--soft); text-align:center; line-height:1.4; }
+  .badge { position:absolute; top:14px; right:14px; font-size:1.3rem; }
+  hr { border:none; border-top:2px dashed #FFD4B0; max-width:1060px; margin:0 auto 48px; }
+  .fox-wrap { width:140px; height:160px; }
+  .fox-wrap svg { width:100%; height:100%; }
+
+  /* Waving animation on hover for the arm */
+  .card:hover #fox-arm-right {
+    animation: wave 0.6s ease infinite alternate;
+    transform-origin: 132px 148px;
+  }
+  @keyframes wave {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-38deg); }
+  }
+  /* Tail wag on hover */
+  .card:hover #fox-tail {
+    animation: tailwag 0.5s ease infinite alternate;
+    transform-origin: 62px 185px;
+  }
+  @keyframes tailwag {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(12deg); }
+  }
+</style>
+</head>
+<body>
+
+<h1>🦊 Foxie the Mascot</h1>
+<p class="tagline">Hover any card — watch Foxie wave & wag! &nbsp;·&nbsp; Click to copy emotion name</p>
+
+<!-- ═══ EMOTIONS ═══ -->
+<p class="section-title">😃 Emotional States</p>
+<div class="grid">
+
+  <!-- HAPPY -->
+  <div class="card" title="fox-eyes-happy">
+    <span class="badge">😃</span>
+    <div class="fox-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240">
+        <defs>
+          <radialGradient id="hbg" cx="40%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#FF7D4A"/><stop offset="100%" stop-color="#D94F1A"/>
+          </radialGradient>
+        </defs>
+        <g id="fox-shadow"><ellipse cx="100" cy="232" rx="52" ry="7" fill="#D94F1A" opacity="0.18"/></g>
+        <g id="fox-tail" style="transform-origin:62px 185px">
+          <path d="M62 185 C30 175,5 155,12 128 C18 105,42 100,55 112 C65 122,62 140,58 155 C54 168,56 178,62 185Z" fill="#FFE8CC" stroke="#FF6B35" stroke-width="1.5"/>
+          <path d="M62 185 C38 177,18 158,24 133 C29 112,48 108,58 118 C67 127,63 143,60 158 C57 170,59 180,62 185Z" fill="#FF6B35"/>
+          <ellipse cx="20" cy="122" rx="14" ry="18" transform="rotate(-20 20 122)" fill="#FFF0DC"/>
+          <ellipse cx="22" cy="124" rx="9"  ry="12" transform="rotate(-20 22 124)" fill="white"/>
+        </g>
+        <ellipse cx="100" cy="175" rx="42" ry="48" fill="url(#hbg)"/>
+        <ellipse cx="100" cy="185" rx="26" ry="32" fill="#FFF0DC"/>
+        <g id="fox-arm-left">
+          <ellipse cx="68" cy="175" rx="14" ry="10" transform="rotate(30 68 175)" fill="#FF6B35"/>
+          <ellipse cx="60" cy="183" rx="10" ry="8" fill="#FF6B35"/>
+          <ellipse cx="57" cy="184" rx="4" ry="3" fill="#D94F1A" opacity=".4"/>
+          <ellipse cx="61" cy="187" rx="4" ry="3" fill="#D94F1A" opacity=".4"/>
+          <ellipse cx="65" cy="184" rx="4" ry="3" fill="#D94F1A" opacity=".4"/>
+        </g>
+        <g id="fox-arm-right" style="transform-origin:132px 148px">
+          <ellipse cx="133" cy="175" rx="14" ry="10" transform="rotate(-30 133 175)" fill="#FF6B35"/>
+          <ellipse cx="141" cy="183" rx="10" ry="8" fill="#FF6B35"/>
+          <ellipse cx="138" cy="184" rx="4" ry="3" fill="#D94F1A" opacity=".4"/>
+          <ellipse cx="142" cy="187" rx="4" ry="3" fill="#D94F1A" opacity=".4"/>
+          <ellipse cx="146" cy="184" rx="4" ry="3" fill="#D94F1A" opacity=".4"/>
+        </g>
+        <ellipse cx="100" cy="105" rx="52" ry="50" fill="url(#hbg)"/>
+        <g id="fox-ears">
+          <polygon points="58,68 44,28 82,58" fill="#FF6B35"/>
+          <polygon points="62,65 52,36 76,58" fill="#FFB38A"/>
+          <polygon points="142,68 156,28 118,58" fill="#FF6B35"/>
+          <polygon points="138,65 148,36 124,58" fill="#FFB38A"/>
+        </g>
+        <ellipse cx="100" cy="118" rx="30" ry="24" fill="#FFF0DC"/>
+        <path d="M80 80 Q100 70 120 80 Q112 95 100 92 Q88 95 80 80Z" fill="#FFF0DC" opacity=".6"/>
+        <!-- Happy eyes -->
+        <ellipse cx="82"  cy="100" rx="9" ry="10" fill="white"/>
+        <circle  cx="83"  cy="101" r="6" fill="#1E1206"/>
+        <circle  cx="85"  cy="98"  r="2" fill="white"/>
+        <ellipse cx="118" cy="100" rx="9" ry="10" fill="white"/>
+        <circle  cx="119" cy="101" r="6" fill="#1E1206"/>
+        <circle  cx="121" cy="98"  r="2" fill="white"/>
+        <path d="M74 91 Q82 86 90 91" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M110 91 Q118 86 126 91" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <!-- Nose -->
+        <ellipse cx="100" cy="114" rx="7" ry="5" fill="#1E1206"/>
+        <ellipse cx="98"  cy="112" rx="2.5" ry="1.5" fill="white" opacity=".4"/>
+        <!-- Happy mouth -->
+        <path d="M88 122 Q100 134 112 122" stroke="#D94F1A" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <!-- Cheeks -->
+        <ellipse cx="68"  cy="118" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+        <ellipse cx="132" cy="118" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+      </svg>
+    </div>
+    <div class="card-name">Happy</div>
+    <div class="card-desc">Default · energetic & curious</div>
+  </div>
+
+  <!-- SURPRISED -->
+  <div class="card">
+    <span class="badge">😲</span>
+    <div class="fox-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240">
+        <defs><radialGradient id="sbg" cx="40%" cy="30%" r="70%"><stop offset="0%" stop-color="#FF7D4A"/><stop offset="100%" stop-color="#D94F1A"/></radialGradient></defs>
+        <g id="fox-tail" style="transform-origin:62px 185px">
+          <path d="M62 185 C30 175,5 155,12 128 C18 105,42 100,55 112 C65 122,62 140,58 155 C54 168,56 178,62 185Z" fill="#FFE8CC" stroke="#FF6B35" stroke-width="1.5"/>
+          <path d="M62 185 C38 177,18 158,24 133 C29 112,48 108,58 118 C67 127,63 143,60 158 C57 170,59 180,62 185Z" fill="#FF6B35"/>
+          <ellipse cx="20" cy="122" rx="14" ry="18" transform="rotate(-20 20 122)" fill="#FFF0DC"/>
+          <ellipse cx="22" cy="124" rx="9"  ry="12" transform="rotate(-20 22 124)" fill="white"/>
+        </g>
+        <ellipse cx="100" cy="175" rx="42" ry="48" fill="url(#sbg)"/>
+        <ellipse cx="100" cy="185" rx="26" ry="32" fill="#FFF0DC"/>
+        <g id="fox-arm-right" style="transform-origin:132px 148px">
+          <ellipse cx="133" cy="175" rx="14" ry="10" transform="rotate(-30 133 175)" fill="#FF6B35"/>
+          <ellipse cx="141" cy="183" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <g id="fox-arm-left">
+          <ellipse cx="68" cy="175" rx="14" ry="10" transform="rotate(30 68 175)" fill="#FF6B35"/>
+          <ellipse cx="60" cy="183" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <ellipse cx="100" cy="105" rx="52" ry="50" fill="url(#sbg)"/>
+        <!-- Ears perked high -->
+        <polygon points="52,60 34,14 78,50" fill="#FF6B35"/>
+        <polygon points="56,58 42,22 74,50" fill="#FFB38A"/>
+        <polygon points="148,60 166,14 122,50" fill="#FF6B35"/>
+        <polygon points="144,58 158,22 126,50" fill="#FFB38A"/>
+        <ellipse cx="100" cy="118" rx="30" ry="24" fill="#FFF0DC"/>
+        <!-- Surprised eyes — wide -->
+        <ellipse cx="82"  cy="98" rx="12" ry="14" fill="white"/>
+        <circle  cx="83"  cy="100" r="8" fill="#1E1206"/>
+        <circle  cx="86"  cy="97"  r="3" fill="white"/>
+        <ellipse cx="118" cy="98" rx="12" ry="14" fill="white"/>
+        <circle  cx="119" cy="100" r="8" fill="#1E1206"/>
+        <circle  cx="122" cy="97"  r="3" fill="white"/>
+        <!-- raised brows -->
+        <path d="M70 82 Q82 75 94 82" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M106 82 Q118 75 130 82" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <ellipse cx="100" cy="114" rx="7" ry="5" fill="#1E1206"/>
+        <!-- Open O mouth -->
+        <ellipse cx="100" cy="127" rx="9" ry="11" fill="#1E1206"/>
+        <ellipse cx="100" cy="128" rx="6"  ry="7"  fill="#C93558"/>
+        <ellipse cx="68"  cy="118" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+        <ellipse cx="132" cy="118" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+      </svg>
+    </div>
+    <div class="card-name">Surprised</div>
+    <div class="card-desc">New item detected · first scroll</div>
+  </div>
+
+  <!-- COOL -->
+  <div class="card">
+    <span class="badge">😎</span>
+    <div class="fox-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240">
+        <defs><radialGradient id="cbg" cx="40%" cy="30%" r="70%"><stop offset="0%" stop-color="#FF7D4A"/><stop offset="100%" stop-color="#D94F1A"/></radialGradient></defs>
+        <g id="fox-tail" style="transform-origin:62px 185px">
+          <path d="M62 185 C30 175,5 155,12 128 C18 105,42 100,55 112 C65 122,62 140,58 155 C54 168,56 178,62 185Z" fill="#FFE8CC" stroke="#FF6B35" stroke-width="1.5"/>
+          <path d="M62 185 C38 177,18 158,24 133 C29 112,48 108,58 118 C67 127,63 143,60 158 C57 170,59 180,62 185Z" fill="#FF6B35"/>
+          <ellipse cx="20" cy="122" rx="14" ry="18" transform="rotate(-20 20 122)" fill="#FFF0DC"/>
+          <ellipse cx="22" cy="124" rx="9"  ry="12" transform="rotate(-20 22 124)" fill="white"/>
+        </g>
+        <ellipse cx="100" cy="175" rx="42" ry="48" fill="url(#cbg)"/>
+        <ellipse cx="100" cy="185" rx="26" ry="32" fill="#FFF0DC"/>
+        <g id="fox-arm-right" style="transform-origin:132px 148px">
+          <ellipse cx="133" cy="175" rx="14" ry="10" transform="rotate(-30 133 175)" fill="#FF6B35"/>
+          <ellipse cx="141" cy="183" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <g id="fox-arm-left">
+          <ellipse cx="68" cy="175" rx="14" ry="10" transform="rotate(30 68 175)" fill="#FF6B35"/>
+          <ellipse cx="60" cy="183" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <ellipse cx="100" cy="105" rx="52" ry="50" fill="url(#cbg)"/>
+        <polygon points="58,68 44,28 82,58" fill="#FF6B35"/>
+        <polygon points="62,65 52,36 76,58" fill="#FFB38A"/>
+        <polygon points="142,68 156,28 118,58" fill="#FF6B35"/>
+        <polygon points="138,65 148,36 124,58" fill="#FFB38A"/>
+        <ellipse cx="100" cy="118" rx="30" ry="24" fill="#FFF0DC"/>
+        <!-- Sunglasses -->
+        <rect x="64" y="92" width="30" height="20" rx="10" fill="#1A1A2E"/>
+        <rect x="106" y="92" width="30" height="20" rx="10" fill="#1A1A2E"/>
+        <rect x="94"  y="98" width="12" height="5"  rx="2.5" fill="#1A1A2E"/>
+        <rect x="40"  y="97" width="24" height="5"  rx="2.5" fill="#1A1A2E"/>
+        <rect x="136" y="97" width="24" height="5"  rx="2.5" fill="#1A1A2E"/>
+        <ellipse cx="76"  cy="97" rx="8" ry="5" fill="white" opacity=".18"/>
+        <ellipse cx="118" cy="97" rx="8" ry="5" fill="white" opacity=".18"/>
+        <ellipse cx="100" cy="114" rx="7" ry="5" fill="#1E1206"/>
+        <!-- smirk -->
+        <path d="M88 123 Q100 130 110 126" stroke="#D94F1A" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <ellipse cx="68"  cy="118" rx="12" ry="8" fill="rgba(255,140,90,.35)"/>
+        <ellipse cx="132" cy="118" rx="12" ry="8" fill="rgba(255,140,90,.35)"/>
+      </svg>
+    </div>
+    <div class="card-name">Cool</div>
+    <div class="card-desc">Fair day active · slow strut mode</div>
+  </div>
+
+  <!-- SLEEPY -->
+  <div class="card">
+    <span class="badge">😴</span>
+    <div class="fox-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240">
+        <defs><radialGradient id="slbg" cx="40%" cy="30%" r="70%"><stop offset="0%" stop-color="#C87D55"/><stop offset="100%" stop-color="#A05530"/></radialGradient></defs>
+        <g id="fox-tail" style="transform-origin:62px 185px">
+          <path d="M62 185 C30 175,5 155,12 128 C18 105,42 100,55 112 C65 122,62 140,58 155 C54 168,56 178,62 185Z" fill="#FFE8CC" stroke="#D94F1A" stroke-width="1.5"/>
+          <path d="M62 185 C38 177,18 158,24 133 C29 112,48 108,58 118 C67 127,63 143,60 158 C57 170,59 180,62 185Z" fill="#E86530"/>
+          <ellipse cx="20" cy="122" rx="14" ry="18" transform="rotate(-20 20 122)" fill="#FFF0DC"/>
+        </g>
+        <ellipse cx="100" cy="175" rx="42" ry="48" fill="url(#slbg)"/>
+        <ellipse cx="100" cy="185" rx="26" ry="32" fill="#F0DFC8"/>
+        <g id="fox-arm-right" style="transform-origin:132px 148px">
+          <ellipse cx="133" cy="175" rx="14" ry="10" transform="rotate(-30 133 175)" fill="#E86530"/>
+          <ellipse cx="141" cy="183" rx="10" ry="8" fill="#E86530"/>
+        </g>
+        <g id="fox-arm-left">
+          <ellipse cx="68" cy="175" rx="14" ry="10" transform="rotate(30 68 175)" fill="#E86530"/>
+          <ellipse cx="60" cy="183" rx="10" ry="8" fill="#E86530"/>
+        </g>
+        <ellipse cx="100" cy="105" rx="52" ry="50" fill="url(#slbg)"/>
+        <!-- droopy ears -->
+        <polygon points="58,70 40,32 78,62" fill="#E86530" transform="rotate(10 58 70)"/>
+        <polygon points="62,67 48,38 74,60" fill="#E8A070" transform="rotate(10 62 67)"/>
+        <polygon points="142,70 160,32 122,62" fill="#E86530" transform="rotate(-8 142 70)"/>
+        <polygon points="138,67 152,38 126,60" fill="#E8A070" transform="rotate(-8 138 67)"/>
+        <ellipse cx="100" cy="118" rx="30" ry="24" fill="#F0DFC8"/>
+        <!-- Half-closed eyes -->
+        <ellipse cx="82"  cy="104" rx="9" ry="8" fill="white"/>
+        <ellipse cx="82"  cy="99"  rx="9" ry="5" fill="#E86530"/><!-- top lid -->
+        <ellipse cx="83"  cy="105" r="4"          fill="#1E1206"/>
+        <ellipse cx="118" cy="104" rx="9" ry="8" fill="white"/>
+        <ellipse cx="118" cy="99"  rx="9" ry="5" fill="#E86530"/>
+        <ellipse cx="119" cy="105" r="4"          fill="#1E1206"/>
+        <!-- droopy brows -->
+        <path d="M74 97 Q82 94 90 97" stroke="#A05530" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+        <path d="M110 97 Q118 94 126 97" stroke="#A05530" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+        <!-- Z Z Z -->
+        <text x="128" y="76" font-family="sans-serif" font-weight="bold" font-size="9"  fill="#B0B0CC">z</text>
+        <text x="136" y="65" font-family="sans-serif" font-weight="bold" font-size="12" fill="#B0B0CC">z</text>
+        <text x="146" y="52" font-family="sans-serif" font-weight="bold" font-size="16" fill="#B0B0CC">Z</text>
+        <ellipse cx="100" cy="114" rx="7" ry="5" fill="#1E1206"/>
+        <!-- tiny mouth -->
+        <path d="M93 124 Q100 127 107 124" stroke="#A05530" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <ellipse cx="68"  cy="118" rx="12" ry="8" fill="rgba(255,140,90,.5)"/>
+        <ellipse cx="132" cy="118" rx="12" ry="8" fill="rgba(255,140,90,.5)"/>
+      </svg>
+    </div>
+    <div class="card-name">Sleepy</div>
+    <div class="card-desc">Late night mode (22:00 – 06:00)</div>
+  </div>
+
+</div>
+
+<hr>
+
+<!-- ═══ SEASONAL COSTUMES ═══ -->
+<p class="section-title">🎭 Seasonal Costumes</p>
+<div class="grid">
+
+  <!-- HALLOWEEN -->
+  <div class="card">
+    <span class="badge">🎃</span>
+    <div class="fox-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">
+        <defs><radialGradient id="halbg" cx="40%" cy="30%" r="70%"><stop offset="0%" stop-color="#FF7D4A"/><stop offset="100%" stop-color="#D94F1A"/></radialGradient></defs>
+        <g id="fox-tail" style="transform-origin:62px 205px">
+          <path d="M62 205 C30 195,5 175,12 148 C18 125,42 120,55 132 C65 142,62 160,58 175 C54 188,56 198,62 205Z" fill="#FFE8CC" stroke="#FF6B35" stroke-width="1.5"/>
+          <path d="M62 205 C38 197,18 178,24 153 C29 132,48 128,58 138 C67 147,63 163,60 178 C57 190,59 200,62 205Z" fill="#FF6B35"/>
+          <ellipse cx="20" cy="142" rx="14" ry="18" transform="rotate(-20 20 142)" fill="#FFF0DC"/>
+          <ellipse cx="22" cy="144" rx="9"  ry="12" transform="rotate(-20 22 144)" fill="white"/>
+        </g>
+        <ellipse cx="100" cy="195" rx="42" ry="48" fill="url(#halbg)"/>
+        <ellipse cx="100" cy="205" rx="26" ry="32" fill="#FFF0DC"/>
+        <g id="fox-arm-right" style="transform-origin:132px 168px">
+          <ellipse cx="133" cy="195" rx="14" ry="10" transform="rotate(-30 133 195)" fill="#FF6B35"/>
+          <ellipse cx="141" cy="203" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <g id="fox-arm-left">
+          <ellipse cx="68" cy="195" rx="14" ry="10" transform="rotate(30 68 195)" fill="#FF6B35"/>
+          <ellipse cx="60" cy="203" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <ellipse cx="100" cy="125" rx="52" ry="50" fill="url(#halbg)"/>
+        <polygon points="58,88 44,48 82,78" fill="#FF6B35"/>
+        <polygon points="62,85 52,56 76,78" fill="#FFB38A"/>
+        <polygon points="142,88 156,48 118,78" fill="#FF6B35"/>
+        <polygon points="138,85 148,56 124,78" fill="#FFB38A"/>
+        <!-- PUMPKIN HAT -->
+        <g id="fox-costume-halloween">
+          <!-- hat stem -->
+          <rect x="96" y="58" width="8" height="14" rx="3" fill="#4A6741"/>
+          <!-- pumpkin body -->
+          <ellipse cx="100" cy="78" rx="34" ry="24" fill="#FF6800"/>
+          <!-- pumpkin ribs -->
+          <path d="M68 78 Q76 62 84 78 Q76 94 68 78Z" fill="#E85500" opacity=".5"/>
+          <path d="M84 78 Q92 60 100 78 Q92 96 84 78Z" fill="#E85500" opacity=".4"/>
+          <path d="M100 78 Q108 60 116 78 Q108 96 100 78Z" fill="#E85500" opacity=".4"/>
+          <path d="M116 78 Q124 62 132 78 Q124 94 116 78Z" fill="#E85500" opacity=".5"/>
+          <!-- jack-o-lantern face -->
+          <polygon points="82,74 86,68 90,74" fill="#1A0A00"/>
+          <polygon points="110,74 114,68 118,74" fill="#1A0A00"/>
+          <path d="M86 82 L90 78 L94 82 L98 78 L102 82 L106 78 L110 82 L114 78 L118 82"
+            stroke="#1A0A00" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        </g>
+        <ellipse cx="100" cy="138" rx="30" ry="24" fill="#FFF0DC"/>
+        <ellipse cx="82"  cy="120" rx="9" ry="10" fill="white"/>
+        <circle  cx="83"  cy="121" r="6" fill="#1E1206"/>
+        <circle  cx="85"  cy="118" r="2" fill="white"/>
+        <ellipse cx="118" cy="120" rx="9" ry="10" fill="white"/>
+        <circle  cx="119" cy="121" r="6" fill="#1E1206"/>
+        <circle  cx="121" cy="118" r="2" fill="white"/>
+        <ellipse cx="100" cy="134" rx="7" ry="5" fill="#1E1206"/>
+        <path d="M88 142 Q100 154 112 142" stroke="#D94F1A" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <ellipse cx="68"  cy="138" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+        <ellipse cx="132" cy="138" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+      </svg>
+    </div>
+    <div class="card-name">Halloween 🎃</div>
+    <div class="card-desc">Pumpkin hat · Oct 1–31</div>
+  </div>
+
+  <!-- CHRISTMAS -->
+  <div class="card">
+    <span class="badge">🎄</span>
+    <div class="fox-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">
+        <defs><radialGradient id="xbg" cx="40%" cy="30%" r="70%"><stop offset="0%" stop-color="#FF7D4A"/><stop offset="100%" stop-color="#D94F1A"/></radialGradient></defs>
+        <g id="fox-tail" style="transform-origin:62px 205px">
+          <path d="M62 205 C30 195,5 175,12 148 C18 125,42 120,55 132 C65 142,62 160,58 175 C54 188,56 198,62 205Z" fill="#FFE8CC" stroke="#FF6B35" stroke-width="1.5"/>
+          <path d="M62 205 C38 197,18 178,24 153 C29 132,48 128,58 138 C67 147,63 163,60 178 C57 190,59 200,62 205Z" fill="#FF6B35"/>
+          <ellipse cx="20" cy="142" rx="14" ry="18" transform="rotate(-20 20 142)" fill="#FFF0DC"/>
+          <ellipse cx="22" cy="144" rx="9"  ry="12" transform="rotate(-20 22 144)" fill="white"/>
+        </g>
+        <ellipse cx="100" cy="195" rx="42" ry="48" fill="url(#xbg)"/>
+        <ellipse cx="100" cy="205" rx="26" ry="32" fill="#FFF0DC"/>
+        <g id="fox-arm-right" style="transform-origin:132px 168px">
+          <ellipse cx="133" cy="195" rx="14" ry="10" transform="rotate(-30 133 195)" fill="#FF6B35"/>
+          <ellipse cx="141" cy="203" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <g id="fox-arm-left">
+          <ellipse cx="68" cy="195" rx="14" ry="10" transform="rotate(30 68 195)" fill="#FF6B35"/>
+          <ellipse cx="60" cy="203" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <ellipse cx="100" cy="125" rx="52" ry="50" fill="url(#xbg)"/>
+        <polygon points="58,88 44,48 82,78" fill="#FF6B35"/>
+        <polygon points="62,85 52,56 76,78" fill="#FFB38A"/>
+        <polygon points="142,88 156,48 118,78" fill="#FF6B35"/>
+        <polygon points="138,85 148,56 124,78" fill="#FFB38A"/>
+        <!-- CHRISTMAS SCARF -->
+        <g id="fox-costume-christmas">
+          <!-- Red scarf wrapped around neck -->
+          <rect x="66" y="148" width="68" height="14" rx="7" fill="#CC2200"/>
+          <!-- scarf end hanging down left -->
+          <rect x="68" y="156" width="16" height="28" rx="6" fill="#CC2200"/>
+          <rect x="68" y="178" width="16" height="8" rx="3" fill="#AA1800"/>
+          <!-- scarf stripe -->
+          <rect x="66" y="153" width="68" height="3" rx="1.5" fill="#FF4422" opacity=".6"/>
+          <!-- small bell on scarf -->
+          <circle cx="92" cy="184" r="5" fill="#FFD700"/>
+          <rect x="90" y="178" width="4" height="5" rx="1" fill="#B8A000"/>
+          <line x1="92" y1="186" x2="92" y2="189" stroke="#B8A000" stroke-width="1.5"/>
+          <!-- Santa hat -->
+          <polygon points="70,88 100,30 130,88" fill="#CC2200"/>
+          <ellipse cx="100" cy="88" rx="32" ry="8" fill="white"/>
+          <circle cx="100" cy="30" r="8" fill="white"/>
+          <!-- hat stripe detail -->
+          <line x1="78" y1="74" x2="122" y2="74" stroke="#FF4422" stroke-width="3" opacity=".5"/>
+        </g>
+        <ellipse cx="100" cy="138" rx="30" ry="24" fill="#FFF0DC"/>
+        <ellipse cx="82"  cy="120" rx="9" ry="10" fill="white"/>
+        <circle  cx="83"  cy="121" r="6" fill="#1E1206"/>
+        <circle  cx="85"  cy="118" r="2" fill="white"/>
+        <ellipse cx="118" cy="120" rx="9" ry="10" fill="white"/>
+        <circle  cx="119" cy="121" r="6" fill="#1E1206"/>
+        <circle  cx="121" cy="118" r="2" fill="white"/>
+        <path d="M74 111 Q82 106 90 111" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M110 111 Q118 106 126 111" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <ellipse cx="100" cy="134" rx="7" ry="5" fill="#1E1206"/>
+        <path d="M88 142 Q100 154 112 142" stroke="#D94F1A" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <ellipse cx="68"  cy="138" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+        <ellipse cx="132" cy="138" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+      </svg>
+    </div>
+    <div class="card-name">Christmas 🎄</div>
+    <div class="card-desc">Santa hat + red scarf + bell · Dec 1–26</div>
+  </div>
+
+  <!-- SPRING -->
+  <div class="card">
+    <span class="badge">🌸</span>
+    <div class="fox-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">
+        <defs><radialGradient id="spbg" cx="40%" cy="30%" r="70%"><stop offset="0%" stop-color="#FF7D4A"/><stop offset="100%" stop-color="#D94F1A"/></radialGradient></defs>
+        <g id="fox-tail" style="transform-origin:62px 205px">
+          <path d="M62 205 C30 195,5 175,12 148 C18 125,42 120,55 132 C65 142,62 160,58 175 C54 188,56 198,62 205Z" fill="#FFE8CC" stroke="#FF6B35" stroke-width="1.5"/>
+          <path d="M62 205 C38 197,18 178,24 153 C29 132,48 128,58 138 C67 147,63 163,60 178 C57 190,59 200,62 205Z" fill="#FF6B35"/>
+          <ellipse cx="20" cy="142" rx="14" ry="18" transform="rotate(-20 20 142)" fill="#FFF0DC"/>
+        </g>
+        <ellipse cx="100" cy="195" rx="42" ry="48" fill="url(#spbg)"/>
+        <ellipse cx="100" cy="205" rx="26" ry="32" fill="#FFF0DC"/>
+        <g id="fox-arm-right" style="transform-origin:132px 168px">
+          <ellipse cx="133" cy="195" rx="14" ry="10" transform="rotate(-30 133 195)" fill="#FF6B35"/>
+          <ellipse cx="141" cy="203" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <g id="fox-arm-left">
+          <ellipse cx="68" cy="195" rx="14" ry="10" transform="rotate(30 68 195)" fill="#FF6B35"/>
+          <ellipse cx="60" cy="203" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <ellipse cx="100" cy="125" rx="52" ry="50" fill="url(#spbg)"/>
+        <polygon points="58,88 44,48 82,78" fill="#FF6B35"/>
+        <polygon points="62,85 52,56 76,78" fill="#FFB38A"/>
+        <polygon points="142,88 156,48 118,78" fill="#FF6B35"/>
+        <polygon points="138,85 148,56 124,78" fill="#FFB38A"/>
+        <!-- FLOWER CROWN -->
+        <g id="fox-costume-spring">
+          <!-- crown band -->
+          <path d="M58 90 Q100 78 142 90" stroke="#7DB87D" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <!-- flowers along the crown -->
+          <!-- flower 1 -->
+          <circle cx="62" cy="89" r="7" fill="#FF9EC0"/>
+          <circle cx="62" cy="89" r="3" fill="#FFD166"/>
+          <circle cx="56" cy="86" r="5" fill="#FFB8D0"/>
+          <circle cx="68" cy="86" r="5" fill="#FFB8D0"/>
+          <!-- flower 2 -->
+          <circle cx="82" cy="82" r="8" fill="#FF6BA8"/>
+          <circle cx="82" cy="82" r="3.5" fill="#FFD166"/>
+          <circle cx="75" cy="79" r="5" fill="#FF8EC0"/>
+          <circle cx="89" cy="79" r="5" fill="#FF8EC0"/>
+          <!-- flower 3 (center) -->
+          <circle cx="100" cy="79" r="9" fill="#FFB3D9"/>
+          <circle cx="100" cy="79" r="4" fill="#FFE066"/>
+          <circle cx="92"  cy="76" r="6" fill="#FFC8E0"/>
+          <circle cx="108" cy="76" r="6" fill="#FFC8E0"/>
+          <!-- flower 4 -->
+          <circle cx="118" cy="82" r="8" fill="#FF6BA8"/>
+          <circle cx="118" cy="82" r="3.5" fill="#FFD166"/>
+          <circle cx="111" cy="79" r="5" fill="#FF8EC0"/>
+          <circle cx="125" cy="79" r="5" fill="#FF8EC0"/>
+          <!-- flower 5 -->
+          <circle cx="138" cy="89" r="7" fill="#FF9EC0"/>
+          <circle cx="138" cy="89" r="3" fill="#FFD166"/>
+          <!-- leaves -->
+          <ellipse cx="72" cy="84" rx="5" ry="3" transform="rotate(-30 72 84)" fill="#5BAD6A"/>
+          <ellipse cx="128" cy="84" rx="5" ry="3" transform="rotate(30 128 84)" fill="#5BAD6A"/>
+        </g>
+        <ellipse cx="100" cy="138" rx="30" ry="24" fill="#FFF0DC"/>
+        <ellipse cx="82"  cy="120" rx="9" ry="10" fill="white"/>
+        <circle  cx="83"  cy="121" r="6" fill="#1E1206"/>
+        <circle  cx="85"  cy="118" r="2" fill="white"/>
+        <ellipse cx="118" cy="120" rx="9" ry="10" fill="white"/>
+        <circle  cx="119" cy="121" r="6" fill="#1E1206"/>
+        <circle  cx="121" cy="118" r="2" fill="white"/>
+        <path d="M74 111 Q82 106 90 111" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M110 111 Q118 106 126 111" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <ellipse cx="100" cy="134" rx="7" ry="5" fill="#1E1206"/>
+        <path d="M88 142 Q100 154 112 142" stroke="#D94F1A" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <ellipse cx="68"  cy="138" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+        <ellipse cx="132" cy="138" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+      </svg>
+    </div>
+    <div class="card-name">Spring 🌸</div>
+    <div class="card-desc">Pastel flower crown · Mar 20 – Jun 20</div>
+  </div>
+
+  <!-- FAIR MODE -->
+  <div class="card">
+    <span class="badge">🎡</span>
+    <div class="fox-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">
+        <defs><radialGradient id="fbg" cx="40%" cy="30%" r="70%"><stop offset="0%" stop-color="#FF7D4A"/><stop offset="100%" stop-color="#D94F1A"/></radialGradient></defs>
+        <g id="fox-tail" style="transform-origin:62px 205px">
+          <path d="M62 205 C30 195,5 175,12 148 C18 125,42 120,55 132 C65 142,62 160,58 175 C54 188,56 198,62 205Z" fill="#FFE8CC" stroke="#FF6B35" stroke-width="1.5"/>
+          <path d="M62 205 C38 197,18 178,24 153 C29 132,48 128,58 138 C67 147,63 163,60 178 C57 190,59 200,62 205Z" fill="#FF6B35"/>
+          <ellipse cx="20" cy="142" rx="14" ry="18" transform="rotate(-20 20 142)" fill="#FFF0DC"/>
+        </g>
+        <ellipse cx="100" cy="195" rx="42" ry="48" fill="url(#fbg)"/>
+        <ellipse cx="100" cy="205" rx="26" ry="32" fill="#FFF0DC"/>
+        <g id="fox-arm-right" style="transform-origin:132px 168px">
+          <ellipse cx="133" cy="195" rx="14" ry="10" transform="rotate(-30 133 195)" fill="#FF6B35"/>
+          <ellipse cx="141" cy="203" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <g id="fox-arm-left">
+          <ellipse cx="68" cy="195" rx="14" ry="10" transform="rotate(30 68 195)" fill="#FF6B35"/>
+          <ellipse cx="60" cy="203" rx="10" ry="8" fill="#FF6B35"/>
+        </g>
+        <ellipse cx="100" cy="125" rx="52" ry="50" fill="url(#fbg)"/>
+        <polygon points="58,88 44,48 82,78" fill="#FF6B35"/>
+        <polygon points="62,85 52,56 76,78" fill="#FFB38A"/>
+        <polygon points="142,88 156,48 118,78" fill="#FF6B35"/>
+        <polygon points="138,85 148,56 124,78" fill="#FFB38A"/>
+        <!-- FAIR BOWTIE -->
+        <g id="fox-costume-fair">
+          <!-- top hat -->
+          <rect x="74" y="60" width="52" height="30" rx="4" fill="#1A1A2E"/>
+          <rect x="64" y="88" width="72" height="10" rx="4" fill="#1A1A2E"/>
+          <!-- hat band -->
+          <rect x="74" y="82" width="52" height="7" rx="2" fill="#CC2200"/>
+          <!-- polka dots on hat -->
+          <circle cx="86"  cy="73" r="3" fill="#FFD700" opacity=".7"/>
+          <circle cx="100" cy="68" r="3" fill="#FFD700" opacity=".7"/>
+          <circle cx="114" cy="75" r="3" fill="#FFD700" opacity=".7"/>
+          <!-- bowtie under chin -->
+          <polygon points="78,157 100,150 100,164" fill="#CC2200"/>
+          <polygon points="122,157 100,150 100,164" fill="#AA1800"/>
+          <circle cx="100" cy="157" r="5" fill="#FF4422"/>
+          <!-- bowtie dots -->
+          <circle cx="88"  cy="153" r="2" fill="#FF8866" opacity=".7"/>
+          <circle cx="112" cy="153" r="2" fill="#FF8866" opacity=".7"/>
+        </g>
+        <ellipse cx="100" cy="138" rx="30" ry="24" fill="#FFF0DC"/>
+        <ellipse cx="82"  cy="120" rx="9" ry="10" fill="white"/>
+        <circle  cx="83"  cy="121" r="6" fill="#1E1206"/>
+        <circle  cx="85"  cy="118" r="2" fill="white"/>
+        <ellipse cx="118" cy="120" rx="9" ry="10" fill="white"/>
+        <circle  cx="119" cy="121" r="6" fill="#1E1206"/>
+        <circle  cx="121" cy="118" r="2" fill="white"/>
+        <path d="M74 111 Q82 106 90 111" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M110 111 Q118 106 126 111" stroke="#D94F1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <ellipse cx="100" cy="134" rx="7" ry="5" fill="#1E1206"/>
+        <path d="M88 142 Q100 154 112 142" stroke="#D94F1A" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <ellipse cx="68"  cy="138" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+        <ellipse cx="132" cy="138" rx="12" ry="8" fill="rgba(255,140,90,.45)"/>
+      </svg>
+    </div>
+    <div class="card-name">Fair Mode 🎡</div>
+    <div class="card-desc">Top hat + bowtie · Active fair days</div>
+  </div>
+
+</div>
+
+<hr>
+
+<!-- ═══ USAGE GUIDE ═══ -->
+<p class="section-title">⚙️ Developer Notes</p>
+<div style="max-width:1060px;margin:0 auto;background:white;border-radius:16px;padding:28px 32px;box-shadow:0 4px 20px rgba(255,107,53,.08);font-size:.9rem;color:#3D2214;line-height:1.7;">
+  <p><strong>Show emotion:</strong> toggle <code>display:block/none</code> on <code>#fox-eyes-happy</code>, <code>#fox-eyes-cool</code>, <code>#fox-eyes-sleepy</code>, <code>#fox-eyes-surprised</code>. Swap <code>#fox-mouth-path</code> <code>d</code> attribute accordingly.</p>
+  <p style="margin-top:10px"><strong>Wave arm:</strong> animate <code>#fox-arm-right</code> with <code>rotate(-40deg)</code> at <code>transform-origin: 132px 148px</code>.</p>
+  <p style="margin-top:10px"><strong>Wag tail:</strong> animate <code>#fox-tail</code> with <code>rotate(±12deg)</code> at <code>transform-origin: 62px 185px</code>.</p>
+  <p style="margin-top:10px"><strong>Recolor:</strong> override CSS custom properties — <code>--fox-primary</code>, <code>--fox-dark</code>, <code>--fox-light</code>.</p>
+  <p style="margin-top:10px"><strong>Seasonal costume:</strong> inject children into <code>#fox-costume</code> group at runtime based on current date.</p>
+</div>
+
+</body>
+</html>

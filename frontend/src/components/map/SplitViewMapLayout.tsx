@@ -12,6 +12,7 @@ import MapPanel, { MapPanelRef } from './MapPanel';
 import GeocoderSearch from './GeocoderSearch';
 import PanoramaViewer from '../PanoramaViewer';
 import FriendsPanel from './FriendsPanel';
+import FoxMapPeek from '../FoxMapPeek';
 import './SplitViewMapLayout.css';
 
 // Get Mapbox token
@@ -234,6 +235,7 @@ const SplitViewMapLayout: React.FC = () => {
           friendLocations={friendLocations}
           className="split-view-map"
         />
+        <FoxMapPeek />
       </div>
 
       {/* Mobile bottom sheet placeholder - can be expanded later */}

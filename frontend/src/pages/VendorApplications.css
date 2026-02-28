@@ -1,5 +1,8 @@
+/* Vendor Applications - Fair Marketplace Design System */
 .vendor-applications {
   padding: 1.5rem;
+  background: var(--color-background);
+  min-height: calc(100vh - 60px);
 }
 
 .vendor-applications .page-header {
@@ -19,7 +22,7 @@
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .btn-refresh {
@@ -31,28 +34,28 @@
 .error-message {
   text-align: center;
   padding: 2rem;
-  color: var(--text-muted);
+  color: var(--color-text-secondary);
 }
 
 .error-message {
-  color: var(--danger-color);
+  color: var(--color-error);
 }
 
 .empty-state {
   text-align: center;
   padding: 3rem 2rem;
-  background: var(--surface-color);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  background: var(--color-white);
+  border-radius: 16px;
+  border: 2px solid var(--color-mint);
 }
 
 .empty-state p {
   margin: 0 0 0.5rem;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .empty-hint {
-  color: var(--text-muted);
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -63,27 +66,27 @@
 }
 
 .application-card {
-  background: var(--surface-color);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  background: var(--color-white);
+  border-radius: 16px;
+  border: 2px solid var(--color-mint);
   padding: 1.25rem;
   transition: box-shadow 0.2s ease;
 }
 
 .application-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(45, 55, 72, 0.12);
 }
 
 .application-card.application-pending {
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid var(--color-orange);
 }
 
 .application-card.application-approved {
-  border-left: 4px solid #10b981;
+  border-left: 4px solid var(--color-success);
 }
 
 .application-card.application-rejected {
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid var(--color-error);
 }
 
 .application-header {
@@ -98,7 +101,7 @@
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .status-badge {
@@ -111,18 +114,18 @@
 }
 
 .status-pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(255, 209, 102, 0.3);
+  color: var(--color-text-primary);
 }
 
 .status-approved {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(72, 187, 120, 0.2);
+  color: var(--color-success);
 }
 
 .status-rejected {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(245, 101, 101, 0.2);
+  color: var(--color-error);
 }
 
 .application-details {
@@ -139,39 +142,39 @@
 }
 
 .detail-label {
-  color: var(--text-muted);
+  color: var(--color-text-secondary);
 }
 
 .detail-value {
-  color: var(--text-color);
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
 .rejection-reason {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: #fee2e2;
-  border-radius: 6px;
+  background: rgba(245, 101, 101, 0.15);
+  border-radius: 12px;
   font-size: 0.875rem;
 }
 
 .rejection-reason strong {
   display: block;
-  color: #991b1b;
+  color: var(--color-error);
   margin-bottom: 0.25rem;
 }
 
 .rejection-reason p {
   margin: 0;
-  color: #7f1d1d;
+  color: var(--color-text-primary);
 }
 
 .review-info {
   margin-top: 1rem;
   padding-top: 0.75rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--color-mint);
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--color-text-secondary);
 }
 
 .review-label {
@@ -192,5 +195,16 @@
 
   .applications-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Accessibility: Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .application-card {
+    transition: none;
+  }
+
+  .application-card:hover {
+    box-shadow: none;
   }
 }

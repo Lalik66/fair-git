@@ -1,12 +1,20 @@
+/* About Page - Fair Marketplace Design System */
 .about-page {
   min-height: calc(100vh - 60px);
+  background: var(--color-background);
+  overflow-x: hidden;
 }
 
 .about-hero {
   text-align: center;
   padding: 60px 20px;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-coral) 0%,
+    var(--color-warm-yellow) 50%,
+    var(--color-sky-blue) 100%
+  );
+  color: var(--color-white);
 }
 
 .about-hero h1 {
@@ -17,7 +25,7 @@
 
 .about-subtitle {
   font-size: 1.2rem;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 .about-content {
@@ -28,15 +36,21 @@
 
 .about-section {
   margin-bottom: 40px;
-  background: white;
+  background: var(--color-white);
   padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  border: 2px solid var(--color-mint);
+  box-shadow: 0 2px 8px rgba(45, 55, 72, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.about-section:hover {
+  box-shadow: 0 8px 24px rgba(45, 55, 72, 0.12);
 }
 
 .about-section h2 {
   font-size: 1.5rem;
-  color: #1e3a5f;
+  color: var(--color-text-primary);
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -48,7 +62,7 @@
 }
 
 .section-content p {
-  color: #475569;
+  color: var(--color-text-secondary);
   line-height: 1.8;
   margin-bottom: 12px;
 }
@@ -58,14 +72,14 @@
 }
 
 .loading-placeholder {
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-style: italic;
 }
 
 .about-placeholder {
   text-align: center;
   padding: 60px 20px;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .about-placeholder p {
@@ -74,7 +88,7 @@
 
 /* Upcoming Events Section */
 .upcoming-events-section {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: var(--color-background);
 }
 
 .upcoming-events-list {
@@ -84,11 +98,11 @@
 }
 
 .upcoming-event-card {
-  background: white;
-  border-radius: 12px;
+  background: var(--color-white);
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid #bae6fd;
+  box-shadow: 0 2px 8px rgba(45, 55, 72, 0.06);
+  border: 2px solid var(--color-mint);
 }
 
 .upcoming-event-banner {
@@ -122,25 +136,25 @@
 }
 
 .status-badge.active {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(72, 187, 120, 0.2);
+  color: var(--color-success);
 }
 
 .status-badge.upcoming {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(255, 209, 102, 0.3);
+  color: var(--color-text-primary);
 }
 
 .upcoming-event-name {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e3a5f;
+  color: var(--color-text-primary);
   margin: 0 0 12px 0;
 }
 
 .upcoming-event-dates {
   font-size: 1rem;
-  color: #0369a1;
+  color: var(--color-sky-blue);
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -153,7 +167,7 @@
 
 .upcoming-event-location {
   font-size: 0.95rem;
-  color: #64748b;
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -162,14 +176,14 @@
 
 .upcoming-event-description {
   font-size: 1rem;
-  color: #475569;
+  color: var(--color-text-secondary);
   line-height: 1.6;
   margin: 0;
 }
 
 /* Past Events Section */
 .past-events-section {
-  background: #f8fafc;
+  background: var(--color-background);
 }
 
 .past-events-list {
@@ -179,15 +193,15 @@
 }
 
 .past-event-card {
-  background: white;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white);
+  border-radius: 16px;
+  border: 2px solid var(--color-mint);
   overflow: hidden;
   transition: box-shadow 0.2s ease;
 }
 
 .past-event-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(45, 55, 72, 0.12);
 }
 
 .past-event-header {
@@ -200,7 +214,7 @@
 }
 
 .past-event-header:hover {
-  background-color: #f8fafc;
+  background-color: var(--color-background);
 }
 
 .past-event-info {
@@ -210,19 +224,19 @@
 .past-event-name {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #1e3a5f;
+  color: var(--color-text-primary);
   margin: 0 0 8px 0;
 }
 
 .past-event-dates {
   font-size: 0.95rem;
-  color: #64748b;
+  color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
 
 .past-event-location {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -243,8 +257,8 @@
   align-items: center;
   gap: 6px;
   font-size: 0.95rem;
-  color: #475569;
-  background: #e2e8f0;
+  color: var(--color-text-primary);
+  background: rgba(127, 205, 205, 0.2);
   padding: 6px 12px;
   border-radius: 20px;
 }
@@ -257,7 +271,7 @@
   background: none;
   border: none;
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--color-text-secondary);
   cursor: pointer;
   padding: 4px 8px;
   transition: transform 0.2s ease;
@@ -270,13 +284,13 @@
 /* Vendor List */
 .past-event-vendors {
   padding: 20px;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: var(--color-background);
+  border-top: 1px solid var(--color-mint);
 }
 
 .past-event-vendors h4 {
   font-size: 1rem;
-  color: #475569;
+  color: var(--color-text-primary);
   margin: 0 0 16px 0;
   font-weight: 500;
 }
@@ -291,24 +305,24 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: white;
+  background: var(--color-white);
   padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  border: 2px solid var(--color-mint);
 }
 
 .vendor-logo {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: 12px;
   object-fit: cover;
 }
 
 .vendor-logo-placeholder {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
-  background: #e2e8f0;
+  border-radius: 12px;
+  background: rgba(127, 205, 205, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,7 +339,7 @@
 .vendor-name {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #1e3a5f;
+  color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -333,11 +347,11 @@
 
 .vendor-category {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
 }
 
 .no-vendors {
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-style: italic;
   text-align: center;
   margin: 0;
@@ -390,5 +404,26 @@
 
   .upcoming-event-name {
     font-size: 1.3rem;
+  }
+}
+
+/* Accessibility: Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .about-section,
+  .past-event-card,
+  .past-event-header {
+    transition: none;
+  }
+
+  .about-section:hover {
+    box-shadow: 0 2px 8px rgba(45, 55, 72, 0.06);
+  }
+
+  .past-event-card:hover {
+    box-shadow: none;
+  }
+
+  .expand-btn {
+    transition: none;
   }
 }

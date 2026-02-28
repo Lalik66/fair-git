@@ -1627,16 +1627,16 @@ router.post('/test-applications', async (req: Request, res: Response): Promise<v
       const winterFair = await prisma.fair.create({
         data: {
           name: 'Winter 2026',
-          startDate: new Date('2026-12-10'),
-          endDate: new Date('2027-01-01'),
+          startDate: new Date('2026-12-01'),
+          endDate: new Date('2027-01-05'),
           status: 'upcoming',
         },
       });
       const springFair = await prisma.fair.create({
         data: {
           name: 'Spring Festival 2026',
-          startDate: new Date('2026-03-01'),
-          endDate: new Date('2026-04-15'),
+          startDate: new Date('2026-05-01'),
+          endDate: new Date('2026-05-31'),
           status: 'active',
         },
       });
@@ -1646,8 +1646,8 @@ router.post('/test-applications', async (req: Request, res: Response): Promise<v
       const springFair = await prisma.fair.create({
         data: {
           name: 'Spring Festival 2026',
-          startDate: new Date('2026-03-01'),
-          endDate: new Date('2026-04-15'),
+          startDate: new Date('2026-05-01'),
+          endDate: new Date('2026-05-31'),
           status: 'active',
         },
       });

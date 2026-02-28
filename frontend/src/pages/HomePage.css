@@ -1,7 +1,7 @@
 .home-page {
   min-height: calc(100vh - 60px);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* Snowflakes Container */
@@ -58,20 +58,21 @@
   }
 }
 
-/* Hero Section */
+/* Hero Section - Light overlay so image stays bright */
 .hero-section {
   text-align: center;
   padding: 80px 20px;
   background-image: linear-gradient(
     135deg,
-    rgba(255, 107, 107, 0.85) 0%,
-    rgba(255, 209, 102, 0.8) 50%,
-    rgba(6, 190, 225, 0.75) 100%
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.2) 100%
   ), url('/istiraklar.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  color: var(--color-white, white);
+  color: var(--color-text-primary);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .hero-section h1 {
@@ -215,7 +216,124 @@
   font-size: 1.1rem;
 }
 
+/* Upcoming Events Section */
+.homepage-upcoming-section {
+  padding: 60px 20px;
+  background: var(--color-background);
+  text-align: center;
+}
+
+.homepage-upcoming-title {
+  font-family: var(--font-headings);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 8px 0;
+}
+
+.homepage-upcoming-title .section-icon {
+  margin-right: 8px;
+}
+
+.homepage-upcoming-subtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 40px 0;
+}
+
+.homepage-upcoming-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.homepage-event-card {
+  background: var(--color-white);
+  border: 2px solid var(--color-mint);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(45, 55, 72, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.homepage-event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(45, 55, 72, 0.12);
+}
+
+.homepage-event-card-header {
+  margin-bottom: 4px;
+}
+
+.homepage-event-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.homepage-event-badge.active {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--color-coral);
+}
+
+.homepage-event-badge.upcoming {
+  background: rgba(6, 190, 225, 0.15);
+  color: var(--color-sky-blue);
+}
+
+.homepage-event-name {
+  font-family: var(--font-headings);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 12px 0;
+}
+
+.homepage-event-dates,
+.homepage-event-location {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.homepage-event-description {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-top: 12px;
+  flex-grow: 1;
+}
+
+.homepage-event-cta {
+  margin-top: 16px;
+  align-self: flex-start;
+}
+
 /* Responsive */
+@media (min-width: 641px) {
+  .homepage-upcoming-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .homepage-upcoming-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .hero-section {
     padding: 60px 20px;
@@ -252,6 +370,18 @@
 
   .countdown-separator {
     font-size: 1.8rem;
+  }
+
+  .homepage-upcoming-title {
+    font-size: 1.6rem;
+  }
+
+  .homepage-event-card {
+    padding: 16px;
+  }
+
+  .homepage-event-name {
+    font-size: 1.2rem;
   }
 }
 
@@ -378,6 +508,14 @@
   .train-smoke {
     animation: none;
     opacity: 0;
+  }
+
+  .homepage-event-card {
+    transition: none;
+  }
+
+  .homepage-event-card:hover {
+    transform: none;
   }
 }
 

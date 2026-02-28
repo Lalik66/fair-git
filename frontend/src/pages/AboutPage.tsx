@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { publicApi } from '../services/api';
+import FoxMascot from '../components/FoxMascot';
 import './AboutPage.css';
 
 interface AboutContent {
@@ -302,6 +303,8 @@ const AboutPage: React.FC = () => {
           </section>
         )}
       </div>
+
+      <FoxMascot isFairActive={upcomingFairs.some(f => f.status === 'active')} />
     </div>
   );
 };

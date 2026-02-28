@@ -1,0 +1,343 @@
+/* ═══════════════════════════════════════════
+   Fox Mascot — Container & Positioning
+═══════════════════════════════════════════ */
+.fox-mascot {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 50;
+  cursor: pointer;
+  width: 140px;
+  height: 168px;
+  will-change: transform, opacity;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+  pointer-events: auto;
+}
+
+.fox-mascot svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ═══════════════════════════════════════════
+   Phase States — controlled by CSS classes
+═══════════════════════════════════════════ */
+
+/* Hidden (before scroll) */
+.fox-mascot.phase-hidden {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Phase 1: Ear peek */
+.fox-mascot.phase-peek {
+  transform: translateY(72%);
+  opacity: 1;
+}
+
+.fox-mascot.phase-peek .fox-ear-group {
+  animation: earWiggle 1.2s ease-in-out infinite;
+}
+
+/* Phase 2: Full reveal */
+.fox-mascot.phase-reveal {
+  transform: translateY(0);
+  opacity: 1;
+  animation: foxSpringIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Phase 3: Balloon float */
+.fox-mascot.phase-balloon {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.fox-mascot.phase-balloon .fox-balloon-group {
+  display: block;
+}
+
+.fox-mascot.phase-balloon .fox-balloon-sway {
+  animation: balloonSway 3s ease-in-out infinite;
+}
+
+/* Phase exit: wave goodbye */
+.fox-mascot.phase-exit {
+  transform: translateY(120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════
+   Speech Bubble
+═══════════════════════════════════════════ */
+.fox-speech-bubble {
+  position: absolute;
+  bottom: 100%;
+  right: 10px;
+  margin-bottom: 8px;
+  background: var(--color-white, #fff);
+  border: 2px solid var(--color-mint, #7FCDCD);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-family: var(--font-primary, 'Poppins', sans-serif);
+  font-size: 0.85rem;
+  color: var(--color-text-primary, #2D3748);
+  box-shadow: 0 4px 12px rgba(45, 55, 72, 0.1);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(8px) scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+  max-width: 220px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.fox-speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  right: 30px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid var(--color-mint, #7FCDCD);
+}
+
+.fox-speech-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  right: 31px;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid var(--color-white, #fff);
+  z-index: 1;
+}
+
+.fox-speech-bubble.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.fox-speech-bubble.pulse-border {
+  animation: bubblePulse 2s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════
+   Balloon (Phase 3)
+═══════════════════════════════════════════ */
+.fox-balloon-group {
+  display: none;
+}
+
+.fox-balloon-sway {
+  transform-origin: 100px 0;
+}
+
+/* ═══════════════════════════════════════════
+   Sparkle Particles
+═══════════════════════════════════════════ */
+.fox-sparkle {
+  position: absolute;
+  font-size: 1rem;
+  pointer-events: none;
+  animation: sparkleFloat 1.5s ease-out forwards;
+}
+
+/* ═══════════════════════════════════════════
+   Confetti Particles (click)
+═══════════════════════════════════════════ */
+.fox-confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: confettiBurst 0.8s ease-out forwards;
+}
+
+/* ═══════════════════════════════════════════
+   Click Bounce
+═══════════════════════════════════════════ */
+.fox-mascot.click-bounce {
+  animation: clickBounce 0.3s ease forwards;
+}
+
+/* ═══════════════════════════════════════════
+   Special Dance (after 5 pets)
+═══════════════════════════════════════════ */
+.fox-mascot.special-dance {
+  animation: specialDance 1.2s ease-in-out;
+}
+
+/* ═══════════════════════════════════════════
+   Tail Wag
+═══════════════════════════════════════════ */
+.fox-mascot.wag-tail .fox-tail-group {
+  animation: tailWag 0.5s ease-in-out infinite alternate;
+  transform-origin: 62px 185px;
+}
+
+/* Arm Wave (exit phase) */
+.fox-mascot.wave-arm .fox-arm-right-group {
+  animation: armWave 0.6s ease infinite alternate;
+  transform-origin: 132px 148px;
+}
+
+/* ═══════════════════════════════════════════
+   Keyframes
+═══════════════════════════════════════════ */
+@keyframes foxSpringIn {
+  0%   { transform: translateY(100%); }
+  60%  { transform: translateY(-8%); }
+  80%  { transform: translateY(3%); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes earWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-6deg); }
+  75%      { transform: rotate(6deg); }
+}
+
+@keyframes tailWag {
+  from { transform: rotate(-8deg); }
+  to   { transform: rotate(8deg); }
+}
+
+@keyframes armWave {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-38deg); }
+}
+
+@keyframes balloonSway {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25%      { transform: translateX(-6px) rotate(-2deg); }
+  75%      { transform: translateX(6px) rotate(2deg); }
+}
+
+@keyframes sparkleFloat {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--sparkle-x, 20px), var(--sparkle-y, -40px)) scale(0.3);
+  }
+}
+
+@keyframes confettiBurst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--confetti-x, 30px), var(--confetti-y, -50px)) scale(0.5);
+  }
+}
+
+@keyframes clickBounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.2); }
+  60%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes specialDance {
+  0%   { transform: rotate(0deg) scale(1); }
+  15%  { transform: rotate(-15deg) scale(1.1); }
+  30%  { transform: rotate(15deg) scale(1.1); }
+  45%  { transform: rotate(-10deg) scale(1.05); }
+  60%  { transform: rotate(10deg) scale(1.05); }
+  75%  { transform: rotate(-5deg) scale(1); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes bubblePulse {
+  0%, 100% { border-color: var(--color-mint, #7FCDCD); }
+  50%      { border-color: var(--color-sky-blue, #06BEE1); }
+}
+
+/* ═══════════════════════════════════════════
+   Responsive
+═══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .fox-mascot {
+    width: 100px;
+    height: 120px;
+    bottom: 115px;
+    right: 12px;
+  }
+
+  .fox-speech-bubble {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    max-width: 170px;
+    right: 0;
+  }
+}
+
+@media (max-width: 768px) and (min-width: 481px) {
+  .fox-mascot {
+    width: 120px;
+    height: 144px;
+    bottom: 110px;
+    right: 16px;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Accessibility: Reduced Motion
+═══════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .fox-mascot {
+    transition: none;
+    animation: none !important;
+  }
+
+  .fox-mascot.phase-hidden {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .fox-mascot.phase-peek {
+    transform: translateY(0);
+  }
+
+  .fox-mascot.phase-exit {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .fox-mascot .fox-ear-group,
+  .fox-mascot .fox-tail-group,
+  .fox-mascot .fox-arm-right-group,
+  .fox-mascot .fox-balloon-sway {
+    animation: none !important;
+  }
+
+  .fox-speech-bubble {
+    transition: none;
+  }
+
+  .fox-sparkle,
+  .fox-confetti {
+    display: none !important;
+  }
+
+  .fox-mascot.click-bounce,
+  .fox-mascot.special-dance {
+    animation: none !important;
+  }
+}
