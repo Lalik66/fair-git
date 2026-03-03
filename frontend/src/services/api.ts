@@ -507,4 +507,12 @@ export const inviteApi = {
   },
 };
 
+// AI Chat API (public - no auth required)
+export const aiApi = {
+  chat: async (message: string) => {
+    const response = await api.post('/ai/chat', { message });
+    return response.data as { reply: string };
+  },
+};
+
 export default api;

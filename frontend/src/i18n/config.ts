@@ -8,6 +8,7 @@ const resources = {
       // Common
       common: {
         loading: 'Loading...',
+        close: 'Close',
         save: 'Save',
         cancel: 'Cancel',
         delete: 'Delete',
@@ -267,6 +268,16 @@ const resources = {
         },
         tab: 'Friends',
       },
+
+      // AI Chat
+      aiChat: {
+        title: 'AI Assistant',
+        welcome: "Hi! I'm your Fair Marketplace assistant. Ask me about fairs or the map!",
+        placeholder: 'Ask about fairs, vendors...',
+        send: 'Send',
+        open: 'Open AI chat',
+        error: 'Failed to get response. Please try again.',
+      },
     },
   },
   az: {
@@ -274,6 +285,7 @@ const resources = {
       // Common
       common: {
         loading: 'Yüklənir...',
+        close: 'Bağla',
         save: 'Yadda saxla',
         cancel: 'Ləğv et',
         delete: 'Sil',
@@ -532,6 +544,16 @@ const resources = {
           loginRequired: 'Dostları dəvət etmək üçün daxil olun',
         },
         tab: 'Dostlar',
+      },
+
+      // AI Chat
+      aiChat: {
+        title: 'AI Köməkçi',
+        welcome: 'Salam! Mən Fair Marketplace köməkçisiyəm. Yarmarkalar və xəritə haqqında sual verin!',
+        placeholder: 'Yarmarkalar, satıcılar haqqında soruşun...',
+        send: 'Göndər',
+        open: 'AI çatı aç',
+        error: 'Cavab alına bilmədi. Yenidən cəhd edin.',
       },
     },
   },

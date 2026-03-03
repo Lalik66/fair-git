@@ -90,6 +90,7 @@ import publicRoutes from './routes/public';
 import userRoutes from './routes/user';
 import friendsRoutes from './routes/friends';
 import inviteRoutes from './routes/invite';
+import aiRoutes from './routes/ai';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -98,6 +99,7 @@ app.use('/api/public', publicRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/invite', inviteRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

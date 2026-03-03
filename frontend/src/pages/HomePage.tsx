@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { publicApi } from '../services/api';
 import FoxMascot from '../components/FoxMascot';
+import AIChatPanel from '../components/AIChatPanel';
 import './HomePage.css';
 
 interface Fair {
@@ -246,6 +247,7 @@ const HomePage: React.FC = () => {
       </div>
 
       <FoxMascot isFairActive={nextFair?.status === 'active'} />
+      <AIChatPanel />
     </div>
   );
 };
