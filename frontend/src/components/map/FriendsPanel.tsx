@@ -2,7 +2,9 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { distance, point } from '@turf/turf';
 import { getFollowing, getFriendLocations, FollowingUser, FriendLocation } from '../../services/friendsService';
+import { getUnreadCount, UnreadConversation } from '../../services/friendsMessagesService';
 import { inviteApi } from '../../services/api';
+import FriendChatPanel from './FriendChatPanel';
 import './FriendsPanel.css';
 
 // Online threshold: 30 minutes in milliseconds
@@ -30,6 +32,15 @@ interface FriendWithStatus extends FollowingUser {
   lastLongitude?: number;
   locationUpdatedAt?: string;
   distanceKm?: number;
+  unreadCount?: number;
+}
+
+// Chat friend data
+interface ChatFriend {
+  id: string;
+  name: string;
+  isOnline: boolean;
+  avatarColor: string;
 }
 
 const FriendsPanel: React.FC<FriendsPanelProps> = ({
@@ -42,10 +53,13 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
   const { t } = useTranslation();
   const [friends, setFriends] = useState<FollowingUser[]>([]);
   const [friendLocations, setFriendLocations] = useState<FriendLocation[]>([]);
+  const [unreadByFriend, setUnreadByFriend] = useState<Map<string, number>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('online');
+  const [chatFriend, setChatFriend] = useState<ChatFriend | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Fetch friends list when panel opens
   useEffect(() => {
@@ -76,13 +90,21 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
   const fetchFriendsData = async () => {
     setIsLoading(true);
     try {
-      // Fetch both friends list and locations in parallel
-      const [followingList, locations] = await Promise.all([
+      // Fetch friends list, locations, and unread counts in parallel
+      const [followingList, locations, unreadData] = await Promise.all([
         getFollowing(),
         getFriendLocations().catch(() => [] as FriendLocation[]),
+        getUnreadCount().catch(() => ({ totalUnread: 0, byConversation: [] })),
       ]);
       setFriends(followingList);
       setFriendLocations(locations);
+
+      // Build unread map by friend ID
+      const unreadMap = new Map<string, number>();
+      unreadData.byConversation.forEach((conv: UnreadConversation) => {
+        unreadMap.set(conv.friendId, conv.unreadCount);
+      });
+      setUnreadByFriend(unreadMap);
     } catch (error) {
       console.error('Failed to fetch friends:', error);
     } finally {
@@ -131,7 +153,7 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
     }
   }, []);
 
-  // Merge friends with location data
+  // Merge friends with location data and unread counts
   const friendsWithStatus: FriendWithStatus[] = useMemo(() => {
     const locationMap = new Map<string, FriendLocation>();
     friendLocations.forEach((loc) => {
@@ -153,9 +175,10 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
         lastLongitude: location?.lastLongitude,
         locationUpdatedAt: location?.locationUpdatedAt,
         distanceKm,
+        unreadCount: unreadByFriend.get(friend.id),
       };
     });
-  }, [friends, friendLocations, isOnline, calculateDistance]);
+  }, [friends, friendLocations, isOnline, calculateDistance, unreadByFriend]);
 
   // Sort friends based on selected option
   const sortedFriends = useMemo(() => {
@@ -252,6 +275,52 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
     },
     [onFlyToFriend, onClose]
   );
+
+  // Handle open chat
+  const handleOpenChat = useCallback(
+    (friend: FriendWithStatus) => {
+      setChatFriend({
+        id: friend.id,
+        name: friend.name,
+        isOnline: friend.isOnline,
+        avatarColor: getAvatarColor(friend.name),
+      });
+      setIsChatOpen(true);
+    },
+    []
+  );
+
+  // Handle close chat
+  const handleCloseChat = useCallback(() => {
+    setIsChatOpen(false);
+    setChatFriend(null);
+    // Refresh unread counts when chat closes
+    getUnreadCount()
+      .then((data) => {
+        const unreadMap = new Map<string, number>();
+        data.byConversation.forEach((conv: UnreadConversation) => {
+          unreadMap.set(conv.friendId, conv.unreadCount);
+        });
+        setUnreadByFriend(unreadMap);
+      })
+      .catch(console.error);
+  }, []);
+
+  // Handle back from chat to friends list
+  const handleBackFromChat = useCallback(() => {
+    setIsChatOpen(false);
+    setChatFriend(null);
+    // Refresh unread counts when returning to friends list
+    getUnreadCount()
+      .then((data) => {
+        const unreadMap = new Map<string, number>();
+        data.byConversation.forEach((conv: UnreadConversation) => {
+          unreadMap.set(conv.friendId, conv.unreadCount);
+        });
+        setUnreadByFriend(unreadMap);
+      })
+      .catch(console.error);
+  }, []);
 
   // Get avatar placeholder (first letter of name)
   const getAvatarLetter = (name: string): string => {
@@ -369,6 +438,11 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
                       className={`friend-status-dot ${friend.isOnline ? 'online' : 'offline'}`}
                       title={friend.isOnline ? t('friends.card.online') : t('friends.card.offline')}
                     />
+                    {friend.unreadCount && friend.unreadCount > 0 && (
+                      <span className="friend-unread-badge" data-count={friend.unreadCount > 9 ? '9+' : friend.unreadCount}>
+                        {friend.unreadCount > 9 ? '9+' : friend.unreadCount}
+                      </span>
+                    )}
                   </div>
                   <div className="friend-info">
                     <div className="friend-name">{friend.name}</div>
@@ -388,21 +462,41 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
                       )}
                     </div>
                   </div>
-                  {friend.isOnline && friend.lastLatitude && friend.lastLongitude && onFlyToFriend && (
+                  <div className="friend-actions">
                     <button
-                      className="friend-show-map-btn"
-                      onClick={() => handleShowOnMap(friend)}
-                      title={t('friends.card.showOnMap')}
+                      className="friend-message-btn"
+                      onClick={() => handleOpenChat(friend)}
+                      title={t('friends.card.message')}
                     >
-                      <span className="map-icon">📍</span>
+                      <span className="message-icon">💬</span>
                     </button>
-                  )}
+                    {friend.isOnline && friend.lastLatitude && friend.lastLongitude && onFlyToFriend && (
+                      <button
+                        className="friend-show-map-btn"
+                        onClick={() => handleShowOnMap(friend)}
+                        title={t('friends.card.showOnMap')}
+                      >
+                        <span className="map-icon">📍</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Chat Panel */}
+      {chatFriend && (
+        <FriendChatPanel
+          isOpen={isChatOpen}
+          onClose={handleCloseChat}
+          onBack={handleBackFromChat}
+          friend={chatFriend}
+          isMobile={isMobile}
+        />
+      )}
     </>
   );
 };

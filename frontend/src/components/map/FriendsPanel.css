@@ -437,6 +437,80 @@
   font-size: 1.2rem;
 }
 
+/* Friend Actions Container */
+.friend-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Message Button */
+.friend-message-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-sky-blue, #06BEE1), var(--color-mint, #7FCDCD));
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(6, 190, 225, 0.3);
+}
+
+.friend-message-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(6, 190, 225, 0.4);
+}
+
+.friend-message-btn:active {
+  transform: scale(1);
+}
+
+.friend-message-btn .message-icon {
+  font-size: 1rem;
+}
+
+/* Unread Badge on Friend Avatar */
+.friend-unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--color-coral, #FF6B6B);
+  color: var(--color-white, #FFFFFF);
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-primary, 'Poppins', sans-serif);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-white, #FFFFFF);
+  box-shadow: 0 2px 6px rgba(255, 107, 107, 0.4);
+  animation: badgePop 0.3s ease;
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.friend-unread-badge[data-count="9+"] {
+  font-size: 0.65rem;
+}
+
 /* ========================================
    Friends Tab Button Styles
    ======================================== */
@@ -607,6 +681,19 @@
 
   .friend-show-map-btn .map-icon {
     font-size: 1rem;
+  }
+
+  .friend-actions {
+    gap: 6px;
+  }
+
+  .friend-message-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .friend-message-btn .message-icon {
+    font-size: 0.9rem;
   }
 }
 

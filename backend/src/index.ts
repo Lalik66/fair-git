@@ -1,4 +1,5 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -10,6 +11,7 @@ import { rateLimit } from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { initializePassport } from './config/passport';
+import { initializeWebSocket } from './websocket';
 
 // Load environment variables
 dotenv.config();
@@ -19,7 +21,7 @@ export const prisma = new PrismaClient();
 
 // Create Express app
 const app: Express = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Security middleware
 app.use(helmet({
@@ -91,6 +93,7 @@ import userRoutes from './routes/user';
 import friendsRoutes from './routes/friends';
 import inviteRoutes from './routes/invite';
 import aiRoutes from './routes/ai';
+import messagesRoutes, { setSocketIO } from './routes/messages';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -98,6 +101,7 @@ app.use('/api/vendor', vendorRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/friends', friendsRoutes);
+app.use('/api/friends/messages', messagesRoutes);
 app.use('/api/invite', inviteRoutes);
 app.use('/api/ai', aiRoutes);
 
@@ -162,6 +166,9 @@ async function createFirstAdmin(): Promise<void> {
   }
 }
 
+// Create HTTP server for Socket.io
+const httpServer = createServer(app);
+
 // Start server
 async function startServer(): Promise<void> {
   try {
@@ -172,8 +179,16 @@ async function startServer(): Promise<void> {
     // Create first admin if needed
     await createFirstAdmin();
 
+    // Initialize WebSocket server
+    const io = initializeWebSocket(httpServer);
+
+    // Set Socket.io instance for messages routes
+    setSocketIO(io);
+
+    console.log('WebSocket server initialized');
+
     // Start listening
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`
 ========================================
   Fair Marketplace Backend Server
@@ -182,6 +197,7 @@ async function startServer(): Promise<void> {
   Server running on: http://localhost:${PORT}
   API root: http://localhost:${PORT}/api
   Health check: http://localhost:${PORT}/health
+  WebSocket: ws://localhost:${PORT}
 ========================================
       `);
     });

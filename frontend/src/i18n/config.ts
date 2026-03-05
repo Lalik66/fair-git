@@ -22,6 +22,7 @@ const resources = {
         yes: 'Yes',
         no: 'No',
         continue: 'Continue',
+        retry: 'Retry',
       },
 
       // Navigation
@@ -253,6 +254,7 @@ const resources = {
           lastSeen: 'Last seen {{time}} ago',
           showOnMap: 'Show on map',
           distanceUnknown: 'Distance unknown',
+          message: 'Message',
         },
         sort: {
           label: 'Sort by',
@@ -267,6 +269,27 @@ const resources = {
           loginRequired: 'Please log in to invite friends',
         },
         tab: 'Friends',
+      },
+
+      // Chat
+      chat: {
+        panelLabel: 'Chat with {{name}}',
+        backToFriends: 'Back to friends list',
+        messagesLabel: 'Message history',
+        inputPlaceholder: 'Type a message...',
+        inputLabel: 'Message input',
+        sendMessage: 'Send message',
+        friendIsTyping: '{{name}} is typing...',
+        messageRead: 'Read',
+        messageDelivered: 'Delivered',
+        messageSent: 'Sent',
+        emptyTitle: 'No messages yet',
+        emptySubtitle: 'Start a conversation with {{name}}!',
+        sendFailed: 'Failed to send message. Tap to retry.',
+        loadFailed: 'Could not load messages. Pull to refresh.',
+        loadingMessages: 'Loading messages...',
+        loadMore: 'Load older messages',
+        yesterday: 'Yesterday',
       },
 
       // AI Chat
@@ -299,6 +322,7 @@ const resources = {
         yes: 'Bəli',
         no: 'Xeyr',
         continue: 'Davam et',
+        retry: 'Yenidən cəhd et',
       },
 
       // Navigation
@@ -530,6 +554,7 @@ const resources = {
           lastSeen: '{{time}} əvvəl görülüb',
           showOnMap: 'Xəritədə göstər',
           distanceUnknown: 'Məsafə bilinmir',
+          message: 'Mesaj',
         },
         sort: {
           label: 'Sırala',
@@ -544,6 +569,27 @@ const resources = {
           loginRequired: 'Dostları dəvət etmək üçün daxil olun',
         },
         tab: 'Dostlar',
+      },
+
+      // Chat
+      chat: {
+        panelLabel: '{{name}} ilə söhbət',
+        backToFriends: 'Dostlar siyahısına qayıt',
+        messagesLabel: 'Mesaj tarixçəsi',
+        inputPlaceholder: 'Mesaj yazın...',
+        inputLabel: 'Mesaj sahəsi',
+        sendMessage: 'Mesaj göndər',
+        friendIsTyping: '{{name}} yazır...',
+        messageRead: 'Oxundu',
+        messageDelivered: 'Çatdırıldı',
+        messageSent: 'Göndərildi',
+        emptyTitle: 'Hələ mesaj yoxdur',
+        emptySubtitle: '{{name}} ilə söhbətə başlayın!',
+        sendFailed: 'Mesaj göndərilə bilmədi. Yenidən cəhd edin.',
+        loadFailed: 'Mesajlar yüklənə bilmədi. Yeniləmək üçün çəkin.',
+        loadingMessages: 'Mesajlar yüklənir...',
+        loadMore: 'Köhnə mesajları yüklə',
+        yesterday: 'Dünən',
       },
 
       // AI Chat
