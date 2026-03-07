@@ -1,0 +1,343 @@
+Perfect! Here's a comprehensive prompt for adding the **"Route to Friend"** feature:
+
+---
+
+## **Prompt: Route to Friend - Navigation Feature**
+
+### Context:
+I am building an interactive fair map using Mapbox GL JS and React. Users can see their friends' locations on the map. I need to add a "Get Directions" feature that shows a route from the user's current location to a selected friend's marker, similar to 2GIS navigation.
+
+### Prerequisites:
+- User location tracking is already implemented (Part 1 is complete)
+- Friends' locations are displayed as markers on the map (Part 2 is complete)
+- Mapbox GL JS map instance is available
+- User has an active location (latitude/longitude)
+
+---
+
+### Task Requirements:
+
+#### 1. UI/UX - Triggering Directions
+
+**When user clicks on a friend marker:**
+- Show a popup/card with friend's name and a "Get Directions" button
+- Display estimated distance from user to friend (use Turf.js `turf.distance`)
+- Button should be prominent and child-friendly (refer to ui-expert.md design system)
+
+**Popup should include:**
+- Friend's name and avatar/emoji
+- Distance: "📍 250 meters away"
+- "Get Directions 🧭" button (primary coral color)
+- "Close" button to dismiss
+
+---
+
+#### 2. Mapbox Directions API Integration
+
+**API Setup:**
+- Use Mapbox Directions API: `https://api.mapbox.com/directions/v5/mapbox/{profile}/{coordinates}`
+- Profile: Use `walking` (most appropriate for a fair)
+- Include Mapbox access token from environment variables
+
+**Request format:**
+```
+GET https://api.mapbox.com/directions/v5/mapbox/walking/{userLng},{userLat};{friendLng},{friendLat}
+?geometries=geojson
+&steps=true
+&access_token={MAPBOX_TOKEN}
+```
+
+**Response handling:**
+- Extract route geometry (GeoJSON LineString)
+- Extract turn-by-turn steps
+- Extract duration (in seconds) and distance (in meters)
+- Handle errors (no route found, API error, friend too far away)
+
+---
+
+#### 3. Route Display on Map
+
+**Route rendering:**
+- Add a new layer to the Mapbox map with the route geometry
+- Route line style:
+  - Color: `#06BEE1` (sky-blue from design system)
+  - Width: `5px` on mobile, `6px` on desktop
+  - Line cap: `round`
+  - Line join: `round`
+  - Add subtle animation (optional): dashed line that appears to "move"
+
+**Example route layer:**
+```javascript
+map.addSource('route', {
+  type: 'geojson',
+  data: {
+    type: 'Feature',
+    geometry: routeGeometry
+  }
+});
+
+map.addLayer({
+  id: 'route',
+  type: 'line',
+  source: 'route',
+  layout: {
+    'line-join': 'round',
+    'line-cap': 'round'
+  },
+  paint: {
+    'line-color': '#06BEE1',
+    'line-width': 6,
+    'line-opacity': 0.8
+  }
+});
+```
+
+**Start/End markers:**
+- Show a marker at the user's location (current position) - different from friend marker
+- Optionally pulse the friend's marker to indicate destination
+- Auto-zoom/fit the map to show the entire route
+
+---
+
+#### 4. Turn-by-Turn Instructions Display
+
+**Instructions panel/card:**
+- Position: Fixed bottom or sliding panel from bottom (mobile), sidebar (desktop)
+- Show route summary at top:
+  - Total distance: "1.2 km"
+  - Estimated time: "15 minutes walking"
+  - Destination: Friend's name with emoji
+- List each step with:
+  - Icon (arrow for direction: ⬅️ ➡️ ⬆️)
+  - Instruction text: "Turn left onto Main Street"
+  - Distance: "Walk 200 m"
+
+**Design (refer to ui-expert.md):**
+```css
+.route-panel {
+  background: white;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.route-summary {
+  background: var(--color-sky-blue);
+  color: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.route-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #E5E7EB;
+}
+```
+
+**HTML structure:**
+```html
+<div class="route-panel">
+  <div class="route-summary">
+    <h3>Directions to Alex 👋</h3>
+    <p>📏 1.2 km • ⏱️ 15 min walk</p>
+  </div>
+  
+  <div class="route-steps">
+    <div class="route-step">
+      <span class="step-icon">⬆️</span>
+      <div class="step-content">
+        <p class="step-instruction">Head north on Fair Street</p>
+        <p class="step-distance">Walk 200 m</p>
+      </div>
+    </div>
+    <!-- More steps... -->
+  </div>
+  
+  <button class="btn-secondary" onclick="clearRoute()">
+    ❌ Clear Route
+  </button>
+</div>
+```
+
+---
+
+#### 5. Route Clearing & State Management
+
+**Clear route functionality:**
+- "Clear Route" button in instructions panel
+- Remove route layer and source from map
+- Remove/hide instructions panel
+- Reset friend marker to normal state (stop pulsing)
+- Restore original map zoom/position
+
+**State management:**
+- Track active route in React state: `activeRoute` (null or route object)
+- Track if directions panel is open: `isDirectionsPanelOpen` (boolean)
+- Store route geometry, steps, and metadata
+
+**React state example:**
+```typescript
+const [activeRoute, setActiveRoute] = useState<{
+  friendId: string;
+  friendName: string;
+  geometry: GeoJSON.LineString;
+  steps: RouteStep[];
+  distance: number; // meters
+  duration: number; // seconds
+} | null>(null);
+
+const [isDirectionsPanelOpen, setIsDirectionsPanelOpen] = useState(false);
+```
+
+---
+
+#### 6. Real-time Route Updates (Optional Enhancement)
+
+**If user moves significantly:**
+- Watch user's location updates from the geolocation tracking
+- If user moves > 50 meters from last route calculation, recalculate route
+- Update route display automatically
+- Show notification: "Route updated based on your new location 📍"
+
+**Throttling:**
+- Recalculate route at most once every 30 seconds
+- Only if route is currently active
+
+---
+
+#### 7. Error Handling
+
+**Handle these scenarios:**
+- **No route found**: "Sorry, we couldn't find a walking route to your friend. They might be too far away! 🚶"
+- **API error**: "Oops! We're having trouble calculating the route. Please try again."
+- **User location unavailable**: "Please enable location tracking to get directions 📍"
+- **Friend location outdated**: "Your friend's location was last updated 30 minutes ago. The route might not be accurate."
+
+**Display errors:**
+- Use error message component from ui-expert.md
+- Friendly, child-appropriate language
+- Emoji to soften the message
+
+---
+
+#### 8. Accessibility & UX Improvements
+
+**Additional features:**
+- Show distance in both metric and imperial (optional)
+- Add "Start Navigation" vs "Preview Route" modes
+- Vibrate phone on turn-by-turn updates (if supported)
+- Voice instructions (advanced, optional)
+- Share route link with friend via chat
+
+**Mobile optimizations:**
+- Swipeable directions panel (can drag down to close)
+- Larger touch targets for buttons (48px minimum)
+- Auto-rotate map to face direction of travel (optional)
+
+---
+
+### Technical Stack:
+- **Frontend**: React (Vite), TypeScript, Mapbox GL JS, Turf.js
+- **API**: Mapbox Directions API
+- **Design**: Follow ui-expert.md color palette and component styles
+
+---
+
+### Output Requirements:
+
+Provide the following code:
+
+1. **React Component**: `RouteToFriend.tsx` or hook `useRouteToFriend.ts`
+   - Function to fetch directions from Mapbox API
+   - Function to render route on map
+   - Function to clear route
+
+2. **UI Components**:
+   - `FriendMarkerPopup.tsx` - Popup shown when clicking friend marker
+   - `RouteInstructionsPanel.tsx` - Panel showing turn-by-turn directions
+   - Route summary card component
+
+3. **Helper Functions**:
+   - `calculateRoute(userCoords, friendCoords)` - API call to Mapbox
+   - `displayRouteOnMap(map, routeGeometry)` - Add route layer
+   - `clearRoute(map)` - Remove route layer
+   - `formatDistance(meters)` - Convert to readable format ("1.2 km")
+   - `formatDuration(seconds)` - Convert to readable format ("15 min")
+
+4. **Types** (TypeScript):
+   ```typescript
+   interface RouteStep {
+     instruction: string;
+     distance: number;
+     duration: number;
+     maneuver: {
+       type: string; // 'turn', 'arrive', etc.
+       modifier?: string; // 'left', 'right', etc.
+     };
+   }
+   
+   interface DirectionsResponse {
+     routes: Array<{
+       geometry: GeoJSON.LineString;
+       distance: number;
+       duration: number;
+       legs: Array<{
+         steps: RouteStep[];
+       }>;
+     }>;
+   }
+   ```
+
+5. **CSS Styles**:
+   - Route panel styles (mobile-first, responsive)
+   - Map route line styles
+   - Animation for route appearing
+
+---
+
+### Example User Flow:
+
+1. User sees friends on map
+2. User taps on friend marker "Alex 👋"
+3. Popup appears: "Alex is 800 meters away 📍 [Get Directions 🧭]"
+4. User taps "Get Directions"
+5. Route appears on map (blue line from user to Alex)
+6. Map auto-zooms to fit route
+7. Instructions panel slides up from bottom:
+   - "Directions to Alex 👋"
+   - "📏 800 m • ⏱️ 10 min walk"
+   - Step 1: "⬆️ Head north on Fair Street - Walk 200 m"
+   - Step 2: "➡️ Turn right onto Main Avenue - Walk 400 m"
+   - Step 3: "🎯 Arrive at destination"
+8. User taps "Clear Route" → Route disappears, map returns to normal
+
+---
+
+### Design Guidelines (from ui-expert.md):
+
+- Use **sky-blue (#06BEE1)** for route line
+- Use **coral (#FF6B6B)** for "Get Directions" button
+- All corners rounded (16px for panels)
+- Emojis in instructions for visual clarity
+- Friendly, warm language (not technical)
+- Large tap targets (48px minimum)
+
+---
+
+### Notes:
+
+- **Walking is the default mode** - most appropriate for a fair environment
+- **Keep it simple** - avoid overwhelming children with too much info
+- **Visual clarity** - route should be clearly visible against map
+- **Performance** - cache route if friend hasn't moved
+- **Privacy** - only show routes to confirmed friends
+
+---
+
+**This feature turns your fair map into a true navigation assistant, helping families find each other in crowded spaces! 🎪🧭**

@@ -248,27 +248,63 @@
   height: 32px;
 }
 
-/* Friend markers - distinct purple style */
+/* Friend markers - letter avatar with per-friend color (set inline in MapPanel) */
+/* Outer .friend-marker must NOT have transform/animation - Mapbox positions it via transform */
 .friend-marker {
   width: 38px;
   height: 38px;
-  background-color: #8B5CF6 !important;
-  border: 3px solid #7C3AED !important;
-  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid white !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.friend-marker-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   animation: friend-pulse 2s ease-in-out infinite;
 }
 
+.friend-marker .marker-letter {
+  font-size: 16px !important;
+  font-weight: 700;
+  color: white;
+}
+
 .friend-marker:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.friend-marker:hover .friend-marker-inner {
   transform: scale(1.2);
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.5);
 }
 
 @keyframes friend-pulse {
   0%, 100% {
-    box-shadow: 0 3px 10px rgba(139, 92, 246, 0.4);
+    transform: scale(1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
   }
   50% {
-    box-shadow: 0 3px 16px rgba(139, 92, 246, 0.6);
+    transform: scale(1.08);
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .friend-marker-inner {
+    animation: none;
+  }
+  .friend-marker:hover .friend-marker-inner {
+    transform: none;
+  }
+  .friend-marker:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   }
 }
 

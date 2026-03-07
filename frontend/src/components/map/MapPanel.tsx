@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEmojiForType } from '../../types/map';
 import type { FriendLocation } from '../../services/friendsService';
+import { getAvatarLetter, getAvatarColor, getAvatarAnimationDelay } from '../../utils/avatarHelpers';
 
 // Set Mapbox access token
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -268,12 +269,21 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
           popup.setHTML(createFriendPopupContent(friend));
         }
       } else {
-        // Create new marker for this friend
+        // Create new marker for this friend with letter avatar
+        const avatarColor = getAvatarColor(friend.name);
+        const avatarLetter = getAvatarLetter(friend.name);
+        const animationDelay = getAvatarAnimationDelay(friend.name);
+
         const el = document.createElement('div');
         el.className = 'map-marker friend-marker';
-        el.style.backgroundColor = '#8B5CF6'; // Purple color for friends
-        el.style.borderColor = '#7C3AED';
-        el.innerHTML = '<span class="marker-icon">👤</span>';
+        el.style.backgroundColor = avatarColor;
+        // Do NOT set borderColor — CSS uses white border for contrast
+        el.style.color = '#FFFFFF';
+        el.style.fontWeight = '700';
+        el.style.fontSize = '16px';
+        el.style.fontFamily = 'Poppins, sans-serif';
+        // Inner wrapper for animation - outer div must NOT have transform so Mapbox can position it
+        el.innerHTML = `<div class="friend-marker-inner" style="animation-delay: ${animationDelay}s"><span class="marker-icon marker-letter">${avatarLetter}</span></div>`;
         el.title = friend.name;
 
         const popup = new mapboxgl.Popup({ offset: 25, closeOnClick: true })

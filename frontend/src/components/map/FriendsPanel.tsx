@@ -5,6 +5,7 @@ import { getFollowing, getFriendLocations, FollowingUser, FriendLocation } from 
 import { getUnreadCount, UnreadConversation } from '../../services/friendsMessagesService';
 import { inviteApi } from '../../services/api';
 import FriendChatPanel from './FriendChatPanel';
+import { getAvatarLetter, getAvatarColor } from '../../utils/avatarHelpers';
 import './FriendsPanel.css';
 
 // Online threshold: 30 minutes in milliseconds
@@ -321,29 +322,6 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
       })
       .catch(console.error);
   }, []);
-
-  // Get avatar placeholder (first letter of name)
-  const getAvatarLetter = (name: string): string => {
-    return name.charAt(0).toUpperCase();
-  };
-
-  // Get avatar color based on name hash
-  const getAvatarColor = (name: string): string => {
-    const colors = [
-      '#F59E0B', // amber
-      '#10B981', // emerald
-      '#3B82F6', // blue
-      '#8B5CF6', // violet
-      '#EC4899', // pink
-      '#EF4444', // red
-      '#06B6D4', // cyan
-    ];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
-  };
 
   // Format distance for display
   const formatDistance = (distanceKm: number): string => {
