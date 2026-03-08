@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { type GeolocateControl } from 'mapbox-gl';
+import type { Map as MapboxMap, GeolocateControl } from 'mapbox-gl';
 import { useMapInteraction } from '../../hooks/useMapInteraction';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
 import { useFriendsLocations } from '../../hooks/useFriendsLocations';
+import { useRouteToFriend } from '../../hooks/useRouteToFriend';
 import { getFollowing } from '../../services/friendsService';
 import Sidebar from './Sidebar';
 import MapPanel, { MapPanelRef } from './MapPanel';
@@ -13,6 +14,7 @@ import GeocoderSearch from './GeocoderSearch';
 import PanoramaViewer from '../PanoramaViewer';
 import FriendsPanel from './FriendsPanel';
 import FoxMapPeek from '../FoxMapPeek';
+import RouteInstructionsPanel from './RouteInstructionsPanel';
 import './SplitViewMapLayout.css';
 
 // Get Mapbox token
@@ -31,6 +33,9 @@ const SplitViewMapLayout: React.FC = () => {
   const [isFriendsPanelOpen, setIsFriendsPanelOpen] = useState(false);
   const [friendsCount, setFriendsCount] = useState<number>(0);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  // Map instance state for route hook
+  const [mapInstance, setMapInstance] = useState<MapboxMap | null>(null);
 
   // Get auth state for location tracking
   const { user } = useAuth();
@@ -59,6 +64,30 @@ const SplitViewMapLayout: React.FC = () => {
   const { friendLocations } = useFriendsLocations({
     isAuthenticated: !!user,
     isActive: true,
+  });
+
+  // Update map instance when mapRef is available
+  useEffect(() => {
+    // Small delay to ensure map is initialized
+    const timer = setTimeout(() => {
+      const instance = mapRef.current?.getMap() || null;
+      setMapInstance(instance);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Use the route hook
+  const {
+    activeRoute,
+    isLoading: isLoadingRoute,
+    error: routeError,
+    fetchRoute,
+    clearRoute,
+    formatDistance,
+    formatDuration,
+  } = useRouteToFriend({
+    map: mapInstance,
+    userLocation,
   });
 
   // Get initial fair ID from URL
@@ -145,6 +174,14 @@ const SplitViewMapLayout: React.FC = () => {
     mapRef.current?.flyTo(lng, lat, 17);
   }, []);
 
+  // Handle Get Directions to friend
+  const handleGetDirections = useCallback((friendId: string) => {
+    const friend = friendLocations.find(f => f.id === friendId);
+    if (friend) {
+      fetchRoute(friend);
+    }
+  }, [friendLocations, fetchRoute]);
+
   // Refresh friends count when panel closes
   const handleFriendsPanelClose = useCallback(() => {
     setIsFriendsPanelOpen(false);
@@ -155,6 +192,18 @@ const SplitViewMapLayout: React.FC = () => {
         .catch(() => {});
     }
   }, [user]);
+
+  // Handle Escape key to close route instructions panel
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && activeRoute) {
+        clearRoute();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [activeRoute, clearRoute]);
 
   // Proximity for geocoder - use fair center or Baku as default
   const geocoderProximity: [number, number] = mapCenter || [49.8671, 40.4093]; // Baku center
@@ -234,8 +283,56 @@ const SplitViewMapLayout: React.FC = () => {
           onGeolocateControlReady={setGeolocateControl}
           friendLocations={friendLocations}
           className="split-view-map"
+          userLocation={userLocation}
+          onGetDirections={handleGetDirections}
         />
         <FoxMapPeek />
+
+        {/* Screen reader announcement for route status */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {activeRoute && `Route calculated: ${formatDistance(activeRoute.distance)}, ${formatDuration(activeRoute.duration)} walking`}
+          {isLoadingRoute && 'Finding the best path to your friend'}
+          {routeError && routeError}
+        </div>
+
+        {/* Route loading indicator */}
+        {isLoadingRoute && (
+          <div
+            className="route-loading-overlay"
+            role="dialog"
+            aria-label="Loading directions"
+            aria-busy="true"
+          >
+            <div className="route-loading-content">
+              <span className="route-loading-icon" aria-hidden="true">🧭</span>
+              <p>Finding the best path...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Route error message */}
+        {routeError && (
+          <div className="route-error-message">
+            <span>⚠️</span>
+            <p>{routeError}</p>
+            <button onClick={clearRoute}>Dismiss</button>
+          </div>
+        )}
+
+        {/* Route Instructions Panel */}
+        {activeRoute && (
+          <RouteInstructionsPanel
+            friendName={activeRoute.friendName}
+            totalDistance={activeRoute.distance}
+            totalDuration={activeRoute.duration}
+            steps={activeRoute.steps}
+            onClearRoute={clearRoute}
+            formatDistance={formatDistance}
+            formatDuration={formatDuration}
+            isMobile={isMobile}
+            friendLocationUpdatedAt={friendLocations.find(f => f.id === activeRoute.friendId)?.locationUpdatedAt}
+          />
+        )}
       </div>
 
       {/* Mobile bottom sheet placeholder - can be expanded later */}

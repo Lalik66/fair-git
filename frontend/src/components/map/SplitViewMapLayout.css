@@ -1035,3 +1035,94 @@
     max-width: none;
   }
 }
+
+/* ========================================
+   Route Loading and Error States
+   ======================================== */
+
+.route-loading-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 24px 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 300;
+  text-align: center;
+}
+
+.route-loading-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 8px;
+  animation: route-spin 2s linear infinite;
+}
+
+@keyframes route-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.route-loading-content p {
+  margin: 0;
+  font-family: var(--font-headings, 'Poppins', sans-serif);
+  color: var(--color-text-primary, #1F2937);
+}
+
+.route-error-message {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-error, #F56565);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 300;
+}
+
+.route-error-message p {
+  margin: 0;
+}
+
+.route-error-message button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.route-error-message button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-loading-icon {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .route-loading-overlay {
+    width: 90%;
+    max-width: 280px;
+    padding: 20px 24px;
+  }
+
+  .route-error-message {
+    bottom: 150px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

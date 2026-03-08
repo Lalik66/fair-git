@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { distance, point } from '@turf/turf';
 import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEmojiForType } from '../../types/map';
 import type { FriendLocation } from '../../services/friendsService';
 import { getAvatarLetter, getAvatarColor, getAvatarAnimationDelay } from '../../utils/avatarHelpers';
@@ -18,10 +19,15 @@ interface MapPanelProps {
   /** Friend locations to display on the map */
   friendLocations?: FriendLocation[];
   className?: string;
+  /** User's current location for distance calculations */
+  userLocation?: { latitude: number; longitude: number } | null;
+  /** Callback when user clicks "Get Directions" on a friend popup */
+  onGetDirections?: (friendId: string) => void;
 }
 
 export interface MapPanelRef {
   flyTo: (lng: number, lat: number, zoom?: number) => void;
+  getMap: () => mapboxgl.Map | null;
 }
 
 const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
@@ -32,6 +38,8 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   onGeolocateControlReady,
   friendLocations = [],
   className = '',
+  userLocation,
+  onGetDirections,
 }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -224,19 +232,72 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     });
   }, [objects, createPopupContent, onObjectSelect]);
 
+  // Helper function to escape HTML for XSS prevention
+  const escapeHTML = useCallback((str: string): string => {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }, []);
+
+  // Helper function to format distance
+  const formatDistance = useCallback((distanceKm: number): string => {
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)} m away`;
+    }
+    return `${distanceKm.toFixed(1)} km away`;
+  }, []);
+
   // Helper function to create friend popup content
   const createFriendPopupContent = useCallback((friend: FriendLocation): string => {
+    const escapedName = escapeHTML(friend.name);
     const updatedAt = friend.locationUpdatedAt
       ? new Date(friend.locationUpdatedAt).toLocaleTimeString()
       : '';
 
+    // Calculate distance from user to friend
+    let distanceText = 'Distance unknown';
+    let hasValidDistance = false;
+    if (userLocation) {
+      const userPoint = point([userLocation.longitude, userLocation.latitude]);
+      const friendPoint = point([friend.lastLongitude, friend.lastLatitude]);
+      const distanceKm = distance(userPoint, friendPoint, { units: 'kilometers' });
+      distanceText = formatDistance(distanceKm);
+      hasValidDistance = true;
+    }
+
+    // Check if location is stale (> 30 minutes old)
+    let staleWarning = '';
+    if (friend.locationUpdatedAt) {
+      const updatedAtDate = new Date(friend.locationUpdatedAt);
+      const now = new Date();
+      const minutesAgo = Math.floor((now.getTime() - updatedAtDate.getTime()) / (1000 * 60));
+      if (minutesAgo > 30) {
+        staleWarning = `<p class="location-stale-warning">⚠️ Last seen ${minutesAgo} min ago</p>`;
+      }
+    }
+
+    // Button is disabled if no valid user location
+    const buttonDisabled = !hasValidDistance ? 'disabled' : '';
+    const buttonTitle = !hasValidDistance ? 'Enable location to get directions' : `Get directions to ${escapedName}`;
+
     return `
       <div class="marker-popup friend-popup">
-        <h3>👤 ${friend.name}</h3>
+        <h3>👤 ${escapedName}</h3>
+        <p class="friend-distance">📍 ${distanceText}</p>
+        ${staleWarning}
         ${updatedAt ? `<p class="location-time">Son yeniləmə: ${updatedAt}</p>` : ''}
+        <button
+          class="btn btn-primary get-directions-btn"
+          data-action="get-directions"
+          data-friend-id="${escapeHTML(friend.id)}"
+          ${buttonDisabled}
+          title="${buttonTitle}"
+        >
+          🚶 Get Directions
+        </button>
       </div>
     `;
-  }, []);
+  }, [userLocation, escapeHTML, formatDistance]);
 
   // Update friend markers efficiently (add/update/remove without recreating all)
   useEffect(() => {
@@ -299,6 +360,24 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     });
   }, [friendLocations, createFriendPopupContent]);
 
+  // Event delegation for Get Directions button clicks in friend popups
+  useEffect(() => {
+    const container = mapContainer.current;
+    if (!container || !onGetDirections) return;
+
+    const handlePopupClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const btn = target.closest('[data-action="get-directions"]') as HTMLButtonElement | null;
+      if (btn && !btn.hasAttribute('disabled')) {
+        const friendId = btn.getAttribute('data-friend-id');
+        if (friendId) onGetDirections(friendId);
+      }
+    };
+
+    container.addEventListener('click', handlePopupClick);
+    return () => container.removeEventListener('click', handlePopupClick);
+  }, [onGetDirections]);
+
   // Handle selection changes - fly to object and open popup
   useEffect(() => {
     if (!map.current) return;
@@ -333,7 +412,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     }
   }, [selectedObjectId, objects]);
 
-  // Expose flyTo method for external use via ref
+  // Expose flyTo and getMap methods for external use via ref
   useImperativeHandle(ref, () => ({
     flyTo: (lng: number, lat: number, zoom?: number) => {
       if (!map.current) return;
@@ -343,6 +422,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         duration: 1000,
       });
     },
+    getMap: () => map.current,
   }), []);
 
   return (

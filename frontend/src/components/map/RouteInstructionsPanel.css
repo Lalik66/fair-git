@@ -1,0 +1,256 @@
+/* RouteInstructionsPanel Styles */
+
+/* Desktop Layout */
+.route-instructions-panel.desktop {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 400px;
+  max-width: calc(100vw - 40px);
+  max-height: 60vh;
+  background: var(--color-white, #FFFFFF);
+  border-radius: 16px;
+  box-shadow: 0 10px 32px rgba(45, 55, 72, 0.15);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  animation: slideInUp 0.3s ease;
+  overflow: hidden;
+}
+
+/* Mobile Layout */
+.route-instructions-panel.mobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 50vh;
+  background: var(--color-white, #FFFFFF);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 24px rgba(45, 55, 72, 0.15);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  animation: slideInUp 0.3s ease;
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow: hidden;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header/Summary Section - Sky-Blue + Mint gradient */
+.route-instructions-header {
+  padding: 16px;
+  background: linear-gradient(135deg, var(--color-sky-blue, #06BEE1), var(--color-mint, #7FCDCD));
+  color: var(--color-white, #FFFFFF);
+  flex-shrink: 0;
+}
+
+.route-friend-name {
+  font-family: var(--font-headings, 'Fredoka', sans-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.route-summary {
+  display: flex;
+  gap: 24px;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.route-metric {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.route-metric-icon {
+  font-size: 1.1rem;
+}
+
+/* Staleness Warning */
+.route-stale-warning {
+  background: rgba(237, 137, 54, 0.15);
+  border-left: 3px solid var(--color-warning, #ED8936);
+  padding: 10px 14px;
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-primary, #2D3748);
+}
+
+.route-stale-warning span:first-child {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--color-warning, #ED8936);
+}
+
+/* Steps List */
+.route-instructions-steps {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  margin: 0;
+  list-style: none;
+}
+
+.route-step {
+  display: flex;
+  gap: 14px;
+  padding: 12px 16px;
+  border-left: 3px solid transparent;
+  transition: background-color 0.2s ease;
+}
+
+.route-step:hover {
+  background: rgba(6, 190, 225, 0.08);
+}
+
+.route-step:first-child {
+  border-left-color: var(--color-sky-blue, #06BEE1);
+  background: rgba(6, 190, 225, 0.1);
+}
+
+.route-maneuver-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(127, 205, 205, 0.2);
+  border-radius: 12px;
+}
+
+.route-step-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.route-step-instruction {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text-primary, #2D3748);
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+
+.route-step-distance {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #718096);
+}
+
+/* Clear Route Button */
+.route-clear-section {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(127, 205, 205, 0.2);
+  flex-shrink: 0;
+  background: var(--color-white, #FFFFFF);
+}
+
+.btn-clear-route {
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: 2px solid var(--color-coral, #FF6B6B);
+  color: var(--color-coral, #FF6B6B);
+  border-radius: 12px;
+  font-family: var(--font-primary, 'Poppins', sans-serif);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-clear-route:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.btn-clear-route:active {
+  transform: scale(0.98);
+}
+
+.btn-clear-route:focus-visible {
+  outline: 2px solid var(--color-coral, #FF6B6B);
+  outline-offset: 2px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 480px) {
+  .route-instructions-panel.mobile {
+    max-height: 60vh;
+  }
+
+  .route-instructions-header {
+    padding: 12px;
+  }
+
+  .route-friend-name {
+    font-size: 1.1rem;
+  }
+
+  .route-summary {
+    gap: 16px;
+    font-size: 0.85rem;
+  }
+
+  .route-step {
+    padding: 10px 12px;
+    gap: 12px;
+  }
+
+  .route-maneuver-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+
+  .route-step-instruction {
+    font-size: 0.9rem;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .route-instructions-panel {
+    animation: none;
+  }
+
+  .route-step {
+    transition: none;
+  }
+
+  .btn-clear-route {
+    transition: none;
+  }
+
+  .btn-clear-route:active {
+    transform: none;
+  }
+}
