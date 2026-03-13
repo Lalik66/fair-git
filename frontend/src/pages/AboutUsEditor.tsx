@@ -43,7 +43,7 @@ const AboutUsEditor: React.FC = () => {
       setContent(response.content || []);
     } catch (error) {
       console.error('Error fetching about us content:', error);
-      setMessage({ type: 'error', text: 'Failed to load content' });
+      setMessage({ type: 'error', text: t('aboutUsEditor.contentLoadFailed') });
     } finally {
       setLoading(false);
     }
@@ -73,12 +73,12 @@ const AboutUsEditor: React.FC = () => {
     try {
       setSaving(editingSection);
       await adminAboutUsApi.updateSection(editingSection, editContentAz, editContentEn);
-      setMessage({ type: 'success', text: 'Content saved successfully!' });
+      setMessage({ type: 'success', text: t('aboutUsEditor.contentSaved') });
       await fetchContent();
       setEditingSection(null);
     } catch (error) {
       console.error('Error saving content:', error);
-      setMessage({ type: 'error', text: 'Failed to save content' });
+      setMessage({ type: 'error', text: t('aboutUsEditor.contentSaveFailed') });
     } finally {
       setSaving(null);
     }
@@ -98,10 +98,10 @@ const AboutUsEditor: React.FC = () => {
     <div className="about-us-editor">
       <div className="editor-header">
         <div>
-          <h1>About Us Editor</h1>
+          <h1>{t('aboutUsEditor.title')}</h1>
         </div>
         <a href="/about" target="_blank" rel="noopener noreferrer" className="btn btn-outline">
-          Preview Public Page
+          {t('aboutUsEditor.previewPage')}
         </a>
       </div>
 
@@ -112,7 +112,7 @@ const AboutUsEditor: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="loading">Loading content...</div>
+        <div className="loading">{t('aboutUsEditor.loadingContent')}</div>
       ) : (
         <div className="sections-list">
           {SECTIONS.map(section => {
@@ -124,14 +124,14 @@ const AboutUsEditor: React.FC = () => {
                 <div className="section-header">
                   <h2>
                     <span className="section-icon">{section.icon}</span>
-                    {section.titleEn}
+                    {t(`about.${section.key}`)}
                   </h2>
                   {!isEditing && (
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={() => startEditing(section.key)}
                     >
-                      Edit
+                      {t('aboutUsEditor.edit')}
                     </button>
                   )}
                 </div>
@@ -139,20 +139,20 @@ const AboutUsEditor: React.FC = () => {
                 {isEditing ? (
                   <div className="edit-form">
                     <div className="form-group">
-                      <label>Content (English)</label>
+                      <label>{t('aboutUsEditor.contentEn')}</label>
                       <textarea
                         value={editContentEn}
                         onChange={(e) => setEditContentEn(e.target.value)}
-                        placeholder="Enter content in English..."
+                        placeholder={t('aboutUsEditor.placeholderEn')}
                         rows={6}
                       />
                     </div>
                     <div className="form-group">
-                      <label>Content (Azerbaijani)</label>
+                      <label>{t('aboutUsEditor.contentAz')}</label>
                       <textarea
                         value={editContentAz}
                         onChange={(e) => setEditContentAz(e.target.value)}
-                        placeholder="Azərbaycan dilində məzmun daxil edin..."
+                        placeholder={t('aboutUsEditor.placeholderAz')}
                         rows={6}
                       />
                     </div>
@@ -162,14 +162,14 @@ const AboutUsEditor: React.FC = () => {
                         onClick={saveSection}
                         disabled={saving === section.key}
                       >
-                        {saving === section.key ? 'Saving...' : 'Save Changes'}
+                        {saving === section.key ? t('aboutUsEditor.saving') : t('aboutUsEditor.saveChanges')}
                       </button>
                       <button
                         className="btn btn-outline"
                         onClick={cancelEditing}
                         disabled={saving === section.key}
                       >
-                        Cancel
+                        {t('aboutUsEditor.cancel')}
                       </button>
                     </div>
                   </div>
@@ -179,21 +179,21 @@ const AboutUsEditor: React.FC = () => {
                       <>
                         <div className="preview-content">
                           <strong>English:</strong>
-                          <p>{existingContent.contentEn || <em>No content</em>}</p>
+                          <p>{existingContent.contentEn || <em>{t('aboutUsEditor.noContent')}</em>}</p>
                         </div>
                         <div className="preview-content">
                           <strong>Azerbaijani:</strong>
-                          <p>{existingContent.contentAz || <em>No content</em>}</p>
+                          <p>{existingContent.contentAz || <em>{t('aboutUsEditor.noContent')}</em>}</p>
                         </div>
                         <div className="section-meta">
-                          Last updated: {formatDate(existingContent.updatedAt)}
+                          {t('aboutUsEditor.lastUpdated', { date: formatDate(existingContent.updatedAt) })}
                           {existingContent.updatedBy && (
-                            <> by {existingContent.updatedBy.firstName} {existingContent.updatedBy.lastName}</>
+                            <> {t('aboutUsEditor.lastUpdatedBy', { name: `${existingContent.updatedBy.firstName} ${existingContent.updatedBy.lastName}` })}</>
                           )}
                         </div>
                       </>
                     ) : (
-                      <p className="no-content">No content yet. Click Edit to add content.</p>
+                      <p className="no-content">{t('aboutUsEditor.noContentHint')}</p>
                     )}
                   </div>
                 )}

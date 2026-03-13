@@ -142,7 +142,7 @@ const AboutPage: React.FC = () => {
           {title}
         </h2>
         {loading ? (
-          <div className="loading-placeholder">Loading...</div>
+          <div className="loading-placeholder">{t('common.loading')}</div>
         ) : (
           <div className="section-content">
             {sectionContent.split('\n').map((paragraph, index) => (

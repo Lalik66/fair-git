@@ -94,6 +94,7 @@ import friendsRoutes from './routes/friends';
 import inviteRoutes from './routes/invite';
 import aiRoutes from './routes/ai';
 import messagesRoutes, { setSocketIO } from './routes/messages';
+import reactionsRoutes, { setSocketIO as setReactionsSocketIO } from './routes/reactions';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -102,6 +103,7 @@ app.use('/api/public', publicRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/friends/messages', messagesRoutes);
+app.use('/api/friends/reactions', reactionsRoutes);
 app.use('/api/invite', inviteRoutes);
 app.use('/api/ai', aiRoutes);
 
@@ -184,6 +186,7 @@ async function startServer(): Promise<void> {
 
     // Set Socket.io instance for messages routes
     setSocketIO(io);
+    setReactionsSocketIO(io);
 
     console.log('WebSocket server initialized');
 

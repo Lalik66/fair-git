@@ -47,7 +47,7 @@ const VendorBookings: React.FC = () => {
       setBookings(response.bookings);
     } catch (err: any) {
       console.error('Error fetching bookings:', err);
-      setError(err.response?.data?.error || 'Failed to load bookings');
+      setError(err.response?.data?.error || t('vendor.errorLoadBookings'));
     } finally {
       setLoading(false);
     }
@@ -78,13 +78,13 @@ const VendorBookings: React.FC = () => {
   const getFairStatusLabel = (status: string) => {
     switch (status) {
       case 'active':
-        return 'Active';
+        return t('vendor.statusActive');
       case 'upcoming':
-        return 'Upcoming';
+        return t('vendor.statusUpcoming');
       case 'completed':
-        return 'Completed';
+        return t('vendor.statusCompleted');
       case 'archived':
-        return 'Archived';
+        return t('vendor.statusArchived');
       default:
         return status;
     }
@@ -104,7 +104,7 @@ const VendorBookings: React.FC = () => {
   if (loading) {
     return (
       <div className="vendor-bookings-container">
-        <div className="loading-spinner">Loading bookings...</div>
+        <div className="loading-spinner">{t('vendor.loadingBookings')}</div>
       </div>
     );
   }
@@ -114,7 +114,7 @@ const VendorBookings: React.FC = () => {
       <div className="page-header">
         <h1>{t('vendor.myBookings', { defaultValue: 'My Bookings' })}</h1>
         <button className="btn btn-secondary" onClick={fetchBookings}>
-          Refresh
+          {t('vendor.refresh')}
         </button>
       </div>
 
@@ -122,9 +122,9 @@ const VendorBookings: React.FC = () => {
 
       {bookings.length === 0 ? (
         <div className="no-bookings">
-          <p>You don't have any approved bookings yet.</p>
+          <p>{t('vendor.noBookingsYet')}</p>
           <p className="help-text">
-            Once your applications are approved, your bookings will appear here.
+            {t('vendor.noBookingsHint')}
           </p>
         </div>
       ) : (
@@ -136,7 +136,7 @@ const VendorBookings: React.FC = () => {
                   {booking.bookingStatus.charAt(0).toUpperCase() + booking.bookingStatus.slice(1)}
                 </span>
                 <span className="fair-status">
-                  Fair: {getFairStatusLabel(booking.fairStatus)}
+                  {t('vendor.fair')} {getFairStatusLabel(booking.fairStatus)}
                 </span>
               </div>
 
@@ -145,19 +145,19 @@ const VendorBookings: React.FC = () => {
 
                 <div className="booking-details">
                   <div className="detail-row">
-                    <span className="detail-label">House Number:</span>
+                    <span className="detail-label">{t('vendor.houseNumber')}</span>
                     <span className="detail-value house-number">{booking.houseNumber}</span>
                   </div>
 
                   <div className="detail-row">
-                    <span className="detail-label">Fair Dates:</span>
+                    <span className="detail-label">{t('vendor.fairDates')}</span>
                     <span className="detail-value">
                       {formatDate(booking.fairStartDate)} - {formatDate(booking.fairEndDate)}
                     </span>
                   </div>
 
                   <div className="detail-row">
-                    <span className="detail-label">Booking Period:</span>
+                    <span className="detail-label">{t('vendor.bookingPeriod')}</span>
                     <span className="detail-value">
                       {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
                     </span>
@@ -165,28 +165,28 @@ const VendorBookings: React.FC = () => {
 
                   {booking.houseArea && (
                     <div className="detail-row">
-                      <span className="detail-label">House Area:</span>
+                      <span className="detail-label">{t('vendor.houseArea')}</span>
                       <span className="detail-value">{booking.houseArea.toFixed(1)} m²</span>
                     </div>
                   )}
 
                   {booking.housePrice && (
                     <div className="detail-row">
-                      <span className="detail-label">Price:</span>
+                      <span className="detail-label">{t('vendor.price')}</span>
                       <span className="detail-value price">{booking.housePrice.toLocaleString()} AZN</span>
                     </div>
                   )}
 
                   {booking.fairLocation && (
                     <div className="detail-row">
-                      <span className="detail-label">Location:</span>
+                      <span className="detail-label">{t('vendor.location')}</span>
                       <span className="detail-value">{booking.fairLocation}</span>
                     </div>
                   )}
 
                   {booking.houseDescription && (
                     <div className="detail-row full-width">
-                      <span className="detail-label">House Description:</span>
+                      <span className="detail-label">{t('vendor.houseDescription')}</span>
                       <span className="detail-value">{booking.houseDescription}</span>
                     </div>
                   )}
@@ -195,15 +195,15 @@ const VendorBookings: React.FC = () => {
 
               <div className="booking-footer">
                 <span className="booked-date">
-                  Booked: {formatDate(booking.createdAt)}
+                  {t('vendor.booked')} {formatDate(booking.createdAt)}
                 </span>
                 <button
                   className="btn btn-360-tour"
                   onClick={() => handleView360Tour(booking.housePanorama360Url, booking.houseNumber)}
-                  title="View 360° panoramic tour of your house"
+                  title={t('vendor.view360Tour')}
                 >
                   <span className="tour-icon">🔄</span>
-                  360° Tour{!booking.housePanorama360Url ? ' (Demo)' : ''}
+                  {!booking.housePanorama360Url ? t('vendor.tour360Demo') : t('vendor.tour360')}
                 </button>
               </div>
             </div>

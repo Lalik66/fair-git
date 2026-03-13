@@ -3,10 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { distance, point } from '@turf/turf';
 import { getFollowing, getFriendLocations, FollowingUser, FriendLocation } from '../../services/friendsService';
 import { getUnreadCount, UnreadConversation } from '../../services/friendsMessagesService';
+import { getReactionCounts, sendReaction, onReactionNew, NewReactionEvent } from '../../services/reactionsService';
 import { inviteApi } from '../../services/api';
 import FriendChatPanel from './FriendChatPanel';
+import ReactionPicker from '../ReactionPicker';
 import { getAvatarLetter, getAvatarColor } from '../../utils/avatarHelpers';
 import './FriendsPanel.css';
+import '../ReactionPicker.css';
 
 // Online threshold: 30 minutes in milliseconds
 const ONLINE_THRESHOLD_MS = 30 * 60 * 1000;
@@ -34,6 +37,7 @@ interface FriendWithStatus extends FollowingUser {
   locationUpdatedAt?: string;
   distanceKm?: number;
   unreadCount?: number;
+  reactionCount?: number;
 }
 
 // Chat friend data
@@ -61,6 +65,8 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
   const [sortOption, setSortOption] = useState<SortOption>('online');
   const [chatFriend, setChatFriend] = useState<ChatFriend | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [reactionsByFriend, setReactionsByFriend] = useState<Map<string, number>>(new Map());
+  const [reactionPickerFriend, setReactionPickerFriend] = useState<{ id: string; name: string } | null>(null);
 
   // Fetch friends list when panel opens
   useEffect(() => {
@@ -91,11 +97,12 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
   const fetchFriendsData = async () => {
     setIsLoading(true);
     try {
-      // Fetch friends list, locations, and unread counts in parallel
-      const [followingList, locations, unreadData] = await Promise.all([
+      // Fetch friends list, locations, unread counts, and reaction counts in parallel
+      const [followingList, locations, unreadData, reactionsData] = await Promise.all([
         getFollowing(),
         getFriendLocations().catch(() => [] as FriendLocation[]),
         getUnreadCount().catch(() => ({ totalUnread: 0, byConversation: [] })),
+        getReactionCounts().catch(() => ({ byFriend: [] })),
       ]);
       setFriends(followingList);
       setFriendLocations(locations);
@@ -106,6 +113,13 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
         unreadMap.set(conv.friendId, conv.unreadCount);
       });
       setUnreadByFriend(unreadMap);
+
+      // Build reactions map by friend ID
+      const reactionsMap = new Map<string, number>();
+      reactionsData.byFriend.forEach((r: { friendId: string; count: number }) => {
+        reactionsMap.set(r.friendId, r.count);
+      });
+      setReactionsByFriend(reactionsMap);
     } catch (error) {
       console.error('Failed to fetch friends:', error);
     } finally {
@@ -177,9 +191,10 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
         locationUpdatedAt: location?.locationUpdatedAt,
         distanceKm,
         unreadCount: unreadByFriend.get(friend.id),
+        reactionCount: reactionsByFriend.get(friend.id),
       };
     });
-  }, [friends, friendLocations, isOnline, calculateDistance, unreadByFriend]);
+  }, [friends, friendLocations, isOnline, calculateDistance, unreadByFriend, reactionsByFriend]);
 
   // Sort friends based on selected option
   const sortedFriends = useMemo(() => {
@@ -323,6 +338,49 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
       .catch(console.error);
   }, []);
 
+  // Handle open reaction picker for a friend
+  const handleOpenReactionPicker = useCallback((friend: FriendWithStatus) => {
+    setReactionPickerFriend({ id: friend.id, name: friend.name });
+  }, []);
+
+  // Handle emoji selection and send reaction
+  const handleReactionSelect = useCallback(async (emoji: string) => {
+    if (!reactionPickerFriend) return;
+
+    try {
+      await sendReaction(reactionPickerFriend.id, emoji);
+      setMessage({ type: 'success', text: t('reactions.sent') });
+      setReactionPickerFriend(null);
+    } catch (error) {
+      console.error('Failed to send reaction:', error);
+      setMessage({ type: 'error', text: String(error) });
+      setReactionPickerFriend(null);
+    }
+  }, [reactionPickerFriend, t]);
+
+  // Close reaction picker
+  const handleCloseReactionPicker = useCallback(() => {
+    setReactionPickerFriend(null);
+  }, []);
+
+  // Subscribe to WebSocket reaction events when panel is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const unsubscribe = onReactionNew((event: NewReactionEvent) => {
+      // Update reaction counts when a new reaction is received
+      setReactionsByFriend((prev) => {
+        const newMap = new Map(prev);
+        const senderId = event.reaction.senderId;
+        const currentCount = newMap.get(senderId) || 0;
+        newMap.set(senderId, currentCount + 1);
+        return newMap;
+      });
+    });
+
+    return () => unsubscribe();
+  }, [isOpen]);
+
   // Format distance for display
   const formatDistance = (distanceKm: number): string => {
     if (distanceKm < 1) {
@@ -421,6 +479,14 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
                         {friend.unreadCount > 9 ? '9+' : friend.unreadCount}
                       </span>
                     )}
+                    {friend.reactionCount && friend.reactionCount > 0 && (
+                      <span
+                        className="friend-reaction-badge"
+                        title={t('reactions.reactionBadge', { count: friend.reactionCount })}
+                      >
+                        {friend.reactionCount > 9 ? '9+' : friend.reactionCount}
+                      </span>
+                    )}
                   </div>
                   <div className="friend-info">
                     <div className="friend-name">{friend.name}</div>
@@ -441,6 +507,13 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
                     </div>
                   </div>
                   <div className="friend-actions">
+                    <button
+                      className="friend-reaction-btn"
+                      onClick={() => handleOpenReactionPicker(friend)}
+                      title={t('reactions.sendReaction')}
+                    >
+                      😊
+                    </button>
                     <button
                       className="friend-message-btn"
                       onClick={() => handleOpenChat(friend)}
@@ -474,6 +547,18 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
           friend={chatFriend}
           isMobile={isMobile}
         />
+      )}
+
+      {/* Reaction Picker Modal */}
+      {reactionPickerFriend && (
+        <div className="reaction-picker-overlay" onClick={handleCloseReactionPicker}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <ReactionPicker
+              onSelect={handleReactionSelect}
+              onClose={handleCloseReactionPicker}
+            />
+          </div>
+        </div>
       )}
     </>
   );

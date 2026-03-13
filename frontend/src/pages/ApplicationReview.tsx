@@ -151,7 +151,7 @@ const ApplicationReview: React.FC = () => {
       setStats(statsResponse);
     } catch (err: any) {
       console.error('Error fetching applications:', err);
-      setError(err.response?.data?.error || 'Failed to load applications');
+      setError(err.response?.data?.error || t('applicationReview.error.loadApplications'));
     } finally {
       setLoading(false);
     }
@@ -165,7 +165,7 @@ const ApplicationReview: React.FC = () => {
       setShowDetailsModal(true);
     } catch (err: any) {
       console.error('Error fetching application details:', err);
-      setError(err.response?.data?.error || 'Failed to load application details');
+      setError(err.response?.data?.error || t('applicationReview.error.loadDetails'));
     } finally {
       setLoadingDetails(false);
     }
@@ -201,14 +201,14 @@ const ApplicationReview: React.FC = () => {
         adminNotes: notesText || null,
       });
       setEditingNotes(false);
-      setSuccessMessage('Admin notes updated successfully.');
+      setSuccessMessage(t('applicationReview.success.notesUpdated'));
       // Refresh data to update table
       await fetchData();
       // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: any) {
       console.error('Error saving admin notes:', err);
-      setError(err.response?.data?.error || 'Failed to save admin notes');
+      setError(err.response?.data?.error || t('applicationReview.error.saveNotes'));
     } finally {
       setSavingNotes(false);
     }
@@ -233,7 +233,7 @@ const ApplicationReview: React.FC = () => {
       setApproving(true);
       setError(null);
       await adminApi.approveApplication(approveApplicationId, approveNotes || undefined);
-      setSuccessMessage('Application approved successfully! Booking has been created.');
+      setSuccessMessage(t('applicationReview.success.approved'));
       closeApproveModal();
       // Refresh data
       await fetchData();
@@ -241,7 +241,7 @@ const ApplicationReview: React.FC = () => {
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: any) {
       console.error('Error approving application:', err);
-      setError(err.response?.data?.error || 'Failed to approve application');
+      setError(err.response?.data?.error || t('applicationReview.error.approve'));
       closeApproveModal();
     } finally {
       setApproving(false);
@@ -267,7 +267,7 @@ const ApplicationReview: React.FC = () => {
       setRejecting(true);
       setError(null);
       await adminApi.rejectApplication(rejectApplicationId, rejectReason);
-      setSuccessMessage('Application rejected successfully.');
+      setSuccessMessage(t('applicationReview.success.rejected'));
       closeRejectModal();
       // Refresh data
       await fetchData();
@@ -275,7 +275,7 @@ const ApplicationReview: React.FC = () => {
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: any) {
       console.error('Error rejecting application:', err);
-      setError(err.response?.data?.error || 'Failed to reject application');
+      setError(err.response?.data?.error || t('applicationReview.error.reject'));
       closeRejectModal();
     } finally {
       setRejecting(false);
@@ -288,7 +288,7 @@ const ApplicationReview: React.FC = () => {
       setDeleting(true);
       setError(null);
       await adminApi.deleteApplication(applicationToDelete);
-      setSuccessMessage('Application deleted successfully.');
+      setSuccessMessage(t('applicationReview.success.deleted'));
       setDeleteModalOpen(false);
       setApplicationToDelete(null);
       // Refresh data to update table and stats
@@ -297,7 +297,7 @@ const ApplicationReview: React.FC = () => {
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: any) {
       console.error('Failed to delete application:', err);
-      setError(err.response?.data?.error || 'Failed to delete application');
+      setError(err.response?.data?.error || t('applicationReview.error.delete'));
     } finally {
       setDeleting(false);
     }
@@ -488,7 +488,7 @@ const ApplicationReview: React.FC = () => {
 
   const exportToCSV = () => {
     if (filteredAndSortedApplications.length === 0) {
-      setError('No applications to export');
+      setError(t('applicationReview.error.noToExport'));
       setTimeout(() => setError(null), 3000);
       return;
     }
@@ -569,13 +569,13 @@ const ApplicationReview: React.FC = () => {
     link.click();
     document.body.removeChild(link);
 
-    setSuccessMessage(`Exported ${filteredAndSortedApplications.length} applications to CSV`);
+    setSuccessMessage(t('applicationReview.success.exportedCSV', { count: filteredAndSortedApplications.length }));
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
   const exportToPDF = () => {
     if (filteredAndSortedApplications.length === 0) {
-      setError('No applications to export');
+      setError(t('applicationReview.error.noToExport'));
       setTimeout(() => setError(null), 3000);
       return;
     }
@@ -667,14 +667,14 @@ const ApplicationReview: React.FC = () => {
     // Save PDF
     doc.save(filename);
 
-    setSuccessMessage(`Exported ${filteredAndSortedApplications.length} applications to PDF`);
+    setSuccessMessage(t('applicationReview.success.exportedPDF', { count: filteredAndSortedApplications.length }));
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
   if (loading) {
     return (
       <div className="application-review-container">
-        <div className="loading-spinner">Loading applications...</div>
+        <div className="loading-spinner">{t('applicationReview.loadingApplications')}</div>
       </div>
     );
   }
@@ -685,13 +685,13 @@ const ApplicationReview: React.FC = () => {
         <h1>{t('admin.applicationReview', { defaultValue: 'Application Review' })}</h1>
         <div className="header-actions">
           <button className="btn btn-primary" onClick={exportToCSV}>
-            Export CSV
+            {t('admin.export.csv')}
           </button>
           <button className="btn btn-primary" onClick={exportToPDF}>
-            Export PDF
+            {t('admin.export.pdf')}
           </button>
           <button className="btn btn-secondary" onClick={fetchData}>
-            Refresh
+            {t('applicationReview.refresh')}
           </button>
         </div>
       </div>
@@ -703,38 +703,38 @@ const ApplicationReview: React.FC = () => {
       <div className="stats-row">
         <div className="stat-card">
           <span className="stat-value">{stats.total}</span>
-          <span className="stat-label">Total</span>
+          <span className="stat-label">{t('applicationReview.total')}</span>
         </div>
         <div className="stat-card stat-pending">
           <span className="stat-value">{stats.pending}</span>
-          <span className="stat-label">Pending</span>
+          <span className="stat-label">{t('applicationReview.pending')}</span>
         </div>
         <div className="stat-card stat-approved">
           <span className="stat-value">{stats.approved}</span>
-          <span className="stat-label">Approved</span>
+          <span className="stat-label">{t('applicationReview.approved')}</span>
         </div>
         <div className="stat-card stat-rejected">
           <span className="stat-value">{stats.rejected}</span>
-          <span className="stat-label">Rejected</span>
+          <span className="stat-label">{t('applicationReview.rejected')}</span>
         </div>
       </div>
 
       {/* Search Box */}
       <div className="search-box">
-        <label htmlFor="search-input">Search:</label>
+        <label htmlFor="search-input">{t('applicationReview.search')}</label>
         <input
           type="text"
           id="search-input"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by vendor name, business name, or email..."
+          placeholder={t('applicationReview.searchPlaceholder')}
           className="search-input"
         />
         {searchQuery && (
           <button
             className="clear-search-btn"
             onClick={() => setSearchQuery('')}
-            title="Clear search"
+            title={t('applicationReview.clearSearch')}
           >
             ×
           </button>
@@ -744,37 +744,37 @@ const ApplicationReview: React.FC = () => {
       {/* Filter Controls */}
       <div className="filter-controls">
         <div className="filter-group">
-          <label htmlFor="status-filter">Filter by Status:</label>
+          <label htmlFor="status-filter">{t('applicationReview.filterByStatus')}</label>
           <select
             id="status-filter"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
+            <option value="all">{t('applicationReview.allStatuses')}</option>
+            <option value="pending">{t('applications.status.pending')}</option>
+            <option value="approved">{t('applications.status.approved')}</option>
+            <option value="rejected">{t('applications.status.rejected')}</option>
           </select>
         </div>
         <div className="filter-group">
-          <label htmlFor="category-filter">Filter by Category:</label>
+          <label htmlFor="category-filter">{t('applicationReview.filterByCategory')}</label>
           <select
             id="category-filter"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Categories</option>
-            <option value="food_beverages">Food & Beverages</option>
-            <option value="handicrafts">Handicrafts</option>
-            <option value="clothing">Clothing</option>
-            <option value="accessories">Accessories</option>
-            <option value="other">Other</option>
+            <option value="all">{t('applicationReview.allCategories')}</option>
+            <option value="food_beverages">{t('categories.food_beverages')}</option>
+            <option value="handicrafts">{t('categories.handicrafts')}</option>
+            <option value="clothing">{t('categories.clothing')}</option>
+            <option value="accessories">{t('categories.accessories')}</option>
+            <option value="other">{t('categories.other')}</option>
           </select>
         </div>
         <div className="filter-group">
-          <label htmlFor="date-from">From:</label>
+          <label htmlFor="date-from">{t('applicationReview.from')}</label>
           <input
             type="date"
             id="date-from"
@@ -784,7 +784,7 @@ const ApplicationReview: React.FC = () => {
           />
         </div>
         <div className="filter-group">
-          <label htmlFor="date-to">To:</label>
+          <label htmlFor="date-to">{t('applicationReview.to')}</label>
           <input
             type="date"
             id="date-to"
@@ -794,21 +794,21 @@ const ApplicationReview: React.FC = () => {
           />
         </div>
         <div className="filter-group quick-date-filters">
-          <label>Quick:</label>
+          <label>{t('applicationReview.quick')}</label>
           <div className="quick-date-buttons">
             <button
               type="button"
               className={`btn btn-outline btn-xs ${filterDateFrom === formatDateForInput(new Date()) && filterDateTo === formatDateForInput(new Date()) ? 'active' : ''}`}
               onClick={setTodayFilter}
             >
-              Today
+              {t('applicationReview.today')}
             </button>
             <button
               type="button"
               className="btn btn-outline btn-xs"
               onClick={setThisWeekFilter}
             >
-              This Week
+              {t('applicationReview.thisWeek')}
             </button>
             {(filterDateFrom || filterDateTo) && (
               <button
@@ -816,20 +816,20 @@ const ApplicationReview: React.FC = () => {
                 className="btn btn-secondary btn-xs"
                 onClick={clearDateFilters}
               >
-                Clear
+                {t('applicationReview.clear')}
               </button>
             )}
           </div>
         </div>
         <div className="filter-group">
-          <label htmlFor="house-filter">Filter by House:</label>
+          <label htmlFor="house-filter">{t('applicationReview.filterByHouse')}</label>
           <select
             id="house-filter"
             value={filterHouse}
             onChange={(e) => setFilterHouse(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Houses</option>
+            <option value="all">{t('applicationReview.allHouses')}</option>
             {uniqueHouses.map((house) => (
               <option key={house} value={house}>
                 {house}
@@ -838,14 +838,14 @@ const ApplicationReview: React.FC = () => {
           </select>
         </div>
         <div className="filter-group">
-          <label htmlFor="fair-filter">Filter by Fair:</label>
+          <label htmlFor="fair-filter">{t('applicationReview.filterByFair')}</label>
           <select
             id="fair-filter"
             value={filterFair}
             onChange={(e) => setFilterFair(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Fairs</option>
+            <option value="all">{t('applicationReview.allFairs')}</option>
             {uniqueFairs.map((fair) => (
               <option key={fair} value={fair}>
                 {fair}
@@ -854,17 +854,17 @@ const ApplicationReview: React.FC = () => {
           </select>
         </div>
         <div className="results-count">
-          Showing {filteredAndSortedApplications.length} of {applications.length} applications
+          {t('applicationReview.showingCount', { count: filteredAndSortedApplications.length, total: applications.length })}
         </div>
       </div>
 
       {/* Applications Table */}
       {filteredAndSortedApplications.length === 0 ? (
         <div className="no-applications">
-          <p>No applications found.</p>
+          <p>{t('applicationReview.noApplicationsFound')}</p>
           {(filterStatus !== 'all' || filterCategory !== 'all' || filterDateFrom || filterDateTo || filterHouse !== 'all' || filterFair !== 'all' || searchQuery) && (
             <button className="btn btn-secondary btn-sm" onClick={() => { setFilterStatus('all'); setFilterCategory('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterHouse('all'); setFilterFair('all'); setSearchQuery(''); }}>
-              Clear Filters
+              {t('common.clearFilters')}
             </button>
           )}
         </div>
@@ -874,23 +874,23 @@ const ApplicationReview: React.FC = () => {
             <thead>
               <tr>
                 <th className="sortable" onClick={() => handleSort('submittedAt')}>
-                  Date {getSortIcon('submittedAt')}
+                  {t('applicationReview.date')} {getSortIcon('submittedAt')}
                 </th>
                 <th className="sortable" onClick={() => handleSort('companyName')}>
-                  Company {getSortIcon('companyName')}
+                  {t('applicationReview.company')} {getSortIcon('companyName')}
                 </th>
-                <th>Contact</th>
-                <th>Category</th>
+                <th>{t('applicationReview.contact')}</th>
+                <th>{t('applicationReview.category')}</th>
                 <th className="sortable" onClick={() => handleSort('fairName')}>
-                  Fair {getSortIcon('fairName')}
+                  {t('applicationReview.fair')} {getSortIcon('fairName')}
                 </th>
                 <th className="sortable" onClick={() => handleSort('houseNumber')}>
-                  House {getSortIcon('houseNumber')}
+                  {t('applicationReview.house')} {getSortIcon('houseNumber')}
                 </th>
                 <th className="sortable" onClick={() => handleSort('status')}>
-                  Status {getSortIcon('status')}
+                  {t('applicationReview.status')} {getSortIcon('status')}
                 </th>
-                <th>Actions</th>
+                <th>{t('applicationReview.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -920,50 +920,50 @@ const ApplicationReview: React.FC = () => {
                   <td className="house-cell">{app.houseNumber}</td>
                   <td>
                     <span className={getStatusBadgeClass(app.status)}>
-                      {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                      {t(`applications.status.${app.status}`)}
                     </span>
                     {app.reviewedBy && app.reviewedAt && (
                       <span className="reviewed-info">
-                        by {app.reviewedBy}
+                        {t('applicationReview.reviewedByPrefix')} {app.reviewedBy}
                       </span>
                     )}
                   </td>
                   <td className="actions-cell">
                     <button
                       className="btn btn-secondary btn-sm"
-                      title="View Details"
+                      title={t('applicationReview.viewDetails')}
                       onClick={() => fetchApplicationDetails(app.id)}
                       disabled={loadingDetails}
                     >
-                      {loadingDetails ? '...' : 'View'}
+                      {loadingDetails ? '...' : t('applicationReview.view')}
                     </button>
                     {app.status === 'pending' && (
                       <>
                         <button
                           className="btn btn-success btn-sm"
-                          title="Approve Application"
+                          title={t('applicationReview.approveApplication')}
                           onClick={() => openApproveModal(app.id)}
                           disabled={approving || rejecting}
                         >
-                          Approve
+                          {t('applicationReview.approve')}
                         </button>
                         <button
                           className="btn btn-danger btn-sm"
-                          title="Reject Application"
+                          title={t('applicationReview.rejectApplication')}
                           onClick={() => openRejectModal(app.id)}
                           disabled={approving || rejecting}
                         >
-                          Reject
+                          {t('applicationReview.reject')}
                         </button>
                       </>
                     )}
                     <button
                       className="btn btn-danger btn-sm"
-                      title={t('delete', 'Sil')}
+                      title={t('common.delete')}
                       onClick={() => { setApplicationToDelete(app.id); setDeleteModalOpen(true); }}
                       disabled={deleting || approving || rejecting}
                     >
-                      {t('delete', 'Sil')}
+                      {t('common.delete')}
                     </button>
                   </td>
                 </tr>
@@ -977,7 +977,7 @@ const ApplicationReview: React.FC = () => {
       {filteredAndSortedApplications.length > 0 && (
         <div className="pagination-controls">
           <div className="pagination-info">
-            Showing {startIndex + 1}-{Math.min(endIndex, filteredAndSortedApplications.length)} of {filteredAndSortedApplications.length} applications
+            {t('applicationReview.showingRange', { start: startIndex + 1, end: Math.min(endIndex, filteredAndSortedApplications.length), total: filteredAndSortedApplications.length })}
           </div>
           <div className="pagination-buttons">
             <button
@@ -985,35 +985,35 @@ const ApplicationReview: React.FC = () => {
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
             >
-              First
+              {t('applicationReview.first')}
             </button>
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
             >
-              Previous
+              {t('applicationReview.previous')}
             </button>
             <span className="page-indicator">
-              Page {currentPage} of {totalPages}
+              {t('applicationReview.pageOf', { current: currentPage, total: totalPages })}
             </span>
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
             >
-              Next
+              {t('applicationReview.next')}
             </button>
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
             >
-              Last
+              {t('applicationReview.last')}
             </button>
           </div>
           <div className="items-per-page">
-            <label htmlFor="items-per-page">Per page:</label>
+            <label htmlFor="items-per-page">{t('applicationReview.perPage')}</label>
             <select
               id="items-per-page"
               value={itemsPerPage}
@@ -1037,27 +1037,27 @@ const ApplicationReview: React.FC = () => {
         <div className="modal-overlay" onClick={closeDetailsModal}>
           <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Application Details</h2>
+              <h2>{t('applicationReview.applicationDetails')}</h2>
               <button className="modal-close" onClick={closeDetailsModal}>&times;</button>
             </div>
             <div className="modal-body application-details-content">
               {/* Status Badge */}
               <div className="detail-section">
                 <span className={getStatusBadgeClass(applicationDetails.status)}>
-                  {applicationDetails.status.charAt(0).toUpperCase() + applicationDetails.status.slice(1)}
+                  {t(`applications.status.${applicationDetails.status}`)}
                 </span>
                 <span className="submission-date">
-                  Submitted: {formatDate(applicationDetails.submittedAt)}
+                  {t('applicationReview.submitted')} {formatDate(applicationDetails.submittedAt)}
                 </span>
               </div>
 
               {/* Vendor Information */}
               <div className="detail-section">
-                <h3>Vendor Information</h3>
+                <h3>{t('applicationReview.vendorInformation')}</h3>
                 <div className="detail-grid">
                   {applicationDetails.logoUrl && (
                     <div className="logo-section">
-                      <label>Company Logo</label>
+                      <label>{t('applicationReview.companyLogo')}</label>
                       <img
                         src={applicationDetails.logoUrl}
                         alt="Company Logo"
@@ -1067,24 +1067,24 @@ const ApplicationReview: React.FC = () => {
                     </div>
                   )}
                   <div className="detail-item">
-                    <label>Company Name</label>
+                    <label>{t('applicationReview.companyName')}</label>
                     <span>{applicationDetails.companyName || 'N/A'}</span>
                   </div>
                   <div className="detail-item">
-                    <label>Category</label>
+                    <label>{t('applicationReview.category')}</label>
                     <span>{getCategoryLabel(applicationDetails.productCategory)}</span>
                   </div>
                   <div className="detail-item">
-                    <label>Contact Name</label>
+                    <label>{t('applicationReview.contactName')}</label>
                     <span>{applicationDetails.contactName || 'N/A'}</span>
                   </div>
                   <div className="detail-item">
-                    <label>Email</label>
+                    <label>{t('applications.form.email')}</label>
                     <span>{applicationDetails.contactEmail}</span>
                   </div>
                   {applicationDetails.contactPhone && (
                     <div className="detail-item">
-                      <label>Phone</label>
+                      <label>{t('applicationReview.phone')}</label>
                       <span>{applicationDetails.contactPhone}</span>
                     </div>
                   )}
@@ -1093,16 +1093,16 @@ const ApplicationReview: React.FC = () => {
 
               {/* Business Description */}
               <div className="detail-section">
-                <h3>Business Description</h3>
+                <h3>{t('applicationReview.businessDescription')}</h3>
                 <p className="business-description">
-                  {applicationDetails.businessDescription || 'No description provided.'}
+                  {applicationDetails.businessDescription || t('applicationReview.noDescriptionProvided')}
                 </p>
               </div>
 
               {/* Product Images */}
               {applicationDetails.productImages && applicationDetails.productImages.length > 0 && (
                 <div className="detail-section">
-                  <h3>Product Images</h3>
+                  <h3>{t('applicationReview.productImages')}</h3>
                   <div className="product-images-grid">
                     {applicationDetails.productImages.map((img) => (
                       <img
@@ -1119,37 +1119,37 @@ const ApplicationReview: React.FC = () => {
 
               {/* Fair & House Information */}
               <div className="detail-section">
-                <h3>Fair & House Details</h3>
+                <h3>{t('applicationReview.fairHouseDetails')}</h3>
                 <div className="detail-grid">
                   <div className="detail-item">
-                    <label>Fair</label>
+                    <label>{t('applicationReview.fair')}</label>
                     <span>{applicationDetails.fairName}</span>
                   </div>
                   <div className="detail-item">
-                    <label>Fair Dates</label>
+                    <label>{t('applicationReview.fairDates')}</label>
                     <span>
                       {new Date(applicationDetails.fairStartDate).toLocaleDateString()} - {new Date(applicationDetails.fairEndDate).toLocaleDateString()}
                     </span>
                   </div>
                   <div className="detail-item">
-                    <label>House Number</label>
+                    <label>{t('applicationReview.houseNumber')}</label>
                     <span className="house-number">{applicationDetails.houseNumber}</span>
                   </div>
                   {applicationDetails.houseAreaSqm && (
                     <div className="detail-item">
-                      <label>House Area</label>
+                      <label>{t('applicationReview.houseArea')}</label>
                       <span>{applicationDetails.houseAreaSqm} m²</span>
                     </div>
                   )}
                   {applicationDetails.housePrice && (
                     <div className="detail-item">
-                      <label>House Price</label>
+                      <label>{t('applicationReview.housePrice')}</label>
                       <span>{applicationDetails.housePrice.toLocaleString()} AZN</span>
                     </div>
                   )}
                   {applicationDetails.houseDescription && (
                     <div className="detail-item full-width">
-                      <label>House Description</label>
+                      <label>{t('applicationReview.houseDescription')}</label>
                       <span>{applicationDetails.houseDescription}</span>
                     </div>
                   )}
@@ -1159,23 +1159,23 @@ const ApplicationReview: React.FC = () => {
               {/* Review Information */}
               {(applicationDetails.reviewedAt || applicationDetails.rejectionReason) && (
                 <div className="detail-section">
-                  <h3>Review Information</h3>
+                  <h3>{t('applicationReview.reviewInformation')}</h3>
                   <div className="detail-grid">
                     {applicationDetails.reviewedAt && (
                       <div className="detail-item">
-                        <label>Reviewed At</label>
+                        <label>{t('applicationReview.reviewedAt')}</label>
                         <span>{formatDate(applicationDetails.reviewedAt)}</span>
                       </div>
                     )}
                     {applicationDetails.reviewedBy && (
                       <div className="detail-item">
-                        <label>Reviewed By</label>
+                        <label>{t('applicationReview.reviewedBy')}</label>
                         <span>{applicationDetails.reviewedBy}</span>
                       </div>
                     )}
                     {applicationDetails.rejectionReason && (
                       <div className="detail-item full-width">
-                        <label>Rejection Reason</label>
+                        <label>{t('applicationReview.rejectionReason')}</label>
                         <span className="rejection-reason">{applicationDetails.rejectionReason}</span>
                       </div>
                     )}
@@ -1186,15 +1186,15 @@ const ApplicationReview: React.FC = () => {
               {/* Admin Notes Section - Editable */}
               <div className="detail-section admin-notes-section">
                 <h3>
-                  Internal Admin Notes
-                  <span className="admin-only-label">(Admin Only)</span>
+                  {t('applicationReview.internalAdminNotes')}
+                  <span className="admin-only-label">{t('applicationReview.adminOnly')}</span>
                 </h3>
                 {editingNotes ? (
                   <div className="notes-edit-container">
                     <textarea
                       value={notesText}
                       onChange={(e) => setNotesText(e.target.value)}
-                      placeholder="Add internal notes for this application..."
+                      placeholder={t('applicationReview.addNotesPlaceholder')}
                       rows={4}
                       className="form-textarea notes-textarea"
                       disabled={savingNotes}
@@ -1205,14 +1205,14 @@ const ApplicationReview: React.FC = () => {
                         onClick={cancelEditingNotes}
                         disabled={savingNotes}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </button>
                       <button
                         className="btn btn-primary btn-sm"
                         onClick={handleSaveNotes}
                         disabled={savingNotes}
                       >
-                        {savingNotes ? 'Saving...' : 'Save Notes'}
+                        {savingNotes ? t('applicationReview.saving') : t('applicationReview.saveNotes')}
                       </button>
                     </div>
                   </div>
@@ -1221,13 +1221,13 @@ const ApplicationReview: React.FC = () => {
                     {applicationDetails.adminNotes ? (
                       <p className="admin-notes-text">{applicationDetails.adminNotes}</p>
                     ) : (
-                      <p className="no-notes-text">No admin notes yet.</p>
+                      <p className="no-notes-text">{t('applicationReview.noAdminNotesYet')}</p>
                     )}
                     <button
                       className="btn btn-secondary btn-sm"
                       onClick={startEditingNotes}
                     >
-                      {applicationDetails.adminNotes ? 'Edit Notes' : 'Add Notes'}
+                      {applicationDetails.adminNotes ? t('applicationReview.editNotes') : t('applicationReview.addNotes')}
                     </button>
                   </div>
                 )}
@@ -1242,21 +1242,20 @@ const ApplicationReview: React.FC = () => {
         <div className="modal-overlay" onClick={closeApproveModal}>
           <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Approve Application</h2>
+              <h2>{t('applicationReview.approveApproveTitle')}</h2>
               <button className="modal-close" onClick={closeApproveModal}>&times;</button>
             </div>
             <div className="modal-body">
               <p className="approve-confirmation-text">
-                Are you sure you want to approve this application?
-                This will automatically create a booking for the vendor.
+                {t('applicationReview.approveConfirmText')}
               </p>
               <div className="form-group">
-                <label htmlFor="admin-notes">Admin Notes (Optional)</label>
+                <label htmlFor="admin-notes">{t('applicationReview.adminNotesOptional')}</label>
                 <textarea
                   id="admin-notes"
                   value={approveNotes}
                   onChange={(e) => setApproveNotes(e.target.value)}
-                  placeholder="Add any notes for this approval..."
+                  placeholder={t('applicationReview.addApprovalNotesPlaceholder')}
                   rows={3}
                   className="form-textarea"
                 />
@@ -1268,14 +1267,14 @@ const ApplicationReview: React.FC = () => {
                 onClick={closeApproveModal}
                 disabled={approving}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 className="btn btn-success"
                 onClick={handleApprove}
                 disabled={approving}
               >
-                {approving ? 'Approving...' : 'Confirm Approval'}
+                {approving ? t('applicationReview.approving') : t('applicationReview.confirmApproval')}
               </button>
             </div>
           </div>
@@ -1287,21 +1286,20 @@ const ApplicationReview: React.FC = () => {
         <div className="modal-overlay" onClick={closeRejectModal}>
           <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Reject Application</h2>
+              <h2>{t('applicationReview.rejectRejectTitle')}</h2>
               <button className="modal-close" onClick={closeRejectModal}>&times;</button>
             </div>
             <div className="modal-body">
               <p className="reject-confirmation-text">
-                Are you sure you want to reject this application?
-                The vendor will be notified with the reason provided.
+                {t('applicationReview.rejectConfirmText')}
               </p>
               <div className="form-group">
-                <label htmlFor="rejection-reason">Rejection Reason (Required)</label>
+                <label htmlFor="rejection-reason">{t('applicationReview.rejectionReasonRequired')}</label>
                 <textarea
                   id="rejection-reason"
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="Please provide a reason for rejection..."
+                  placeholder={t('applicationReview.rejectionReasonPlaceholder')}
                   rows={3}
                   className="form-textarea"
                   required
@@ -1314,14 +1312,14 @@ const ApplicationReview: React.FC = () => {
                 onClick={closeRejectModal}
                 disabled={rejecting}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 className="btn btn-danger"
                 onClick={handleReject}
                 disabled={rejecting || !rejectReason.trim()}
               >
-                {rejecting ? 'Rejecting...' : 'Confirm Rejection'}
+                {rejecting ? t('applicationReview.rejecting') : t('applicationReview.confirmRejection')}
               </button>
             </div>
           </div>
@@ -1333,11 +1331,11 @@ const ApplicationReview: React.FC = () => {
         <div className="modal-overlay" onClick={() => setDeleteModalOpen(false)}>
           <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{t('confirmDelete', 'Confirm Delete')}</h2>
+              <h2>{t('applicationReview.confirmDelete')}</h2>
               <button className="modal-close" onClick={() => setDeleteModalOpen(false)}>&times;</button>
             </div>
             <div className="modal-body">
-              <p>{t('deleteWarning', 'Are you sure you want to delete this application? This action cannot be undone.')}</p>
+              <p>{t('applicationReview.deleteWarning')}</p>
             </div>
             <div className="modal-footer">
               <button
@@ -1345,14 +1343,14 @@ const ApplicationReview: React.FC = () => {
                 onClick={() => setDeleteModalOpen(false)}
                 disabled={deleting}
               >
-                {t('cancel', 'L\u0259\u011fv et')}
+                {t('common.cancel')}
               </button>
               <button
                 className="btn btn-danger"
                 onClick={handleDeleteApplication}
                 disabled={deleting}
               >
-                {deleting ? `${t('deleting', 'Silinir')}...` : t('delete', 'Sil')}
+                {deleting ? t('applicationReview.deleting') : t('common.delete')}
               </button>
             </div>
           </div>

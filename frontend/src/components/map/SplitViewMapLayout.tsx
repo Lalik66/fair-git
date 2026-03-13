@@ -8,6 +8,7 @@ import { useLocationTracking } from '../../hooks/useLocationTracking';
 import { useFriendsLocations } from '../../hooks/useFriendsLocations';
 import { useRouteToFriend } from '../../hooks/useRouteToFriend';
 import { getFollowing } from '../../services/friendsService';
+import { sendReaction } from '../../services/reactionsService';
 import Sidebar from './Sidebar';
 import MapPanel, { MapPanelRef } from './MapPanel';
 import GeocoderSearch from './GeocoderSearch';
@@ -15,6 +16,8 @@ import PanoramaViewer from '../PanoramaViewer';
 import FriendsPanel from './FriendsPanel';
 import FoxMapPeek from '../FoxMapPeek';
 import RouteInstructionsPanel from './RouteInstructionsPanel';
+import ReactionPicker from '../ReactionPicker';
+import '../ReactionPicker.css';
 import './SplitViewMapLayout.css';
 
 // Get Mapbox token
@@ -33,6 +36,10 @@ const SplitViewMapLayout: React.FC = () => {
   const [isFriendsPanelOpen, setIsFriendsPanelOpen] = useState(false);
   const [friendsCount, setFriendsCount] = useState<number>(0);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  // Reaction picker state
+  const [reactionPickerFriend, setReactionPickerFriend] = useState<{ id: string; name: string } | null>(null);
+  const [reactionMessage, setReactionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Map instance state for route hook
   const [mapInstance, setMapInstance] = useState<MapboxMap | null>(null);
@@ -66,14 +73,9 @@ const SplitViewMapLayout: React.FC = () => {
     isActive: true,
   });
 
-  // Update map instance when mapRef is available
-  useEffect(() => {
-    // Small delay to ensure map is initialized
-    const timer = setTimeout(() => {
-      const instance = mapRef.current?.getMap() || null;
-      setMapInstance(instance);
-    }, 100);
-    return () => clearTimeout(timer);
+  // Get map instance when MapPanel signals it's ready (reliable vs. arbitrary delay)
+  const handleMapReady = useCallback((map: MapboxMap) => {
+    setMapInstance(map);
   }, []);
 
   // Use the route hook
@@ -83,11 +85,13 @@ const SplitViewMapLayout: React.FC = () => {
     error: routeError,
     fetchRoute,
     clearRoute,
+    reportError,
     formatDistance,
     formatDuration,
   } = useRouteToFriend({
     map: mapInstance,
     userLocation,
+    t,
   });
 
   // Get initial fair ID from URL
@@ -179,8 +183,41 @@ const SplitViewMapLayout: React.FC = () => {
     const friend = friendLocations.find(f => f.id === friendId);
     if (friend) {
       fetchRoute(friend);
+    } else {
+      reportError(t('route.error.friendNotFound'));
     }
-  }, [friendLocations, fetchRoute]);
+  }, [friendLocations, fetchRoute, reportError, t]);
+
+  // Handle Send Reaction - opens the reaction picker
+  const handleOpenReactionPicker = useCallback((friendId: string, friendName: string) => {
+    setReactionPickerFriend({ id: friendId, name: friendName });
+  }, []);
+
+  // Handle emoji selection from reaction picker
+  const handleReactionSelect = useCallback(async (emoji: string) => {
+    if (!reactionPickerFriend) return;
+
+    try {
+      await sendReaction(reactionPickerFriend.id, emoji);
+      setReactionMessage({ type: 'success', text: t('reactions.sent') });
+      setReactionPickerFriend(null);
+
+      // Auto-dismiss success message after 2 seconds
+      setTimeout(() => setReactionMessage(null), 2000);
+    } catch (error) {
+      console.error('Failed to send reaction:', error);
+      setReactionMessage({ type: 'error', text: String(error) });
+      setReactionPickerFriend(null);
+
+      // Auto-dismiss error message after 3 seconds
+      setTimeout(() => setReactionMessage(null), 3000);
+    }
+  }, [reactionPickerFriend, t]);
+
+  // Close reaction picker
+  const handleCloseReactionPicker = useCallback(() => {
+    setReactionPickerFriend(null);
+  }, []);
 
   // Refresh friends count when panel closes
   const handleFriendsPanelClose = useCallback(() => {
@@ -285,13 +322,15 @@ const SplitViewMapLayout: React.FC = () => {
           className="split-view-map"
           userLocation={userLocation}
           onGetDirections={handleGetDirections}
+          onSendReaction={handleOpenReactionPicker}
+          onMapReady={handleMapReady}
         />
         <FoxMapPeek />
 
         {/* Screen reader announcement for route status */}
         <div aria-live="polite" aria-atomic="true" className="sr-only">
-          {activeRoute && `Route calculated: ${formatDistance(activeRoute.distance)}, ${formatDuration(activeRoute.duration)} walking`}
-          {isLoadingRoute && 'Finding the best path to your friend'}
+          {activeRoute && t('route.routeCalculated', { distance: formatDistance(activeRoute.distance), duration: formatDuration(activeRoute.duration) })}
+          {isLoadingRoute && t('route.findingPath')}
           {routeError && routeError}
         </div>
 
@@ -300,12 +339,12 @@ const SplitViewMapLayout: React.FC = () => {
           <div
             className="route-loading-overlay"
             role="dialog"
-            aria-label="Loading directions"
+            aria-label={t('route.findingPath')}
             aria-busy="true"
           >
             <div className="route-loading-content">
               <span className="route-loading-icon" aria-hidden="true">🧭</span>
-              <p>Finding the best path...</p>
+              <p>{t('route.findingPath')}</p>
             </div>
           </div>
         )}
@@ -315,7 +354,7 @@ const SplitViewMapLayout: React.FC = () => {
           <div className="route-error-message">
             <span>⚠️</span>
             <p>{routeError}</p>
-            <button onClick={clearRoute}>Dismiss</button>
+            <button onClick={clearRoute}>{t('route.dismiss')}</button>
           </div>
         )}
 
@@ -418,6 +457,25 @@ const SplitViewMapLayout: React.FC = () => {
           userLocation={userLocation}
           onFlyToFriend={handleFlyToFriend}
         />
+      )}
+
+      {/* Reaction Picker Modal */}
+      {reactionPickerFriend && (
+        <div className="reaction-picker-overlay" onClick={handleCloseReactionPicker}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <ReactionPicker
+              onSelect={handleReactionSelect}
+              onClose={handleCloseReactionPicker}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Reaction Message Toast */}
+      {reactionMessage && (
+        <div className={`reaction-message-toast ${reactionMessage.type}`}>
+          {reactionMessage.type === 'success' ? '✓' : '⚠️'} {reactionMessage.text}
+        </div>
       )}
     </div>
   );

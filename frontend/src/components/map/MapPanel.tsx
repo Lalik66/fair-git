@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useTranslation } from 'react-i18next';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { distance, point } from '@turf/turf';
@@ -23,6 +24,10 @@ interface MapPanelProps {
   userLocation?: { latitude: number; longitude: number } | null;
   /** Callback when user clicks "Get Directions" on a friend popup */
   onGetDirections?: (friendId: string) => void;
+  /** Callback when user clicks "Send Reaction" on a friend popup */
+  onSendReaction?: (friendId: string, friendName: string) => void;
+  /** Callback when map is ready (for parent to get map instance) */
+  onMapReady?: (map: mapboxgl.Map) => void;
 }
 
 export interface MapPanelRef {
@@ -40,7 +45,10 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   className = '',
   userLocation,
   onGetDirections,
+  onSendReaction,
+  onMapReady,
 }, ref) => {
+  const { t } = useTranslation();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -66,6 +74,9 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     map.current.once('load', () => {
       map.current?.setZoom(DEFAULT_MAP_ZOOM);
       map.current?.resize();
+      if (onMapReady && map.current) {
+        onMapReady(map.current);
+      }
     });
 
     // Add navigation controls
@@ -123,7 +134,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         map.current = null;
       }
     };
-  }, []);
+  }, [onMapReady]);
 
   // Update map center when it changes
   useEffect(() => {
@@ -141,12 +152,6 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     const isVendorHouse = obj.type === 'vendor_house';
 
     if (isVendorHouse) {
-      const availabilityClass = obj.isAvailable === null
-        ? ''
-        : obj.isAvailable
-          ? 'available'
-          : 'occupied';
-
       const availabilityText = obj.isAvailable === null
         ? ''
         : obj.isAvailable
@@ -255,7 +260,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       : '';
 
     // Calculate distance from user to friend
-    let distanceText = 'Distance unknown';
+    let distanceText = t('friends.card.distanceUnknown');
     let hasValidDistance = false;
     if (userLocation) {
       const userPoint = point([userLocation.longitude, userLocation.latitude]);
@@ -272,13 +277,13 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       const now = new Date();
       const minutesAgo = Math.floor((now.getTime() - updatedAtDate.getTime()) / (1000 * 60));
       if (minutesAgo > 30) {
-        staleWarning = `<p class="location-stale-warning">⚠️ Last seen ${minutesAgo} min ago</p>`;
+        staleWarning = `<p class="location-stale-warning">⚠️ ${t('friends.card.lastSeen', { time: `${minutesAgo} min` })}</p>`;
       }
     }
 
     // Button is disabled if no valid user location
     const buttonDisabled = !hasValidDistance ? 'disabled' : '';
-    const buttonTitle = !hasValidDistance ? 'Enable location to get directions' : `Get directions to ${escapedName}`;
+    const buttonTitle = !hasValidDistance ? t('route.enableLocationForDirections') : `${t('route.getDirections')} - ${escapedName}`;
 
     return `
       <div class="marker-popup friend-popup">
@@ -286,18 +291,29 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         <p class="friend-distance">📍 ${distanceText}</p>
         ${staleWarning}
         ${updatedAt ? `<p class="location-time">Son yeniləmə: ${updatedAt}</p>` : ''}
-        <button
-          class="btn btn-primary get-directions-btn"
-          data-action="get-directions"
-          data-friend-id="${escapeHTML(friend.id)}"
-          ${buttonDisabled}
-          title="${buttonTitle}"
-        >
-          🚶 Get Directions
-        </button>
+        <div class="friend-popup-actions">
+          <button
+            class="btn btn-primary get-directions-btn"
+            data-action="get-directions"
+            data-friend-id="${escapeHTML(friend.id)}"
+            ${buttonDisabled}
+            title="${buttonTitle}"
+          >
+            🚶 Get Directions
+          </button>
+          <button
+            class="btn btn-reaction send-reaction-btn"
+            data-action="send-reaction"
+            data-friend-id="${escapeHTML(friend.id)}"
+            data-friend-name="${escapedName}"
+            title="${t('reactions.sendReaction')}"
+          >
+            😊 ${t('reactions.sendReaction')}
+          </button>
+        </div>
       </div>
     `;
-  }, [userLocation, escapeHTML, formatDistance]);
+  }, [userLocation, escapeHTML, formatDistance, t]);
 
   // Update friend markers efficiently (add/update/remove without recreating all)
   useEffect(() => {
@@ -360,23 +376,34 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     });
   }, [friendLocations, createFriendPopupContent]);
 
-  // Event delegation for Get Directions button clicks in friend popups
+  // Event delegation for Get Directions and Send Reaction button clicks in friend popups
   useEffect(() => {
     const container = mapContainer.current;
-    if (!container || !onGetDirections) return;
+    if (!container) return;
 
     const handlePopupClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const btn = target.closest('[data-action="get-directions"]') as HTMLButtonElement | null;
-      if (btn && !btn.hasAttribute('disabled')) {
-        const friendId = btn.getAttribute('data-friend-id');
+
+      // Handle Get Directions
+      const directionsBtn = target.closest('[data-action="get-directions"]') as HTMLButtonElement | null;
+      if (directionsBtn && !directionsBtn.hasAttribute('disabled') && onGetDirections) {
+        const friendId = directionsBtn.getAttribute('data-friend-id');
         if (friendId) onGetDirections(friendId);
+        return;
+      }
+
+      // Handle Send Reaction
+      const reactionBtn = target.closest('[data-action="send-reaction"]') as HTMLButtonElement | null;
+      if (reactionBtn && onSendReaction) {
+        const friendId = reactionBtn.getAttribute('data-friend-id');
+        const friendName = reactionBtn.getAttribute('data-friend-name');
+        if (friendId && friendName) onSendReaction(friendId, friendName);
       }
     };
 
     container.addEventListener('click', handlePopupClick);
     return () => container.removeEventListener('click', handlePopupClick);
-  }, [onGetDirections]);
+  }, [onGetDirections, onSendReaction]);
 
   // Handle selection changes - fly to object and open popup
   useEffect(() => {

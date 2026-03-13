@@ -146,7 +146,7 @@ const MapManagement: React.FC = () => {
       const data = await adminApi.getVendorHouses();
       setHouses(data.houses || []);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load vendor houses';
+      const errorMessage = err instanceof Error ? err.message : t('mapManagement.error.loadHouses');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -405,23 +405,23 @@ const MapManagement: React.FC = () => {
     const errors: Record<string, string> = {};
 
     if (!editFormData.houseNumber.trim()) {
-      errors.houseNumber = 'House number is required';
+      errors.houseNumber = t('mapManagement.houseNumberRequired');
     }
 
     if (editFormData.areaSqm && isNaN(parseFloat(editFormData.areaSqm))) {
-      errors.areaSqm = 'Area must be a valid number';
+      errors.areaSqm = t('mapManagement.areaRequired');
     }
 
     if (editFormData.areaSqm && parseFloat(editFormData.areaSqm) < 0) {
-      errors.areaSqm = 'Area cannot be negative';
+      errors.areaSqm = t('mapManagement.areaNonNegative');
     }
 
     if (editFormData.price && isNaN(parseFloat(editFormData.price))) {
-      errors.price = 'Price must be a valid number';
+      errors.price = t('mapManagement.priceRequired');
     }
 
     if (editFormData.price && parseFloat(editFormData.price) < 0) {
-      errors.price = 'Price cannot be negative';
+      errors.price = t('mapManagement.priceNonNegative');
     }
 
     setFormErrors(errors);
@@ -470,7 +470,7 @@ const MapManagement: React.FC = () => {
 
       // Check if anything changed
       if (Object.keys(updateData).length === 0) {
-        setSuccessMessage('No changes to save');
+        setSuccessMessage(t('mapManagement.noChangesToSave'));
         setEditingHouse(null);
         return;
       }
@@ -486,14 +486,14 @@ const MapManagement: React.FC = () => {
         )
       );
 
-      setSuccessMessage(`Vendor house "${result.vendorHouse.houseNumber}" updated successfully`);
+      setSuccessMessage(t('mapManagement.success.houseUpdated', { number: result.vendorHouse.houseNumber }));
       setEditingHouse(null);
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { error?: string } } };
-        setError(axiosErr.response?.data?.error || 'Failed to update vendor house');
+        setError(axiosErr.response?.data?.error || t('mapManagement.error.updateHouse'));
       } else {
-        setError('Failed to update vendor house');
+        setError(t('mapManagement.error.updateHouse'));
       }
     } finally {
       setSaving(false);
@@ -534,14 +534,14 @@ const MapManagement: React.FC = () => {
 
       // Remove from local state
       setHouses((prev) => prev.filter((h) => h.id !== deletingHouse.id));
-      setSuccessMessage(result.message || `Vendor house "${deletingHouse.houseNumber}" deleted successfully`);
+      setSuccessMessage(result.message || t('mapManagement.success.houseDeleted', { number: deletingHouse.houseNumber }));
       setDeletingHouse(null);
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { error?: string } } };
-        setError(axiosErr.response?.data?.error || 'Failed to delete vendor house');
+        setError(axiosErr.response?.data?.error || t('mapManagement.error.deleteHouse'));
       } else {
-        setError('Failed to delete vendor house');
+        setError(t('mapManagement.error.deleteHouse'));
       }
       setDeletingHouse(null);
     } finally {
@@ -563,13 +563,13 @@ const MapManagement: React.FC = () => {
 
   const validateFacilityForm = (): boolean => {
     const errors: Record<string, string> = {};
-    if (!facilityFormData.name.trim()) errors.name = 'Facility name is required';
-    if (!facilityFormData.type) errors.type = 'Facility type is required';
+    if (!facilityFormData.name.trim()) errors.name = t('mapManagement.facilityNameRequired');
+    if (!facilityFormData.type) errors.type = t('mapManagement.facilityTypeRequired');
     if (!facilityFormData.latitude || isNaN(parseFloat(facilityFormData.latitude))) {
-      errors.latitude = 'Valid latitude is required';
+      errors.latitude = t('mapManagement.latitudeRequired');
     }
     if (!facilityFormData.longitude || isNaN(parseFloat(facilityFormData.longitude))) {
-      errors.longitude = 'Valid longitude is required';
+      errors.longitude = t('mapManagement.longitudeRequired');
     }
     setFacilityFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -596,7 +596,7 @@ const MapManagement: React.FC = () => {
       });
 
       setFacilities((prev) => [...prev, result.facility].sort((a, b) => a.name.localeCompare(b.name)));
-      setSuccessMessage(result.message || 'Facility created successfully');
+      setSuccessMessage(result.message || t('mapManagement.success.facilityCreated'));
       setShowFacilityForm(false);
       setAddFacilityMode(false);
 
@@ -616,9 +616,9 @@ const MapManagement: React.FC = () => {
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { error?: string } } };
-        setError(axiosErr.response?.data?.error || 'Failed to create facility');
+        setError(axiosErr.response?.data?.error || t('mapManagement.error.createFacility'));
       } else {
-        setError('Failed to create facility');
+        setError(t('mapManagement.error.createFacility'));
       }
     } finally {
       setSavingFacility(false);
@@ -633,14 +633,14 @@ const MapManagement: React.FC = () => {
       setSuccessMessage('');
       const result = await adminApi.deleteFacility(deletingFacility.id);
       setFacilities((prev) => prev.filter((f) => f.id !== deletingFacility.id));
-      setSuccessMessage(result.message || 'Facility deleted successfully');
+      setSuccessMessage(result.message || t('mapManagement.success.facilityDeleted'));
       setDeletingFacility(null);
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { error?: string } } };
-        setError(axiosErr.response?.data?.error || 'Failed to delete facility');
+        setError(axiosErr.response?.data?.error || t('mapManagement.error.deleteFacility'));
       } else {
-        setError('Failed to delete facility');
+        setError(t('mapManagement.error.deleteFacility'));
       }
       setDeletingFacility(null);
     } finally {
@@ -688,13 +688,13 @@ const MapManagement: React.FC = () => {
 
   const validateEditFacilityForm = (): boolean => {
     const errors: Record<string, string> = {};
-    if (!editFacilityFormData.name.trim()) errors.name = 'Facility name is required';
-    if (!editFacilityFormData.type) errors.type = 'Facility type is required';
+    if (!editFacilityFormData.name.trim()) errors.name = t('mapManagement.facilityNameRequired');
+    if (!editFacilityFormData.type) errors.type = t('mapManagement.facilityTypeRequired');
     if (!editFacilityFormData.latitude || isNaN(parseFloat(editFacilityFormData.latitude))) {
-      errors.latitude = 'Valid latitude is required';
+      errors.latitude = t('mapManagement.latitudeRequired');
     }
     if (!editFacilityFormData.longitude || isNaN(parseFloat(editFacilityFormData.longitude))) {
-      errors.longitude = 'Valid longitude is required';
+      errors.longitude = t('mapManagement.longitudeRequired');
     }
     setEditFacilityFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -726,14 +726,14 @@ const MapManagement: React.FC = () => {
           .map((f) => (f.id === editingFacility.id ? result.facility : f))
           .sort((a, b) => a.name.localeCompare(b.name))
       );
-      setSuccessMessage(result.message || 'Facility updated successfully');
+      setSuccessMessage(result.message || t('mapManagement.success.facilityUpdated'));
       setEditingFacility(null);
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { error?: string } } };
-        setError(axiosErr.response?.data?.error || 'Failed to update facility');
+        setError(axiosErr.response?.data?.error || t('mapManagement.error.updateFacility'));
       } else {
-        setError('Failed to update facility');
+        setError(t('mapManagement.error.updateFacility'));
       }
     } finally {
       setSavingEditFacility(false);
@@ -805,18 +805,18 @@ const MapManagement: React.FC = () => {
 
   const validateCreateHouseForm = (): boolean => {
     const errors: Record<string, string> = {};
-    if (!createHouseFormData.houseNumber.trim()) errors.houseNumber = 'House number is required';
+    if (!createHouseFormData.houseNumber.trim()) errors.houseNumber = t('mapManagement.houseNumberRequired');
     if (!createHouseFormData.latitude || isNaN(parseFloat(createHouseFormData.latitude))) {
-      errors.latitude = 'Valid latitude is required';
+      errors.latitude = t('mapManagement.latitudeRequired');
     }
     if (!createHouseFormData.longitude || isNaN(parseFloat(createHouseFormData.longitude))) {
-      errors.longitude = 'Valid longitude is required';
+      errors.longitude = t('mapManagement.longitudeRequired');
     }
     if (createHouseFormData.areaSqm && (isNaN(parseFloat(createHouseFormData.areaSqm)) || parseFloat(createHouseFormData.areaSqm) < 0)) {
-      errors.areaSqm = 'Area must be a valid non-negative number';
+      errors.areaSqm = t('mapManagement.areaValidNonNegative');
     }
     if (createHouseFormData.price && (isNaN(parseFloat(createHouseFormData.price)) || parseFloat(createHouseFormData.price) < 0)) {
-      errors.price = 'Price must be a valid non-negative number';
+      errors.price = t('mapManagement.priceValidNonNegative');
     }
     setCreateHouseFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -840,7 +840,7 @@ const MapManagement: React.FC = () => {
       });
 
       setHouses(prev => [...prev, result.vendorHouse].sort((a, b) => a.houseNumber.localeCompare(b.houseNumber)));
-      setSuccessMessage(result.message || 'Vendor house created successfully');
+      setSuccessMessage(result.message || t('mapManagement.success.houseCreated'));
       setShowCreateHouseForm(false);
       setAddHouseMode(false);
 
@@ -861,9 +861,9 @@ const MapManagement: React.FC = () => {
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { error?: string } } };
-        setError(axiosErr.response?.data?.error || 'Failed to create vendor house');
+        setError(axiosErr.response?.data?.error || t('mapManagement.error.createHouse'));
       } else {
-        setError('Failed to create vendor house');
+        setError(t('mapManagement.error.createHouse'));
       }
     } finally {
       setCreatingHouse(false);
@@ -920,13 +920,13 @@ const MapManagement: React.FC = () => {
         )
       );
 
-      setSuccessMessage(result.message || 'Panorama image uploaded successfully');
+      setSuccessMessage(result.message || t('mapManagement.success.panoramaUploaded'));
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { error?: string } } };
-        setError(axiosErr.response?.data?.error || 'Failed to upload panorama image');
+        setError(axiosErr.response?.data?.error || t('mapManagement.error.uploadPanorama'));
       } else {
-        setError('Failed to upload panorama image');
+        setError(t('mapManagement.error.uploadPanorama'));
       }
     } finally {
       setUploadingPanoramaId(null);
@@ -936,7 +936,7 @@ const MapManagement: React.FC = () => {
   if (loading) {
     return (
       <div className="map-management-container">
-        <div className="loading-spinner">Loading vendor houses...</div>
+        <div className="loading-spinner">{t('mapManagement.loadingHouses')}</div>
       </div>
     );
   }
@@ -955,7 +955,7 @@ const MapManagement: React.FC = () => {
       <div className="map-mgmt-header">
         <h2>{t('admin.mapManagement', { defaultValue: 'Map Management' })}</h2>
         <p className="map-mgmt-subtitle">
-          Manage vendor houses, facilities, and their locations on the map.
+          {t('mapManagement.subtitle')}
         </p>
       </div>
 
@@ -972,34 +972,34 @@ const MapManagement: React.FC = () => {
       {/* ======================== */}
       <div className="map-section">
         <div className="map-section-header">
-          <h3>Interactive Map</h3>
+          <h3>{t('mapManagement.interactiveMap')}</h3>
           <div className="map-section-actions">
             <button
               className={`btn ${addHouseMode ? 'btn-active-mode' : 'btn-secondary'}`}
               onClick={toggleAddHouseMode}
               data-testid="add-house-mode-btn"
             >
-              {addHouseMode ? '✕ Cancel Placement' : '🏠 Add House'}
+              {addHouseMode ? t('mapManagement.cancelPlacement') : t('mapManagement.addHouse')}
             </button>
             <button
               className={`btn ${addFacilityMode ? 'btn-active-mode' : 'btn-primary'}`}
               onClick={toggleAddFacilityMode}
               data-testid="add-facility-mode-btn"
             >
-              {addFacilityMode ? '✕ Cancel Placement' : '📍 Add Facility'}
+              {addFacilityMode ? t('mapManagement.cancelPlacement') : t('mapManagement.addFacility')}
             </button>
           </div>
         </div>
         {addHouseMode && (
           <div className="map-instruction-banner" style={{ borderLeftColor: '#3B82F6' }}>
             <span className="instruction-icon">👆</span>
-            <span>Click on the map to place a new vendor house. A form will appear to enter the details.</span>
+            <span>{t('mapManagement.clickToPlaceHouse')}</span>
           </div>
         )}
         {addFacilityMode && (
           <div className="map-instruction-banner">
             <span className="instruction-icon">👆</span>
-            <span>Click on the map to place a new facility. A form will appear to enter the details.</span>
+            <span>{t('mapManagement.clickToPlaceFacility')}</span>
           </div>
         )}
         <div
@@ -1010,15 +1010,15 @@ const MapManagement: React.FC = () => {
         <div className="map-legend">
           <span className="legend-item">
             <span className="legend-icon" style={{ backgroundColor: '#3B82F6', borderRadius: '4px' }}>🏠</span>
-            Vendor Houses
+            {t('mapManagement.vendorHouses')}
           </span>
           {FACILITY_TYPES.slice(0, 5).map(ft => (
             <span key={ft.value} className="legend-item">
               <span className="legend-icon" style={{ backgroundColor: ft.color }}>{ft.icon}</span>
-              {ft.label}
+              {t(`facilities.${ft.value}`)}
             </span>
           ))}
-          <span className="legend-item legend-more">+ more</span>
+          <span className="legend-item legend-more">{t('mapManagement.more')}</span>
         </div>
       </div>
 
@@ -1027,7 +1027,7 @@ const MapManagement: React.FC = () => {
         <div className="edit-modal-overlay" onClick={handleCancelEdit}>
           <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
             <div className="edit-modal-header">
-              <h3>Edit Vendor House: {editingHouse.houseNumber}</h3>
+              <h3>{t('mapManagement.editHouse', { number: editingHouse.houseNumber })}</h3>
               <button
                 className="btn-close"
                 onClick={handleCancelEdit}
@@ -1039,7 +1039,7 @@ const MapManagement: React.FC = () => {
 
             <div className="edit-modal-body">
               <div className={`form-group ${formErrors.houseNumber ? 'has-error' : ''}`}>
-                <label htmlFor="houseNumber">House Number *</label>
+                <label htmlFor="houseNumber">{t('mapManagement.houseNumberLabel')}</label>
                 <input
                   id="houseNumber"
                   type="text"
@@ -1054,7 +1054,7 @@ const MapManagement: React.FC = () => {
               </div>
 
               <div className={`form-group ${formErrors.areaSqm ? 'has-error' : ''}`}>
-                <label htmlFor="areaSqm">Area (m²)</label>
+                <label htmlFor="areaSqm">{t('mapManagement.areaLabel')}</label>
                 <input
                   id="areaSqm"
                   type="number"
@@ -1071,7 +1071,7 @@ const MapManagement: React.FC = () => {
               </div>
 
               <div className={`form-group ${formErrors.price ? 'has-error' : ''}`}>
-                <label htmlFor="price">Price (AZN)</label>
+                <label htmlFor="price">{t('mapManagement.priceLabel')}</label>
                 <input
                   id="price"
                   type="number"
@@ -1088,13 +1088,13 @@ const MapManagement: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="description">Description</label>
+                <label htmlFor="description">{t('mapManagement.description')}</label>
                 <textarea
                   id="description"
                   rows={3}
                   value={editFormData.description}
                   onChange={(e) => handleFormChange('description', e.target.value)}
-                  placeholder="Optional description of the vendor house"
+                  placeholder={t('mapManagement.descriptionPlaceholder')}
                 />
               </div>
 
@@ -1106,7 +1106,7 @@ const MapManagement: React.FC = () => {
                     checked={editFormData.isEnabled}
                     onChange={(e) => handleFormChange('isEnabled', e.target.checked)}
                   />
-                  <span>Enabled (visible on map)</span>
+                  <span>{t('mapManagement.enabledOnMap')}</span>
                 </label>
               </div>
             </div>
@@ -1117,14 +1117,14 @@ const MapManagement: React.FC = () => {
                 onClick={handleCancelEdit}
                 disabled={saving}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 className="btn btn-primary"
                 onClick={handleSave}
                 disabled={saving}
               >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? t('common.loading') : t('mapManagement.saveChanges')}
               </button>
             </div>
           </div>
@@ -1136,7 +1136,7 @@ const MapManagement: React.FC = () => {
         <div className="edit-modal-overlay" onClick={handleCancelDelete}>
           <div className="edit-modal delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
             <div className="edit-modal-header">
-              <h3>Delete Vendor House</h3>
+              <h3>{t('mapManagement.deleteHouse')}</h3>
               <button
                 className="btn-close"
                 onClick={handleCancelDelete}
@@ -1147,10 +1147,10 @@ const MapManagement: React.FC = () => {
             </div>
             <div className="edit-modal-body">
               <p className="delete-warning">
-                Are you sure you want to delete vendor house <strong>{deletingHouse.houseNumber}</strong>?
+                {t('mapManagement.deleteHouseConfirm', { number: deletingHouse.houseNumber })}
               </p>
               <p className="delete-note">
-                This action cannot be undone. The house and all its non-pending data will be permanently removed.
+                {t('mapManagement.deleteHouseNote')}
               </p>
             </div>
             <div className="edit-modal-footer">
@@ -1159,14 +1159,14 @@ const MapManagement: React.FC = () => {
                 onClick={handleCancelDelete}
                 disabled={deleting}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 className="btn btn-danger"
                 onClick={handleConfirmDelete}
                 disabled={deleting}
               >
-                {deleting ? 'Deleting...' : 'Delete House'}
+                {deleting ? t('common.loading') : t('mapManagement.deleteHouseBtn')}
               </button>
             </div>
           </div>
@@ -1178,7 +1178,7 @@ const MapManagement: React.FC = () => {
         <div className="edit-modal-overlay" onClick={handleCancelCreateHouseForm}>
           <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
             <div className="edit-modal-header">
-              <h3>Add New Vendor House</h3>
+              <h3>{t('mapManagement.addNewHouse')}</h3>
               <button
                 className="btn-close"
                 onClick={handleCancelCreateHouseForm}
@@ -1190,7 +1190,7 @@ const MapManagement: React.FC = () => {
 
             <div className="edit-modal-body">
               <div className={`form-group ${createHouseFormErrors.houseNumber ? 'has-error' : ''}`}>
-                <label htmlFor="newHouseNumber">House Number *</label>
+                <label htmlFor="newHouseNumber">{t('mapManagement.houseNumberLabel')}</label>
                 <input
                   id="newHouseNumber"
                   type="text"
@@ -1205,7 +1205,7 @@ const MapManagement: React.FC = () => {
               </div>
 
               <div className={`form-group ${createHouseFormErrors.areaSqm ? 'has-error' : ''}`}>
-                <label htmlFor="newHouseArea">Area (m²)</label>
+                <label htmlFor="newHouseArea">{t('mapManagement.areaLabel')}</label>
                 <input
                   id="newHouseArea"
                   type="number"
@@ -1222,7 +1222,7 @@ const MapManagement: React.FC = () => {
               </div>
 
               <div className={`form-group ${createHouseFormErrors.price ? 'has-error' : ''}`}>
-                <label htmlFor="newHousePrice">Price (AZN)</label>
+                <label htmlFor="newHousePrice">{t('mapManagement.priceLabel')}</label>
                 <input
                   id="newHousePrice"
                   type="number"
@@ -1239,13 +1239,13 @@ const MapManagement: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="newHouseDescription">Description</label>
+                <label htmlFor="newHouseDescription">{t('mapManagement.description')}</label>
                 <textarea
                   id="newHouseDescription"
                   rows={2}
                   value={createHouseFormData.description}
                   onChange={(e) => handleCreateHouseFormChange('description', e.target.value)}
-                  placeholder="Optional description"
+                  placeholder={t('mapManagement.descriptionPlaceholder')}
                 />
               </div>
 
@@ -1284,7 +1284,7 @@ const MapManagement: React.FC = () => {
 
               {addHouseMode && (
                 <div className="location-hint">
-                  <span>📍</span> Location selected from map click
+                  <span>📍</span> {t('mapManagement.locationFromMap')}
                 </div>
               )}
             </div>
@@ -1295,14 +1295,14 @@ const MapManagement: React.FC = () => {
                 onClick={handleCancelCreateHouseForm}
                 disabled={creatingHouse}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 className="btn btn-primary"
                 onClick={handleCreateHouse}
                 disabled={creatingHouse}
               >
-                {creatingHouse ? 'Creating...' : 'Create House'}
+                {creatingHouse ? t('common.loading') : t('mapManagement.createHouse')}
               </button>
             </div>
           </div>
@@ -1312,21 +1312,21 @@ const MapManagement: React.FC = () => {
       {/* Vendor Houses Table */}
       {houses.length === 0 ? (
         <div className="no-houses">
-          <p>No vendor houses found.</p>
-          <p>Click "🏠 Add House" above the map to create a new vendor house.</p>
+          <p>{t('mapManagement.noHousesFound')}</p>
+          <p>{t('mapManagement.addHouseHint')}</p>
         </div>
       ) : (
         <div className="houses-table-container">
           <table className="houses-table">
             <thead>
               <tr>
-                <th>House #</th>
-                <th>Area (m²)</th>
-                <th>Price (AZN)</th>
-                <th>Description</th>
+                <th>{t('bookings.houseNumber')}</th>
+                <th>{t('mapManagement.areaLabel')}</th>
+                <th>{t('mapManagement.priceLabel')}</th>
+                <th>{t('mapManagement.description')}</th>
                 <th>Panorama</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>{t('applicationReview.status')}</th>
+                <th>{t('applicationReview.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -1342,16 +1342,16 @@ const MapManagement: React.FC = () => {
                   </td>
                   <td>
                     {house.panorama360Url ? (
-                      <span className="badge badge-success">Yes</span>
+                      <span className="badge badge-success">{t('mapManagement.yes')}</span>
                     ) : (
-                      <span className="badge badge-muted">No</span>
+                      <span className="badge badge-muted">{t('mapManagement.no')}</span>
                     )}
                   </td>
                   <td>
                     {house.isEnabled ? (
-                      <span className="badge badge-active">Active</span>
+                      <span className="badge badge-active">{t('mapManagement.active')}</span>
                     ) : (
-                      <span className="badge badge-inactive">Disabled</span>
+                      <span className="badge badge-inactive">{t('mapManagement.disabled')}</span>
                     )}
                   </td>
                   <td className="actions-cell">
@@ -1359,20 +1359,20 @@ const MapManagement: React.FC = () => {
                       className="btn btn-sm btn-primary"
                       onClick={() => handleEdit(house)}
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                     <button
                       className="btn btn-sm btn-panorama"
                       onClick={() => handlePanoramaUploadClick(house.id)}
                       disabled={uploadingPanoramaId === house.id}
                     >
-                      {uploadingPanoramaId === house.id ? 'Uploading...' : 'Upload Panorama'}
+                      {uploadingPanoramaId === house.id ? t('mapManagement.uploading') : t('mapManagement.uploadPanorama')}
                     </button>
                     <button
                       className="btn btn-sm btn-danger"
                       onClick={() => handleDeleteClick(house)}
                     >
-                      Delete
+                      {t('common.delete')}
                     </button>
                   </td>
                 </tr>
@@ -1387,7 +1387,7 @@ const MapManagement: React.FC = () => {
       {/* ======================== */}
       <div className="facilities-section">
         <div className="facilities-header">
-          <h2>Facilities</h2>
+          <h2>{t('mapManagement.facilities')}</h2>
           <button
             className="btn btn-primary"
             onClick={() => {
@@ -1396,7 +1396,7 @@ const MapManagement: React.FC = () => {
               setError('');
             }}
           >
-            + Add Facility
+            {t('mapManagement.addFacilityBtn')}
           </button>
         </div>
 

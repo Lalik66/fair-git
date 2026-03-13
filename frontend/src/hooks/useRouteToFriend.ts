@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
+import { distance, point } from '@turf/turf';
 import type { FriendLocation } from '../services/friendsService';
 import type { ActiveRoute, RouteStep, DirectionsResponse, CachedRoute } from '../types/route';
 
@@ -10,6 +11,8 @@ const MAPBOX_TOKEN = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
 interface UseRouteToFriendProps {
   map: mapboxgl.Map | null;
   userLocation: { latitude: number; longitude: number } | null;
+  /** Translation function for error messages (from useTranslation) */
+  t?: (key: string) => string;
 }
 
 interface UseRouteToFriendReturn {
@@ -18,11 +21,13 @@ interface UseRouteToFriendReturn {
   error: string | null;
   fetchRoute: (friend: FriendLocation) => Promise<void>;
   clearRoute: () => void;
+  reportError: (message: string) => void;
   formatDistance: (meters: number) => string;
   formatDuration: (seconds: number) => string;
 }
 
-export function useRouteToFriend({ map, userLocation }: UseRouteToFriendProps): UseRouteToFriendReturn {
+export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps): UseRouteToFriendReturn {
+  const translate = (key: string) => (t ? t(key) : key);
   const [activeRoute, setActiveRoute] = useState<ActiveRoute | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,14 +50,13 @@ export function useRouteToFriend({ map, userLocation }: UseRouteToFriendProps): 
       return null;
     }
 
-    // Check if user has moved more than 100m
+    // Check if user has moved more than 100m (using Turf.js for accuracy)
     const [cachedLng, cachedLat] = cached.userPosition;
-    const distance = Math.sqrt(
-      Math.pow((userLng - cachedLng) * 111320 * Math.cos(userLat * Math.PI / 180), 2) +
-      Math.pow((userLat - cachedLat) * 110540, 2)
-    );
+    const from = point([cachedLng, cachedLat]);
+    const to = point([userLng, userLat]);
+    const distMeters = distance(from, to, { units: 'meters' });
 
-    if (distance > 100) {
+    if (distMeters > 100) {
       routeCache.current.delete(friendId);
       return null;
     }
@@ -132,6 +136,10 @@ export function useRouteToFriend({ map, userLocation }: UseRouteToFriendProps): 
     setIsLoading(false);
     setError(null);
   }, [map]);
+
+  const reportError = useCallback((message: string) => {
+    setError(message);
+  }, []);
 
   /**
    * Helper function to display route on map and fit bounds
@@ -288,16 +296,16 @@ export function useRouteToFriend({ map, userLocation }: UseRouteToFriendProps): 
 
       if (err instanceof Error) {
         if (err.name === 'AbortError') {
-          setError("This is taking too long. Please try again!");
+          setError(translate('route.error.timeout'));
         } else if (err.message.includes('API error')) {
-          setError("Oops! We're having trouble with directions. Please try again.");
+          setError(translate('route.error.apiError'));
         } else if (err.message.includes('No route')) {
-          setError("Sorry, we couldn't find a walking path to your friend. They might be too far away!");
+          setError(translate('route.error.noRoute'));
         } else {
-          setError("Something went wrong. Please try again!");
+          setError(translate('route.error.generic'));
         }
       } else {
-        setError("Something went wrong. Please try again!");
+        setError(translate('route.error.generic'));
       }
 
       setIsLoading(false);
@@ -310,6 +318,7 @@ export function useRouteToFriend({ map, userLocation }: UseRouteToFriendProps): 
     error,
     fetchRoute,
     clearRoute,
+    reportError,
     formatDistance,
     formatDuration,
   };

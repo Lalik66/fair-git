@@ -4,7 +4,7 @@
 .fox-map-peek {
   position: absolute;
   top: 0;
-  right: 22%;
+  left: 5%;
   transform: translateY(-100%);
   width: 90px;
   z-index: 15;
@@ -112,7 +112,7 @@
     opacity: 1;
   }
   100% {
-    transform: translateY(-35%);
+    transform: translateY(-20%);
     opacity: 1;
   }
 }
@@ -135,15 +135,35 @@
 /* ═══════════════════════════════════════════
    Responsive
 ═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .fox-map-peek {
+    left: 4%;
+  }
+}
+
 @media (max-width: 480px) {
   .fox-map-peek {
     width: 64px;
+    left: 12px;
   }
 
   .fox-peek-speech {
     font-size: 0.7rem;
     max-width: 160px;
+    min-width: 100px;
     padding: 5px 10px;
+    left: 0;
+    transform: translateX(0) translateY(-8px) scale(0.9);
+  }
+
+  .fox-peek-speech::before,
+  .fox-peek-speech::after {
+    left: 32px;
+    transform: none;
+  }
+
+  .fox-peek-speech.visible {
+    transform: translateX(0) translateY(0) scale(1);
   }
 }
 

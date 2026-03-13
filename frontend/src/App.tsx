@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -197,9 +197,6 @@ const VendorDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const location = useLocation();
-
-  // Check if we're on a sub-route
-  const isOnSubRoute = location.pathname !== '/vendor' && location.pathname !== '/vendor/';
 
   return (
     <div className="vendor-layout">

@@ -1,0 +1,280 @@
+/* ========================================
+   Reaction Picker Styles (2GIS-inspired)
+   ======================================== */
+
+.reaction-picker {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  min-width: 200px;
+  max-width: 300px;
+  animation: reactionPickerIn 0.2s ease;
+}
+
+@keyframes reactionPickerIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Header */
+.reaction-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  color: white;
+}
+
+.reaction-picker-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.reaction-picker-close {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+  line-height: 1;
+}
+
+.reaction-picker-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Emoji Grid */
+.reaction-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 12px;
+}
+
+.reaction-picker-emoji {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reaction-picker-emoji:hover {
+  background: #F3F4F6;
+  transform: scale(1.15);
+}
+
+.reaction-picker-emoji:active {
+  transform: scale(1);
+  background: #E5E7EB;
+}
+
+/* Focus state for accessibility */
+.reaction-picker-emoji:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #8B5CF6;
+}
+
+.reaction-picker-emoji:focus:not(:focus-visible) {
+  box-shadow: none;
+}
+
+.reaction-picker-emoji:focus-visible {
+  box-shadow: 0 0 0 2px #8B5CF6;
+}
+
+/* ========================================
+   Reaction Picker Modal Overlay
+   ======================================== */
+
+.reaction-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.reaction-picker-overlay .reaction-picker {
+  margin: 20px;
+}
+
+/* ========================================
+   Reaction Badge (on friend avatar)
+   ======================================== */
+
+.friend-reaction-badge {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: white;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
+  animation: badgePop 0.3s ease;
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ========================================
+   Reaction Button in Friend Actions
+   ======================================== */
+
+.friend-reaction-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+  font-size: 1rem;
+}
+
+.friend-reaction-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+}
+
+.friend-reaction-btn:active {
+  transform: scale(1);
+}
+
+/* ========================================
+   Inline Picker (for FriendsPanel)
+   ======================================== */
+
+.reaction-picker-inline {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  z-index: 50;
+}
+
+/* ========================================
+   Map Popup Reaction Button
+   ======================================== */
+
+.friend-popup-reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 6px;
+}
+
+.friend-popup-reaction-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+}
+
+.friend-popup-reaction-btn .reaction-icon {
+  font-size: 1rem;
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+
+@media (max-width: 768px) {
+  .reaction-picker {
+    min-width: 180px;
+    max-width: 260px;
+  }
+
+  .reaction-picker-header {
+    padding: 10px 14px;
+  }
+
+  .reaction-picker-title {
+    font-size: 0.85rem;
+  }
+
+  .reaction-picker-grid {
+    gap: 2px;
+    padding: 10px;
+  }
+
+  .reaction-picker-emoji {
+    width: 38px;
+    height: 38px;
+    font-size: 1.3rem;
+  }
+
+  .friend-reaction-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .friend-reaction-badge {
+    min-width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+  }
+}

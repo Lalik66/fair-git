@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { RouteStep } from '../../types/route';
 import './RouteInstructionsPanel.css';
 
@@ -43,6 +44,8 @@ const RouteInstructionsPanel: React.FC<RouteInstructionsPanelProps> = ({
   isMobile = false,
   friendLocationUpdatedAt
 }) => {
+  const { t } = useTranslation();
+
   // Check if friend location is stale (more than 30 minutes old)
   const getStaleWarning = () => {
     if (!friendLocationUpdatedAt) return null;
@@ -55,7 +58,7 @@ const RouteInstructionsPanel: React.FC<RouteInstructionsPanelProps> = ({
       return (
         <div className="route-stale-warning" role="alert">
           <span aria-hidden="true">Warning</span>
-          <span>Your friend's location was last updated {minutesAgo} minutes ago. The route might not be accurate.</span>
+          <span>{t('route.staleWarning', { minutes: minutesAgo })}</span>
         </div>
       );
     }
@@ -68,7 +71,7 @@ const RouteInstructionsPanel: React.FC<RouteInstructionsPanelProps> = ({
       <div className="route-instructions-header">
         <h3 className="route-friend-name">
           <span>🚶</span>
-          <span>Directions to {friendName}</span>
+          <span>{t('route.directionsTo', { name: friendName })}</span>
         </h3>
         <div className="route-summary">
           <div className="route-metric">
@@ -77,7 +80,7 @@ const RouteInstructionsPanel: React.FC<RouteInstructionsPanelProps> = ({
           </div>
           <div className="route-metric">
             <span className="route-metric-icon">⏱️</span>
-            <span>{formatDuration(totalDuration)} walk</span>
+            <span>{formatDuration(totalDuration)} {t('route.walk')}</span>
           </div>
         </div>
       </div>
@@ -109,9 +112,9 @@ const RouteInstructionsPanel: React.FC<RouteInstructionsPanelProps> = ({
         <button
           className="btn-clear-route"
           onClick={onClearRoute}
-          aria-label="Clear route and close directions"
+          aria-label={t('route.clearRoute')}
         >
-          ✕ Clear Route
+          ✕ {t('route.clearRoute')}
         </button>
       </div>
     </div>

@@ -1126,3 +1126,109 @@
     justify-content: center;
   }
 }
+
+/* ========================================
+   Reactions Feature Styles
+   ======================================== */
+
+/* Reaction Message Toast */
+.reaction-message-toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 500;
+  animation: toastSlideIn 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reaction-message-toast.success {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.reaction-message-toast.error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Friend Popup Actions Container */
+.friend-popup-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.friend-popup-actions .btn {
+  flex: 1;
+  margin: 0;
+}
+
+/* Send Reaction Button in Popup */
+.friend-popup-actions .btn-reaction {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.friend-popup-actions .btn-reaction:hover {
+  background: linear-gradient(135deg, #D97706, #B45309);
+}
+
+.friend-popup-actions .send-reaction-btn {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: white;
+}
+
+.friend-popup-actions .send-reaction-btn:hover {
+  background: linear-gradient(135deg, #D97706, #B45309);
+}
+
+/* Mobile adjustments for reaction toast */
+@media (max-width: 768px) {
+  .reaction-message-toast {
+    bottom: 160px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+    justify-content: center;
+  }
+
+  @keyframes toastSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .friend-popup-actions {
+    flex-direction: column;
+  }
+}

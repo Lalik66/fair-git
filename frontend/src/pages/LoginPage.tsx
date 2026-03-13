@@ -129,7 +129,7 @@ const LoginPage: React.FC = () => {
         <div className="login-card">
           <div className="login-header">
             <h1>{t('auth.login')}</h1>
-            <p>Fair Marketplace</p>
+            <p>{t('common.appName')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="login-form">

@@ -76,7 +76,7 @@ const MapPage: React.FC = () => {
   const [panoramaHouse, setPanoramaHouse] = useState<VendorHouse | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [applicationMessage, setApplicationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [submittingApplication, setSubmittingApplication] = useState(false);
+  const [, setSubmittingApplication] = useState(false);
 
   // Product categories for filter
   const productCategories = [
@@ -326,8 +326,8 @@ const MapPage: React.FC = () => {
 
   // Listen for panorama open events from popup buttons
   useEffect(() => {
-    const handleOpenPanorama = (e: CustomEvent) => {
-      const houseId = e.detail;
+    const handleOpenPanorama = (e: Event) => {
+      const houseId = (e as CustomEvent).detail;
       const house = vendorHouses.find(h => h.id === houseId);
       // Allow opening panorama even without URL - demo fallback will be used
       if (house) {
@@ -335,16 +335,16 @@ const MapPage: React.FC = () => {
       }
     };
 
-    window.addEventListener('openPanorama', handleOpenPanorama as EventListener);
+    window.addEventListener('openPanorama', handleOpenPanorama);
     return () => {
-      window.removeEventListener('openPanorama', handleOpenPanorama as EventListener);
+      window.removeEventListener('openPanorama', handleOpenPanorama);
     };
   }, [vendorHouses]);
 
   // Listen for apply-for-house events from popup buttons
   useEffect(() => {
-    const handleApplyForHouse = async (e: CustomEvent) => {
-      const houseId = e.detail;
+    const handleApplyForHouse = async (e: Event) => {
+      const houseId = (e as CustomEvent).detail;
       if (!selectedFairId) {
         setApplicationMessage({ type: 'error', text: t('map.selectFairFirst', 'Please select a fair first') });
         return;
@@ -374,9 +374,9 @@ const MapPage: React.FC = () => {
       }
     };
 
-    window.addEventListener('applyForHouse', handleApplyForHouse as EventListener);
+    window.addEventListener('applyForHouse', handleApplyForHouse);
     return () => {
-      window.removeEventListener('applyForHouse', handleApplyForHouse as EventListener);
+      window.removeEventListener('applyForHouse', handleApplyForHouse);
     };
   }, [vendorHouses, selectedFairId, fairs, t]);
 

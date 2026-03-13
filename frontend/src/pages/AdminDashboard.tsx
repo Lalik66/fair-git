@@ -19,77 +19,73 @@ const AdminHome: React.FC = () => {
     <>
       <div className="admin-welcome">
         <h2>{t('welcome.title', { defaultValue: 'Welcome!' })}</h2>
-        <p>
-          {t('You are logged in as an administrator.', {
-            defaultValue: 'You are logged in as an administrator.',
-          })}
-        </p>
+        <p>{t('adminDashboard.loggedInAsAdmin')}</p>
       </div>
 
       <div className="admin-cards">
         <div className="admin-card">
           <h3>{t('admin.fairManagement')}</h3>
-          <p>Manage fairs, schedules, and events.</p>
+          <p>{t('adminDashboard.manageFairsDesc')}</p>
           <button
             className="btn btn-primary"
             onClick={() => navigate('/admin/fairs')}
           >
-            {t('Manage Fairs', { defaultValue: 'Manage Fairs' })}
+            {t('adminDashboard.manageFairs')}
           </button>
         </div>
 
         <div className="admin-card">
           <h3>{t('admin.applicationReview')}</h3>
-          <p>Review and approve vendor applications.</p>
+          <p>{t('adminDashboard.reviewApplicationsDesc')}</p>
           <button
             className="btn btn-primary"
             onClick={() => navigate('/admin/applications')}
           >
-            {t('Review Applications', { defaultValue: 'Review Applications' })}
+            {t('adminDashboard.reviewApplications')}
           </button>
         </div>
 
         <div className="admin-card">
           <h3>{t('admin.mapManagement')}</h3>
-          <p>Configure vendor houses and facilities.</p>
+          <p>{t('adminDashboard.configureMapDesc')}</p>
           <button
             className="btn btn-primary"
             onClick={() => navigate('/admin/map')}
           >
-            {t('Manage Map', { defaultValue: 'Manage Map' })}
+            {t('adminDashboard.manageMap')}
           </button>
         </div>
 
         <div className="admin-card">
           <h3>{t('admin.userManagement')}</h3>
-          <p>Manage users and admin accounts.</p>
+          <p>{t('adminDashboard.manageUsersDesc')}</p>
           <button
             className="btn btn-primary"
             onClick={() => navigate('/admin/users')}
           >
-            {t('Manage Users', { defaultValue: 'Manage Users' })}
+            {t('adminDashboard.manageUsers')}
           </button>
         </div>
 
         <div className="admin-card">
-          <h3>{t('admin.activityLogs', { defaultValue: 'Activity Logs' })}</h3>
-          <p>View admin activity history and audit trail.</p>
+          <h3>{t('admin.adminLogs')}</h3>
+          <p>{t('adminDashboard.viewLogsDesc')}</p>
           <button
             className="btn btn-primary"
             onClick={() => navigate('/admin/logs')}
           >
-            {t('View Logs', { defaultValue: 'View Logs' })}
+            {t('adminDashboard.viewLogs')}
           </button>
         </div>
 
         <div className="admin-card">
-          <h3>{t('admin.aboutUs', { defaultValue: 'About Us Page' })}</h3>
-          <p>Edit the About Us page content.</p>
+          <h3>{t('admin.aboutUsEditor')}</h3>
+          <p>{t('adminDashboard.editAboutDesc')}</p>
           <button
             className="btn btn-primary"
             onClick={() => navigate('/admin/about-us')}
           >
-            {t('Edit Content', { defaultValue: 'Edit Content' })}
+            {t('adminDashboard.editContent')}
           </button>
         </div>
       </div>

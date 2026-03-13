@@ -41,6 +41,8 @@ model User {
   conversationsAsParticipant1 Conversation[] @relation("ConversationParticipant1")
   conversationsAsParticipant2 Conversation[] @relation("ConversationParticipant2")
   sentMessages        Message[] @relation("MessageSender")
+  reactionsSent       Reaction[] @relation("ReactionSender")
+  reactionsReceived   Reaction[] @relation("ReactionRecipient")
 
   @@map("users")
 }
@@ -297,4 +299,21 @@ model InviteLink {
   @@map("invite_links")
   @@index([token])
   @@index([createdById])
+}
+
+// Reaction (2GIS-style quick emoji reactions between friends)
+model Reaction {
+  id          String   @id @default(uuid())
+  senderId    String   @map("sender_id")
+  recipientId String   @map("recipient_id")
+  emoji       String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  sender    User @relation("ReactionSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient User @relation("ReactionRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@map("reactions")
 }
