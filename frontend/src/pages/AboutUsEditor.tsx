@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { adminAboutUsApi } from '../services/api';
+import { adminAboutUsApi, adminContactInfoApi } from '../services/api';
 import './AboutUsEditor.css';
 
 interface AboutContent {
@@ -22,6 +22,13 @@ const SECTIONS = [
   { key: 'contact', titleEn: 'Contact Us', titleAz: 'Bizimlə Əlaqə', icon: '📧' },
 ];
 
+interface ContactInfo {
+  phone: string;
+  email: string;
+  facebookUrl: string;
+  instagramUrl: string;
+}
+
 const AboutUsEditor: React.FC = () => {
   const { t } = useTranslation();
   const [content, setContent] = useState<AboutContent[]>([]);
@@ -32,8 +39,19 @@ const AboutUsEditor: React.FC = () => {
   const [editContentEn, setEditContentEn] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Contact info state
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
+    phone: '',
+    email: '',
+    facebookUrl: '',
+    instagramUrl: '',
+  });
+  const [contactInfoLoading, setContactInfoLoading] = useState(true);
+  const [contactInfoSaving, setContactInfoSaving] = useState(false);
+
   useEffect(() => {
     fetchContent();
+    fetchContactInfo();
   }, []);
 
   const fetchContent = async () => {
@@ -46,6 +64,38 @@ const AboutUsEditor: React.FC = () => {
       setMessage({ type: 'error', text: t('aboutUsEditor.contentLoadFailed') });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchContactInfo = async () => {
+    try {
+      setContactInfoLoading(true);
+      const data = await adminContactInfoApi.getContactInfo();
+      setContactInfo({
+        phone: data.phone || '',
+        email: data.email || '',
+        facebookUrl: data.facebookUrl || '',
+        instagramUrl: data.instagramUrl || '',
+      });
+    } catch (error) {
+      console.error('Error fetching contact info:', error);
+      setMessage({ type: 'error', text: t('aboutUsEditor.contactInfoLoadFailed') });
+    } finally {
+      setContactInfoLoading(false);
+    }
+  };
+
+  const saveContactInfo = async () => {
+    try {
+      setContactInfoSaving(true);
+      setMessage(null);
+      await adminContactInfoApi.updateContactInfo(contactInfo);
+      setMessage({ type: 'success', text: t('aboutUsEditor.contactInfoSaved') });
+    } catch (error) {
+      console.error('Error saving contact info:', error);
+      setMessage({ type: 'error', text: t('aboutUsEditor.contactInfoSaveFailed') });
+    } finally {
+      setContactInfoSaving(false);
     }
   };
 
@@ -200,6 +250,68 @@ const AboutUsEditor: React.FC = () => {
               </div>
             );
           })}
+
+          {/* Contact Info Section */}
+          <div className="section-card contact-info-card">
+            <div className="section-header">
+              <h2>
+                <span className="section-icon">📞</span>
+                {t('aboutUsEditor.contactInfoSection')}
+              </h2>
+            </div>
+            <p className="contact-info-desc">{t('aboutUsEditor.contactInfoDesc')}</p>
+            {contactInfoLoading ? (
+              <div className="loading">{t('aboutUsEditor.loadingContent')}</div>
+            ) : (
+              <div className="contact-info-form">
+                <div className="form-group">
+                  <label>{t('aboutUsEditor.phone')}</label>
+                  <input
+                    type="text"
+                    value={contactInfo.phone}
+                    onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
+                    placeholder={t('aboutUsEditor.phonePlaceholder')}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('aboutUsEditor.email')}</label>
+                  <input
+                    type="email"
+                    value={contactInfo.email}
+                    onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
+                    placeholder={t('aboutUsEditor.emailPlaceholder')}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('aboutUsEditor.facebookUrl')}</label>
+                  <input
+                    type="url"
+                    value={contactInfo.facebookUrl}
+                    onChange={(e) => setContactInfo({ ...contactInfo, facebookUrl: e.target.value })}
+                    placeholder={t('aboutUsEditor.facebookPlaceholder')}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('aboutUsEditor.instagramUrl')}</label>
+                  <input
+                    type="url"
+                    value={contactInfo.instagramUrl}
+                    onChange={(e) => setContactInfo({ ...contactInfo, instagramUrl: e.target.value })}
+                    placeholder={t('aboutUsEditor.instagramPlaceholder')}
+                  />
+                </div>
+                <div className="edit-actions">
+                  <button
+                    className="btn btn-primary"
+                    onClick={saveContactInfo}
+                    disabled={contactInfoSaving}
+                  >
+                    {contactInfoSaving ? t('aboutUsEditor.saving') : t('aboutUsEditor.saveChanges')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

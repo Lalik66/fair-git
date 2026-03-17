@@ -428,6 +428,16 @@ export const publicApi = {
     return response.data;
   },
 
+  getContactInfo: async () => {
+    const response = await api.get('/public/contact-info');
+    return response.data as {
+      phone: string | null;
+      email: string | null;
+      facebookUrl: string | null;
+      instagramUrl: string | null;
+    };
+  },
+
   getPastEvents: async () => {
     const response = await api.get('/public/past-events');
     return response.data;
@@ -447,6 +457,30 @@ export const publicApi = {
 
   getMapObjects: async (params?: { search?: string; types?: string; fairId?: string }) => {
     const response = await api.get('/public/map-objects', { params });
+    return response.data;
+  },
+};
+
+// Admin Contact Info API
+export const adminContactInfoApi = {
+  getContactInfo: async () => {
+    const response = await api.get('/admin/contact-info');
+    return response.data as {
+      phone: string;
+      email: string;
+      facebookUrl: string;
+      instagramUrl: string;
+      updatedAt: string | null;
+    };
+  },
+
+  updateContactInfo: async (data: {
+    phone?: string;
+    email?: string;
+    facebookUrl?: string;
+    instagramUrl?: string;
+  }) => {
+    const response = await api.put('/admin/contact-info', data);
     return response.data;
   },
 };

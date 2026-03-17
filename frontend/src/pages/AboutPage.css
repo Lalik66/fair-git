@@ -86,6 +86,74 @@
   font-size: 1.1rem;
 }
 
+/* Contact Info & Social Media Section */
+.about-contact-social-section h2 {
+  margin-bottom: 20px;
+}
+
+.about-contact-social-section .contact-info-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.about-contact-social-section .contact-info-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #166534;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.about-contact-social-section .contact-info-item:hover {
+  opacity: 0.85;
+}
+
+.about-contact-social-section .contact-icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  background: #d4f1e8;
+  border-radius: 10px;
+  color: #166534;
+}
+
+.about-contact-social-section .social-heading {
+  font-size: 1.2rem;
+  color: var(--color-text-primary);
+  margin: 0 0 16px 0;
+  font-weight: 600;
+}
+
+.about-contact-social-section .social-icons-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.about-contact-social-section .social-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: #166534;
+  border-radius: 8px;
+  color: #fff;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.about-contact-social-section .social-icon-link:hover {
+  background: #15803d;
+  transform: translateY(-2px);
+}
+
 /* Upcoming Events Section */
 .upcoming-events-section {
   background: var(--color-background);

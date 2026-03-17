@@ -330,6 +330,30 @@ router.get('/facilities', async (req: Request, res: Response): Promise<void> => 
   }
 });
 
+// Get site contact info (phone, email, social links)
+router.get('/contact-info', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const info = await prisma.siteContactInfo.findFirst({
+      select: {
+        phone: true,
+        email: true,
+        facebookUrl: true,
+        instagramUrl: true,
+      },
+    });
+
+    res.json({
+      phone: info?.phone ?? null,
+      email: info?.email ?? null,
+      facebookUrl: info?.facebookUrl ?? null,
+      instagramUrl: info?.instagramUrl ?? null,
+    });
+  } catch (error) {
+    console.error('Get contact info error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get About Us content
 router.get('/about-us', async (req: Request, res: Response): Promise<void> => {
   try {

@@ -1987,6 +1987,77 @@ router.put('/about-us/:sectionKey', async (req: Request, res: Response): Promise
   }
 });
 
+// Get site contact info for editing
+router.get('/contact-info', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const info = await prisma.siteContactInfo.findFirst({
+      select: {
+        id: true,
+        phone: true,
+        email: true,
+        facebookUrl: true,
+        instagramUrl: true,
+        updatedAt: true,
+      },
+    });
+
+    res.json({
+      phone: info?.phone ?? '',
+      email: info?.email ?? '',
+      facebookUrl: info?.facebookUrl ?? '',
+      instagramUrl: info?.instagramUrl ?? '',
+      updatedAt: info?.updatedAt ?? null,
+    });
+  } catch (error) {
+    console.error('Get contact info error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update site contact info (upsert single row)
+router.put('/contact-info', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { phone, email, facebookUrl, instagramUrl } = req.body;
+
+    const existing = await prisma.siteContactInfo.findFirst();
+    const data = {
+      phone: phone ?? null,
+      email: email ?? null,
+      facebookUrl: facebookUrl ?? null,
+      instagramUrl: instagramUrl ?? null,
+    };
+
+    const info = existing
+      ? await prisma.siteContactInfo.update({
+          where: { id: existing.id },
+          data,
+        })
+      : await prisma.siteContactInfo.create({
+          data,
+        });
+
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'update_contact_info',
+        details: 'Updated site contact information',
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    res.json({
+      phone: info.phone,
+      email: info.email,
+      facebookUrl: info.facebookUrl,
+      instagramUrl: info.instagramUrl,
+      message: 'Contact info updated successfully',
+    });
+  } catch (error) {
+    console.error('Update contact info error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ============================================
 // Vendor House Management (for 360° panorama testing)
 // ============================================

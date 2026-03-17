@@ -227,6 +227,18 @@ model AboutUsContent {
   @@map("about_us_content")
 }
 
+// Site contact info (phone, email, social links) - editable in Admin, single row
+model SiteContactInfo {
+  id           String   @id @default(uuid())
+  phone        String?
+  email        String?
+  facebookUrl  String?  @map("facebook_url")
+  instagramUrl String?  @map("instagram_url")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("site_contact_info")
+}
+
 // User follow relationships (asymmetric - like Twitter/Instagram)
 model UserFollow {
   id          String   @id @default(uuid())
