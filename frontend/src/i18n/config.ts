@@ -668,7 +668,7 @@ const resources = {
 
       // Welcome/Home Page
       welcome: {
-        title: 'Fair Marketplace-ə xoş gəlmisiniz',
+        title: 'Şəhər yarmarkasına xoş gəlmisiniz',
         subtitle: 'Möhtəşəm yarmarkaları və satıcıları kəşf edin',
         countdown: {
           days: 'Gün',

@@ -27,6 +27,10 @@ interface FriendsPanelProps {
   isMobile: boolean;
   userLocation?: UserLocation | null;
   onFlyToFriend?: (lng: number, lat: number) => void;
+  /** When set, use these instead of fetching locations (same data as map polling). */
+  friendLocations?: FriendLocation[];
+  /** Loading state for `friendLocations` when provided by parent. */
+  friendLocationsLoading?: boolean;
 }
 
 // Extended friend type with merged location data
@@ -54,12 +58,17 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
   isMobile,
   userLocation,
   onFlyToFriend,
+  friendLocations: friendLocationsProp,
+  friendLocationsLoading = false,
 }) => {
   const { t } = useTranslation();
   const [friends, setFriends] = useState<FollowingUser[]>([]);
-  const [friendLocations, setFriendLocations] = useState<FriendLocation[]>([]);
+  const [localFriendLocations, setLocalFriendLocations] = useState<FriendLocation[]>([]);
   const [unreadByFriend, setUnreadByFriend] = useState<Map<string, number>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
+  const useSharedLocations = friendLocationsProp !== undefined;
+  const friendLocations = useSharedLocations ? friendLocationsProp : localFriendLocations;
+  const listLoading = isLoading || (useSharedLocations && friendLocationsLoading);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('online');
@@ -97,24 +106,25 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
   const fetchFriendsData = async () => {
     setIsLoading(true);
     try {
-      // Fetch friends list, locations, unread counts, and reaction counts in parallel
-      const [followingList, locations, unreadData, reactionsData] = await Promise.all([
-        getFollowing(),
-        getFriendLocations().catch(() => [] as FriendLocation[]),
+      const followingList = await getFollowing();
+      setFriends(followingList);
+
+      if (!useSharedLocations) {
+        const locations = await getFriendLocations().catch(() => [] as FriendLocation[]);
+        setLocalFriendLocations(locations);
+      }
+
+      const [unreadData, reactionsData] = await Promise.all([
         getUnreadCount().catch(() => ({ totalUnread: 0, byConversation: [] })),
         getReactionCounts().catch(() => ({ byFriend: [] })),
       ]);
-      setFriends(followingList);
-      setFriendLocations(locations);
 
-      // Build unread map by friend ID
       const unreadMap = new Map<string, number>();
       unreadData.byConversation.forEach((conv: UnreadConversation) => {
         unreadMap.set(conv.friendId, conv.unreadCount);
       });
       setUnreadByFriend(unreadMap);
 
-      // Build reactions map by friend ID
       const reactionsMap = new Map<string, number>();
       reactionsData.byFriend.forEach((r: { friendId: string; count: number }) => {
         reactionsMap.set(r.friendId, r.count);
@@ -450,7 +460,7 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
 
         {/* Friends List */}
         <div className="friends-panel-list">
-          {isLoading ? (
+          {listLoading ? (
             <div className="friends-list-loading">
               <div className="spinner"></div>
             </div>

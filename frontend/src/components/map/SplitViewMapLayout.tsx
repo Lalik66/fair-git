@@ -68,7 +68,7 @@ const SplitViewMapLayout: React.FC = () => {
   }, [user]);
 
   // Fetch friends' locations when user is authenticated
-  const { friendLocations } = useFriendsLocations({
+  const { friendLocations, isLoading: friendLocationsLoading } = useFriendsLocations({
     isAuthenticated: !!user,
     isActive: true,
   });
@@ -456,6 +456,8 @@ const SplitViewMapLayout: React.FC = () => {
           isMobile={isMobile}
           userLocation={userLocation}
           onFlyToFriend={handleFlyToFriend}
+          friendLocations={friendLocations}
+          friendLocationsLoading={friendLocationsLoading}
         />
       )}
 
