@@ -91,6 +91,58 @@
   margin-bottom: 20px;
 }
 
+.about-contact-social-section .contact-social-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.about-contact-social-section .contact-social-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.about-contact-social-section .contact-social-mascot {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 220px;
+  text-align: center;
+}
+
+.about-contact-social-section .contact-mascot-gif {
+  width: 100%;
+  height: auto;
+  max-height: min(220px, 35vh);
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .about-contact-social-section .contact-social-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+  }
+
+  .about-contact-social-section .contact-social-main {
+    flex: 1 1 auto;
+  }
+
+  .about-contact-social-section .contact-social-mascot {
+    flex: 0 0 auto;
+    width: 40%;
+    max-width: 260px;
+  }
+
+  .about-contact-social-section .contact-mascot-gif {
+    max-height: min(240px, 32vh);
+  }
+}
+
 .about-contact-social-section .contact-info-rows {
   display: flex;
   flex-direction: column;

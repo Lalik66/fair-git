@@ -217,53 +217,68 @@ const AboutPage: React.FC = () => {
               <span className="section-icon">📞</span>
               {t('about.contactInfo', 'Contact information')}
             </h2>
-            <div className="contact-info-rows">
-              {contactInfo?.phone && (
-                <a href={`tel:${contactInfo.phone}`} className="contact-info-item">
-                  <span className="contact-icon-box">
-                    <PhoneIcon />
-                  </span>
-                  <span className="contact-info-text">{contactInfo.phone}</span>
-                </a>
-              )}
-              {contactInfo?.email && (
-                <a href={`mailto:${contactInfo.email}`} className="contact-info-item">
-                  <span className="contact-icon-box">
-                    <EmailIcon />
-                  </span>
-                  <span className="contact-info-text">{contactInfo.email}</span>
-                </a>
-              )}
-            </div>
-            {(contactInfo?.facebookUrl || contactInfo?.instagramUrl) && (
-              <>
-                <h3 className="social-heading">{t('about.socialMedia', 'Social media')}</h3>
-                <div className="social-icons-row">
-                  {contactInfo?.facebookUrl && (
-                    <a
-                      href={contactInfo.facebookUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="social-icon-link"
-                      aria-label="Facebook"
-                    >
-                      <FacebookIcon />
+            <div className="contact-social-layout">
+              <div className="contact-social-main">
+                <div className="contact-info-rows">
+                  {contactInfo?.phone && (
+                    <a href={`tel:${contactInfo.phone}`} className="contact-info-item">
+                      <span className="contact-icon-box">
+                        <PhoneIcon />
+                      </span>
+                      <span className="contact-info-text">{contactInfo.phone}</span>
                     </a>
                   )}
-                  {contactInfo?.instagramUrl && (
-                    <a
-                      href={contactInfo.instagramUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="social-icon-link"
-                      aria-label="Instagram"
-                    >
-                      <InstagramIcon />
+                  {contactInfo?.email && (
+                    <a href={`mailto:${contactInfo.email}`} className="contact-info-item">
+                      <span className="contact-icon-box">
+                        <EmailIcon />
+                      </span>
+                      <span className="contact-info-text">{contactInfo.email}</span>
                     </a>
                   )}
                 </div>
-              </>
-            )}
+                {(contactInfo?.facebookUrl || contactInfo?.instagramUrl) && (
+                  <>
+                    <h3 className="social-heading">{t('about.socialMedia', 'Social media')}</h3>
+                    <div className="social-icons-row">
+                      {contactInfo?.facebookUrl && (
+                        <a
+                          href={contactInfo.facebookUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="social-icon-link"
+                          aria-label="Facebook"
+                        >
+                          <FacebookIcon />
+                        </a>
+                      )}
+                      {contactInfo?.instagramUrl && (
+                        <a
+                          href={contactInfo.instagramUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="social-icon-link"
+                          aria-label="Instagram"
+                        >
+                          <InstagramIcon />
+                        </a>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="contact-social-mascot" aria-hidden="true">
+                <img
+                  src="/tmnt-donatello.gif"
+                  alt=""
+                  width={260}
+                  height={260}
+                  decoding="async"
+                  loading="lazy"
+                  className="contact-mascot-gif"
+                />
+              </div>
+            </div>
           </section>
         )}
 
