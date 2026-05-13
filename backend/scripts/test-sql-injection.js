@@ -8,7 +8,7 @@ const loginData = JSON.stringify({
 
 const loginOptions = {
   hostname: 'localhost',
-  port: 3001,
+  port: 3002,
   path: '/api/auth/login',
   method: 'POST',
   headers: {
@@ -27,7 +27,7 @@ const loginReq = http.request(loginOptions, (res) => {
     const sqlInjection = encodeURIComponent("'; DROP TABLE users; --");
     const testOptions = {
       hostname: 'localhost',
-      port: 3001,
+      port: 3002,
       path: `/api/admin/applications?status=${sqlInjection}`,
       method: 'GET',
       headers: {

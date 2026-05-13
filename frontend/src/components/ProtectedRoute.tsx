@@ -5,12 +5,16 @@ import { useAuth } from '../contexts/AuthContext';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: 'admin' | 'vendor' | 'user';
+  // Require the user's role to match EXACTLY (no admin bypass). Use for routes
+  // like /select-role that are only meaningful for a specific role.
+  exactRole?: 'admin' | 'vendor' | 'user';
   allowMustChangePassword?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRole,
+  exactRole,
   allowMustChangePassword = false
 }) => {
   const { user, loading } = useAuth();
@@ -45,6 +49,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (user.role === 'admin') {
       return <Navigate to="/admin" replace />;
     } else if (user.role === 'vendor') {
+      return <Navigate to="/vendor" replace />;
+    }
+    return <Navigate to="/" replace />;
+  }
+
+  if (exactRole && user.role !== exactRole) {
+    // Redirect users with a different role to their natural home.
+    if (user.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
+    if (user.role === 'vendor') {
       return <Navigate to="/vendor" replace />;
     }
     return <Navigate to="/" replace />;

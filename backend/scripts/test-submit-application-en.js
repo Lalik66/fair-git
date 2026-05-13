@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-const API_URL = 'http://localhost:3002/api';
+const API_URL = process.env.API_URL || 'http://localhost:3002/api';
 
 async function main() {
   try {

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { prisma } from '../index';
 import {
@@ -16,6 +17,20 @@ const WEATHER_ERROR_MESSAGES = {
 };
 
 const router = Router();
+
+// /chat is an unauthenticated public endpoint backed by paid Gemini API quota.
+// The global limiter in index.ts is too loose (1000/15min) to prevent quota drain,
+// so we apply a tight per-IP limit on top of it.
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // 20 chat messages per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Too many AI chat requests',
+    message: 'Please slow down and try again in a moment.',
+  },
+});
 
 // Baku fallback coordinates
 const BAKU_LAT = 40.4093;
@@ -251,7 +266,7 @@ The weather service is temporarily unavailable. When the user asks about weather
   return context;
 }
 
-router.post('/chat', async (req: Request, res: Response): Promise<void> => {
+router.post('/chat', chatLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {

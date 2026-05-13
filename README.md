@@ -96,21 +96,46 @@ Fair Marketplace is designed for:
 
 5. **Access the application**
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
+   - Backend API: http://localhost:3002
 
 ## Environment Variables
 
+The repo ships `.env.example` templates for each workspace — copy them and fill in real values:
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+### Backend (`backend/.env`)
+
 | Variable | Description |
 |----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `FIRST_ADMIN_EMAIL` | Initial admin account email |
+| `PORT` | Backend port (default `3002`) |
+| `NODE_ENV` | `development` or `production` |
+| `FRONTEND_URL` | Public URL of the frontend (used for CORS + OAuth redirects) |
+| `DATABASE_URL` | Prisma datasource URL (SQLite by default — e.g. `file:./dev.db`) |
+| `JWT_SECRET` | Secret used to sign JWT access tokens |
+| `SESSION_SECRET` | Secret used by express-session (required for Google OAuth state) |
+| `FIRST_ADMIN_EMAIL` | Initial admin account email (seeded on first boot) |
 | `FIRST_ADMIN_PASSWORD` | Initial admin account password |
+| `FIRST_ADMIN_FIRSTNAME` | Initial admin first name (default `Admin`) |
+| `FIRST_ADMIN_LASTNAME` | Initial admin last name (default `User`) |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
-| `CLOUDINARY_URL` | Cloudinary configuration URL |
-| `MAPBOX_TOKEN` | Mapbox API access token |
-| `JWT_SECRET` | Secret for JWT token signing |
-| `EMAIL_*` | Email service configuration |
+| `GOOGLE_CALLBACK_URL` | Google OAuth redirect URI (must match Google Cloud Console) |
+| `GEMINI_API_KEY` | Google Gemini API key for the AI chatbot (`/api/ai/chat`) |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name (image uploads disabled if empty) |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+
+### Frontend (`frontend/.env`)
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_API_URL` | Backend REST base URL (e.g. `/api` for proxied dev, or `http://host:3002/api`) |
+| `VITE_WS_URL` | Socket.io base URL (optional — derived from `VITE_API_URL` if omitted) |
+| `VITE_MAPBOX_TOKEN` | Mapbox public access token (map + route-to-friend feature) |
 
 ## Project Structure
 
@@ -164,7 +189,7 @@ The application uses PostgreSQL with the following main tables:
 ### Vendor (Authenticated)
 - `POST /api/vendor/applications` - Submit application
 - `GET /api/vendor/bookings` - View bookings
-- `PATCH /api/vendor/profile` - Update profile
+- `PUT /api/vendor/profile` - Update profile
 
 ### Admin (Authenticated)
 - `POST /api/admin/fairs` - Create fair
@@ -208,11 +233,19 @@ node prisma/seed-demo-panorama.js
 npm run test
 ```
 
-### Database Migrations
+### Database schema sync
+This project uses SQLite for development and **does not maintain a migrations
+folder** — schema changes are applied with `prisma db push` instead of
+`prisma migrate dev`. To sync `prisma/schema.prisma` to your local database:
+
 ```bash
 cd backend
-npx prisma migrate dev --name <migration-name>
+npx prisma db push
 ```
+
+If you later move to a migrations workflow (e.g. for production Postgres),
+switch to `prisma migrate dev --name <migration-name>` and commit the generated
+files under `backend/prisma/migrations/`.
 
 ### Generate Prisma Client
 ```bash

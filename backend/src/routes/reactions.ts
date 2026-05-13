@@ -1,9 +1,29 @@
 import { Router, Request, Response } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import { prisma } from '../index';
 import { authenticateToken } from '../middleware/auth';
 import { validateMutualFriendship, formatUserName } from '../services/messageService';
 
 const router = Router();
+
+// Per-(sender, recipient) flood protection — a malicious mutual friend
+// shouldn't be able to spam a single recipient's reaction stream.
+// Bucketed by sender+recipient so one bad actor can't burn another user's quota.
+const sendReactionLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // 30 reactions per minute from one sender to one recipient
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Too many reactions sent to this friend. Please slow down.',
+  },
+  keyGenerator: (req: Request): string => {
+    const senderId = req.user?.id ?? req.ip ?? 'unknown';
+    const recipientId =
+      typeof req.body?.recipientId === 'string' ? req.body.recipientId : 'unknown';
+    return `${senderId}:${recipientId}`;
+  },
+});
 
 // Socket.io instance will be set from index.ts
 let io: any = null;
@@ -22,6 +42,7 @@ const ALLOWED_EMOJIS = ['❤️', '🔥', '👀', '🎉', '😠', '👋', '💩'
 router.post(
   '/',
   authenticateToken,
+  sendReactionLimiter,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const senderId = req.user!.id;
