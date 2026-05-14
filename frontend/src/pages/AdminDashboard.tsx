@@ -8,86 +8,124 @@ import FairManagement from './FairManagement';
 import ApplicationReview from './ApplicationReview';
 import AboutUsEditor from './AboutUsEditor';
 import MapManagement from './MapManagement';
+import '../styles/admin-design-system.css';
 import './AdminDashboard.css';
 
-// Admin home/overview component
+// Navigation items configuration
+const NAV_ITEMS = [
+  {
+    group: 'Operate',
+    items: [
+      { path: '/admin', label: 'Dashboard', icon: '\u25A6', exact: true },
+      { path: '/admin/users', label: 'Users', icon: '\u2399' },
+      { path: '/admin/applications', label: 'Applications', icon: '\u2605' },
+      { path: '/admin/fairs', label: 'Fairs', icon: '\u229E' },
+      { path: '/admin/map', label: 'Map editor', icon: '\u2295' },
+    ],
+  },
+  {
+    group: 'Content',
+    items: [
+      { path: '/admin/about-us', label: 'About page', icon: '\u00B6' },
+      { path: '/admin/logs', label: 'Audit log', icon: '\u2318' },
+    ],
+  },
+];
+
+// Admin home/overview component - FestivKids style
 const AdminHome: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   return (
     <>
-      <div className="admin-welcome">
-        <h2>{t('welcome.title', { defaultValue: 'Welcome!' })}</h2>
-        <p>{t('adminDashboard.loggedInAsAdmin')}</p>
+      <div className="hdr">
+        <div>
+          <h2>{getGreeting()}, {user?.firstName || 'Admin'}</h2>
+          <div className="lede">{t('adminDashboard.loggedInAsAdmin')}</div>
+        </div>
       </div>
 
-      <div className="admin-cards">
-        <div className="admin-card">
-          <h3>{t('admin.fairManagement')}</h3>
-          <p>{t('adminDashboard.manageFairsDesc')}</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('/admin/fairs')}
-          >
-            {t('adminDashboard.manageFairs')}
-          </button>
+      {/* Quick stats */}
+      <div className="stats-fk">
+        <div className="stat-fk">
+          <div className="k">Active Fairs</div>
+          <div className="v">2</div>
+          <div className="d">Winter &amp; Spring</div>
         </div>
+        <div className="stat-fk">
+          <div className="k">Vendors</div>
+          <div className="v">48</div>
+          <div className="d"><span className="up">+12%</span> from last month</div>
+        </div>
+        <div className="stat-fk">
+          <div className="k">Pending</div>
+          <div className="v">6</div>
+          <div className="d">Applications</div>
+        </div>
+        <div className="stat-fk">
+          <div className="k">Users</div>
+          <div className="v">156</div>
+          <div className="d"><span className="up">+8%</span> growth</div>
+        </div>
+      </div>
 
-        <div className="admin-card">
-          <h3>{t('admin.applicationReview')}</h3>
-          <p>{t('adminDashboard.reviewApplicationsDesc')}</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('/admin/applications')}
-          >
-            {t('adminDashboard.reviewApplications')}
-          </button>
-        </div>
+      {/* Quick actions grid */}
+      <div className="fairs-grid" style={{ marginTop: '12px' }}>
+        <Link to="/admin/fairs" className="fair-card" style={{ textDecoration: 'none' }}>
+          <div className="cover winter"></div>
+          <div className="body">
+            <h3>{t('admin.fairManagement')}</h3>
+            <div className="when">{t('adminDashboard.manageFairsDesc')}</div>
+          </div>
+        </Link>
 
-        <div className="admin-card">
-          <h3>{t('admin.mapManagement')}</h3>
-          <p>{t('adminDashboard.configureMapDesc')}</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('/admin/map')}
-          >
-            {t('adminDashboard.manageMap')}
-          </button>
-        </div>
+        <Link to="/admin/applications" className="fair-card" style={{ textDecoration: 'none' }}>
+          <div className="cover spring"></div>
+          <div className="body">
+            <h3>{t('admin.applicationReview')}</h3>
+            <div className="when">{t('adminDashboard.reviewApplicationsDesc')}</div>
+          </div>
+        </Link>
 
-        <div className="admin-card">
-          <h3>{t('admin.userManagement')}</h3>
-          <p>{t('adminDashboard.manageUsersDesc')}</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('/admin/users')}
-          >
-            {t('adminDashboard.manageUsers')}
-          </button>
-        </div>
+        <Link to="/admin/map" className="fair-card" style={{ textDecoration: 'none' }}>
+          <div className="cover summer"></div>
+          <div className="body">
+            <h3>{t('admin.mapManagement')}</h3>
+            <div className="when">{t('adminDashboard.configureMapDesc')}</div>
+          </div>
+        </Link>
 
-        <div className="admin-card">
-          <h3>{t('admin.adminLogs')}</h3>
-          <p>{t('adminDashboard.viewLogsDesc')}</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('/admin/logs')}
-          >
-            {t('adminDashboard.viewLogs')}
-          </button>
-        </div>
+        <Link to="/admin/users" className="fair-card" style={{ textDecoration: 'none' }}>
+          <div className="cover autumn"></div>
+          <div className="body">
+            <h3>{t('admin.userManagement')}</h3>
+            <div className="when">{t('adminDashboard.manageUsersDesc')}</div>
+          </div>
+        </Link>
 
-        <div className="admin-card">
-          <h3>{t('admin.aboutUsEditor')}</h3>
-          <p>{t('adminDashboard.editAboutDesc')}</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('/admin/about-us')}
-          >
-            {t('adminDashboard.editContent')}
-          </button>
-        </div>
+        <Link to="/admin/logs" className="fair-card" style={{ textDecoration: 'none' }}>
+          <div className="cover winter"></div>
+          <div className="body">
+            <h3>{t('admin.adminLogs')}</h3>
+            <div className="when">{t('adminDashboard.viewLogsDesc')}</div>
+          </div>
+        </Link>
+
+        <Link to="/admin/about-us" className="fair-card" style={{ textDecoration: 'none' }}>
+          <div className="cover spring"></div>
+          <div className="body">
+            <h3>{t('admin.aboutUsEditor')}</h3>
+            <div className="when">{t('adminDashboard.editAboutDesc')}</div>
+          </div>
+        </Link>
       </div>
     </>
   );
@@ -104,83 +142,129 @@ const AdminDashboard: React.FC = () => {
     navigate('/login');
   };
 
-  // Check if we're on a sub-route
-  const isSubRoute = location.pathname !== '/admin' && location.pathname !== '/admin/';
-
-  // Build breadcrumb items from current path
-  const getBreadcrumbs = () => {
-    const routeLabels: Record<string, string> = {
-      'fairs': t('admin.fairManagement', { defaultValue: 'Fair Management' }),
-      'applications': t('admin.applicationReview', { defaultValue: 'Application Review' }),
-      'users': t('admin.userManagement', { defaultValue: 'User Management' }),
-      'logs': t('admin.adminLogs', { defaultValue: 'Activity Logs' }),
-      'about-us': t('admin.aboutUsEditor', { defaultValue: 'About Us Editor' }),
-      'map': t('admin.mapManagement', { defaultValue: 'Map Management' }),
-    };
-
-    const crumbs: Array<{ label: string; path: string | null }> = [
-      { label: t('admin.dashboard', { defaultValue: 'Dashboard' }), path: '/admin' },
-    ];
-
-    if (isSubRoute) {
-      // Extract the sub-route segment after /admin/
-      const subPath = location.pathname.replace(/^\/admin\/?/, '').split('/')[0];
-      if (subPath && routeLabels[subPath]) {
-        crumbs.push({ label: routeLabels[subPath], path: null }); // last item is current page, no link
-      }
+  const getUserInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
     }
-
-    return crumbs;
+    if (user?.firstName) {
+      return user.firstName.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'A';
   };
 
-  const breadcrumbs = getBreadcrumbs();
+  const isActive = (path: string, exact?: boolean) => {
+    if (exact) {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  // Get current page name for breadcrumbs
+  const getCurrentPageLabel = () => {
+    const routeLabels: Record<string, string> = {
+      'fairs': t('admin.fairManagement', { defaultValue: 'Fairs' }),
+      'applications': t('admin.applicationReview', { defaultValue: 'Applications' }),
+      'users': t('admin.userManagement', { defaultValue: 'Users' }),
+      'logs': t('admin.adminLogs', { defaultValue: 'Audit log' }),
+      'about-us': t('admin.aboutUsEditor', { defaultValue: 'About page' }),
+      'map': t('admin.mapManagement', { defaultValue: 'Map editor' }),
+    };
+    const subPath = location.pathname.replace(/^\/admin\/?/, '').split('/')[0];
+    return routeLabels[subPath] || 'Dashboard';
+  };
+
+  const isSubRoute = location.pathname !== '/admin' && location.pathname !== '/admin/';
 
   return (
-    <div className="admin-dashboard">
-      <header className="admin-header">
-        <div className="admin-header-content">
-          <div className="admin-header-left">
-            <h1>{t('admin.dashboard')}</h1>
-            {isSubRoute && (
-              <nav className="breadcrumb" aria-label="Breadcrumb">
-                <ol className="breadcrumb-list">
-                  {breadcrumbs.map((crumb, index) => (
-                    <li key={index} className={`breadcrumb-item ${crumb.path === null ? 'breadcrumb-active' : ''}`}>
-                      {index > 0 && <span className="breadcrumb-separator">&rsaquo;</span>}
-                      {crumb.path ? (
-                        <Link to={crumb.path} className="breadcrumb-link">{crumb.label}</Link>
-                      ) : (
-                        <span className="breadcrumb-current">{crumb.label}</span>
-                      )}
-                    </li>
-                  ))}
-                </ol>
-              </nav>
-            )}
-          </div>
-          <div className="admin-user-info">
-            <span className="admin-user-name">
-              {user?.firstName} {user?.lastName}
-            </span>
-            <span className="admin-user-email">{user?.email}</span>
-            <button onClick={handleLogout} className="btn btn-secondary btn-sm">
-              {t('auth.logout')}
-            </button>
+    <div className="ad-shell">
+      {/* Sidebar */}
+      <aside className="ad-side">
+        <div className="brand">
+          <span className="dot"></span>
+          FestivKids
+        </div>
+
+        <div className="who">
+          <div className="av">{getUserInitials()}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <b>{user?.firstName || user?.email?.split('@')[0] || 'Admin'}</b>
+            <span>Administrator</span>
           </div>
         </div>
-      </header>
 
-      <main className="admin-main">
-        <Routes>
-          <Route path="/" element={<AdminHome />} />
-          <Route path="/users" element={<UserManagement />} />
-          <Route path="/logs" element={<AdminLogs />} />
-          <Route path="/fairs" element={<FairManagement />} />
-          <Route path="/applications" element={<ApplicationReview />} />
-          <Route path="/about-us" element={<AboutUsEditor />} />
-          <Route path="/map" element={<MapManagement />} />
-        </Routes>
-      </main>
+        <nav className="ad-nav">
+          {NAV_ITEMS.map((group) => (
+            <React.Fragment key={group.group}>
+              <div className="grp">{group.group}</div>
+              {group.items.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={isActive(item.path, item.exact) ? 'active' : ''}
+                >
+                  <span className="ico">{item.icon}</span>
+                  {item.label}
+                </Link>
+              ))}
+            </React.Fragment>
+          ))}
+
+          <div className="grp">Account</div>
+          <Link to="/">
+            <span className="ico">{'\u2190'}</span>
+            Back to site
+          </Link>
+          <button onClick={handleLogout}>
+            <span className="ico">{'\u23FB'}</span>
+            {t('auth.logout')}
+          </button>
+        </nav>
+      </aside>
+
+      {/* Main content */}
+      <div className="ad-main">
+        {/* Top bar */}
+        <div className="ad-top">
+          <div className="crumbs">
+            <Link to="/admin">Admin</Link>
+            {isSubRoute && (
+              <>
+                {' / '}
+                <span className="here">{getCurrentPageLabel()}</span>
+              </>
+            )}
+          </div>
+
+          <div className="search">
+            <span style={{ fontSize: '14px' }}>{'\u2315'}</span>
+            <input placeholder={t('common.search', 'Search...')} />
+            <span className="kbd">{'\u2318'}K</span>
+          </div>
+
+          <div className="right">
+            <span className="pill ok">
+              <span className="dot"></span>
+              System nominal
+            </span>
+          </div>
+        </div>
+
+        {/* Page content */}
+        <div className="ad-page">
+          <Routes>
+            <Route path="/" element={<AdminHome />} />
+            <Route path="/users" element={<UserManagement />} />
+            <Route path="/logs" element={<AdminLogs />} />
+            <Route path="/fairs" element={<FairManagement />} />
+            <Route path="/applications" element={<ApplicationReview />} />
+            <Route path="/about-us" element={<AboutUsEditor />} />
+            <Route path="/map" element={<MapManagement />} />
+          </Routes>
+        </div>
+      </div>
     </div>
   );
 };

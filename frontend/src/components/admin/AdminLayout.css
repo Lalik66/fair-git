@@ -1,0 +1,75 @@
+/* AdminLayout - FestivKids Admin Design */
+@import '../../styles/admin-design-system.css';
+
+/* Override the shell to be full height within app layout */
+.ad-shell {
+  min-height: calc(100vh - 80px); /* Account for main nav */
+  margin: 0;
+  border-radius: 0;
+}
+
+/* Sidebar scrollable if content overflows */
+.ad-side {
+  min-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+/* Main area fills remaining space */
+.ad-main {
+  min-height: calc(100vh - 80px);
+}
+
+/* Crumbs links styling */
+.ad-top .crumbs a {
+  color: var(--fk-soft);
+  text-decoration: none;
+  transition: color var(--fk-transition-fast);
+}
+
+.ad-top .crumbs a:hover {
+  color: var(--fk-ink);
+}
+
+/* Mobile sidebar toggle - for future mobile support */
+.ad-mobile-toggle {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--fk-ink);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 14px -4px rgba(20, 18, 14, 0.4);
+  cursor: pointer;
+  z-index: 100;
+  font-size: 24px;
+}
+
+@media (max-width: 900px) {
+  .ad-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ad-side {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    width: 260px;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.3s ease;
+  }
+
+  .ad-side.open {
+    left: 0;
+  }
+
+  .ad-shell {
+    grid-template-columns: 1fr;
+  }
+}

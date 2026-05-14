@@ -1,183 +1,87 @@
-.admin-dashboard {
-  min-height: 100vh;
-  background-color: var(--color-gray-50);
-}
+/* AdminDashboard.css - FestivKids Admin Layout */
 
-.admin-header {
-  background-color: var(--color-white);
-  border-bottom: 1px solid var(--color-gray-200);
-  box-shadow: var(--shadow-sm);
-}
-
-.admin-header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-4) var(--spacing-6);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.admin-header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.admin-header h1 {
-  font-size: var(--font-size-xl);
-  color: var(--color-gray-900);
+/* Shell fills available space in app container */
+.ad-shell {
+  min-height: calc(100vh - 80px);
   margin: 0;
+  border-radius: 0;
 }
 
-/* Breadcrumb navigation */
-.breadcrumb {
+.ad-side {
+  min-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.ad-main {
+  min-height: calc(100vh - 80px);
+}
+
+/* Crumbs link styling */
+.ad-top .crumbs a {
+  color: var(--fk-soft);
+  text-decoration: none;
+  transition: color var(--fk-transition-fast);
+}
+
+.ad-top .crumbs a:hover {
+  color: var(--fk-ink);
+}
+
+/* Page header override for nested routes */
+.ad-page > .hdr {
+  margin-bottom: 8px;
+}
+
+.ad-page > .hdr h2 {
+  font-family: var(--fk-font-display);
+  font-size: 32px;
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--fk-ink);
+}
+
+.ad-page > .hdr .lede {
+  color: var(--fk-soft);
+  font-size: 13px;
   margin-top: 4px;
 }
 
-.breadcrumb-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 2px;
-}
-
-.breadcrumb-item {
-  display: flex;
-  align-items: center;
-  font-size: var(--font-size-sm);
-}
-
-.breadcrumb-separator {
-  margin: 0 6px;
-  color: var(--color-gray-400, #9CA3AF);
-  font-size: 1rem;
-  font-weight: 300;
-}
-
-.breadcrumb-link {
-  color: var(--primary-blue, #6c7bff);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.breadcrumb-link:hover {
-  color: var(--primary-blue-dark, #4f5bd5);
-  text-decoration: underline;
-}
-
-.breadcrumb-current {
-  color: var(--color-gray-600, #4B5563);
-  font-weight: 500;
-}
-
-.back-link {
-  font-size: var(--font-size-sm);
-  color: var(--primary-blue, #6c7bff);
-  text-decoration: none;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
-.admin-user-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-}
-
-.admin-user-name {
-  font-weight: 500;
-  color: var(--color-gray-900);
-}
-
-.admin-user-email {
-  color: var(--color-gray-500);
-  font-size: var(--font-size-sm);
-}
-
-.btn-sm {
-  padding: var(--spacing-1) var(--spacing-3);
-  font-size: var(--font-size-sm);
-  min-height: 36px;
-}
-
-.admin-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-8) var(--spacing-6);
-}
-
-.admin-welcome {
-  text-align: center;
-  margin-bottom: var(--spacing-8);
-}
-
-.admin-welcome h2 {
-  font-size: var(--font-size-2xl);
-  color: var(--color-gray-900);
-  margin-bottom: var(--spacing-2);
-}
-
-.admin-welcome p {
-  color: var(--color-gray-600);
-  font-size: var(--font-size-lg);
-  margin: 0;
-}
-
-.admin-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-6);
-}
-
-.admin-card {
-  background-color: var(--color-white);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
-  box-shadow: var(--shadow-md);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.admin-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.admin-card h3 {
-  font-size: var(--font-size-lg);
-  color: var(--color-gray-900);
-  margin-bottom: var(--spacing-2);
-}
-
-.admin-card p {
-  color: var(--color-gray-600);
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--spacing-4);
-}
-
-.admin-card .btn {
-  width: 100%;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .admin-header-content {
-    flex-direction: column;
-    gap: var(--spacing-4);
-    text-align: center;
+/* Responsive */
+@media (max-width: 900px) {
+  .ad-shell {
+    grid-template-columns: 1fr;
   }
 
-  .admin-user-info {
-    flex-direction: column;
-    gap: var(--spacing-2);
+  .ad-side {
+    display: none;
   }
 
-  .admin-cards {
+  .ad-top .search {
+    width: 200px;
+  }
+}
+
+@media (max-width: 760px) {
+  .ad-top {
+    flex-wrap: wrap;
+    padding: 14px 16px;
+  }
+
+  .ad-top .search {
+    order: 3;
+    width: 100%;
+  }
+
+  .ad-page {
+    padding: 16px;
+  }
+
+  .stats-fk {
+    grid-template-columns: 1fr;
+  }
+
+  .fairs-grid {
     grid-template-columns: 1fr;
   }
 }

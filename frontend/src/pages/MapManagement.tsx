@@ -131,7 +131,8 @@ const MapManagement: React.FC = () => {
   const [creatingHouse, setCreatingHouse] = useState(false);
   const [addHouseMode, setAddHouseMode] = useState(false);
 
-  // Map state
+  // Map state — frame wraps the Mapbox container so sizing/clipping stays correct inside scrollable admin layout
+  const mapFrameRef = useRef<HTMLDivElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -167,42 +168,73 @@ const MapManagement: React.FC = () => {
     fetchFacilities();
   }, [fetchHouses, fetchFacilities]);
 
-  // Initialize map (re-run when loading changes since the container isn't rendered while loading)
+  // Initialize map after loading spinner unmounts — double rAF waits for layout so container has non-zero size
   useEffect(() => {
     if (loading) return;
-    if (!mapContainerRef.current || mapRef.current) return;
+    let cancelled = false;
+    let raf2 = 0;
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [49.83690275228737, 40.37094989291927], // Baku, Azerbaijan
-      zoom: 18,
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        if (cancelled || !mapContainerRef.current || mapRef.current) return;
+
+        const map = new mapboxgl.Map({
+          container: mapContainerRef.current,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [49.83690275228737, 40.37094989291927], // Baku, Azerbaijan
+          zoom: 18,
+        });
+
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+        map.once('load', () => {
+          map.setZoom(18);
+          map.resize();
+          requestAnimationFrame(() => map.resize());
+          setMapLoaded(true);
+        });
+
+        mapRef.current = map;
+      });
     });
-
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    // Ensure zoom is applied after the map style loads and container has dimensions
-    map.once('load', () => {
-      map.setZoom(18);
-      map.resize();
-      setMapLoaded(true);
-    });
-
-    mapRef.current = map;
 
     return () => {
-      // Cleanup markers
-      markersRef.current.forEach(m => m.remove());
+      cancelled = true;
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
       if (tempMarkerRef.current) {
         tempMarkerRef.current.remove();
         tempMarkerRef.current = null;
       }
-      map.remove();
-      mapRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
       setMapLoaded(false);
     };
   }, [loading]);
+
+  // Keep canvas aligned when the admin panel scroll area or sidebar changes width
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || !mapFrameRef.current) return;
+
+    const resizeMap = () => {
+      mapRef.current?.resize();
+    };
+
+    const ro = new ResizeObserver(resizeMap);
+    ro.observe(mapFrameRef.current);
+    window.addEventListener('resize', resizeMap);
+
+    resizeMap();
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', resizeMap);
+    };
+  }, [mapLoaded]);
 
   // Update facility markers on map
   useEffect(() => {
@@ -1003,10 +1035,11 @@ const MapManagement: React.FC = () => {
           </div>
         )}
         <div
-          ref={mapContainerRef}
-          className={`map-container ${addFacilityMode || addHouseMode ? 'map-placement-mode' : ''}`}
-          style={{ height: '450px', borderRadius: '8px', overflow: 'hidden' }}
-        />
+          ref={mapFrameRef}
+          className={`admin-map-frame ${addFacilityMode || addHouseMode ? 'admin-map-frame--placement' : ''}`}
+        >
+          <div ref={mapContainerRef} className="admin-map-gl-root" />
+        </div>
         <div className="map-legend">
           <span className="legend-item">
             <span className="legend-icon" style={{ backgroundColor: '#3B82F6', borderRadius: '4px' }}>🏠</span>
