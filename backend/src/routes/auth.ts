@@ -280,8 +280,24 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
       where: { id: req.user!.id },
     });
 
-    if (!user || !user.passwordHash) {
-      res.status(400).json({ error: 'Password change not available' });
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // OAuth-only accounts have no passwordHash, so /change-password cannot
+    // succeed for them. Without this clear error, a stale `mustChangePassword`
+    // flag on an OAuth user would trap them in a ProtectedRoute redirect loop
+    // (see frontend/src/components/ProtectedRoute.tsx). Currently latent
+    // because OAuth users are created with mustChangePassword=false, but the
+    // guard is cheap and removes the failure mode for good.
+    if (!user.passwordHash) {
+      res.status(400).json({
+        error: 'OAUTH_ACCOUNT_NO_PASSWORD',
+        message:
+          'This account was created via Google sign-in and has no password set. ' +
+          'Sign in with Google instead of using the password form.',
+      });
       return;
     }
 

@@ -109,9 +109,9 @@ JWT_SECRET="your-super-secret-jwt-key-change-in-production"
 
 # Application Configuration
 NODE_ENV="development"
-PORT="3001"
+PORT="3002"
 FRONTEND_URL="http://localhost:3000"
-BACKEND_URL="http://localhost:3001"
+BACKEND_URL="http://localhost:3002"
 
 # Session Configuration
 SESSION_SECRET="your-session-secret-change-in-production"
@@ -237,8 +237,8 @@ print_access_info() {
     echo "=========================================="
     echo ""
     echo "  Frontend:        http://localhost:3000"
-    echo "  Backend API:     http://localhost:3001"
-    echo "  API Docs:        http://localhost:3001/api-docs (if enabled)"
+    echo "  Backend API:     http://localhost:3002"
+    echo "  API Docs:        http://localhost:3002/api-docs (if enabled)"
     echo ""
     echo "  Default Admin:"
     echo "    Email:    admin@fairmarketplace.com"

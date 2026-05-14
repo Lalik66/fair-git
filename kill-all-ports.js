@@ -1,5 +1,5 @@
 const { execSync } = require('child_process');
-const ports = [3000, 3001, 3002];
+const ports = [3000, 3002];
 for (const port of ports) {
   try {
     const result = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf8' });

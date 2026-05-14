@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { prisma } from '../index';
 import {
@@ -16,6 +17,20 @@ const WEATHER_ERROR_MESSAGES = {
 };
 
 const router = Router();
+
+// /chat is an unauthenticated public endpoint backed by paid Gemini API quota.
+// The global limiter in index.ts is too loose (1000/15min) to prevent quota drain,
+// so we apply a tight per-IP limit on top of it.
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // 20 chat messages per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Too many AI chat requests',
+    message: 'Please slow down and try again in a moment.',
+  },
+});
 
 // Baku fallback coordinates
 const BAKU_LAT = 40.4093;
@@ -39,21 +54,53 @@ const WEATHER_KEYWORDS_EN = [
   'next week',
 ];
 
+// Azerbaijani keywords — listed in both the proper diacritic form and the
+// ASCII-stripped form so the match works regardless of input normalization
+// (note: `ə` and `ı` are not strip-able combining marks, so they need both).
 const WEATHER_KEYWORDS_AZ = [
+  // proper Azerbaijani spelling
   'hava',
   'temperatur',
-  'yagis',
-  'yaginti',
+  'yağış',
+  'yağıntı',
   'proqnoz',
-  'nemlik',
-  'kulek',
+  'nəmlik',
+  'külək',
+  'əsən',
   'qar',
   'soyuq',
   'isti',
+  'yağış olacaqmı',
+  'hava necədir',
+  '7 günlük',
+  'gələn həftə',
+  // ASCII-stripped fallbacks (legacy spellings without diacritics)
+  'yagis',
+  'yaginti',
+  'nemlik',
+  'kulek',
+  'esen',
   'yagis olacaqmi',
   'hava necedir',
   '7 gunluk',
   'gelen hefte',
+];
+
+// Russian weather keywords (the system prompt explicitly invites Russian replies,
+// so weather injection should trigger on Russian queries too).
+const WEATHER_KEYWORDS_RU = [
+  'погода',
+  'температура',
+  'дождь',
+  'осадки',
+  'прогноз',
+  'влажность',
+  'ветер',
+  'снег',
+  'холодно',
+  'жарко',
+  'будет дождь',
+  'какая погода',
 ];
 
 // Daily forecast detection keywords
@@ -63,10 +110,17 @@ const DAILY_FORECAST_KEYWORDS = [
   'proqnoz',
   'next week',
   'gelen hefte',
+  'gələn həftə',
   'forecast',
   'weekly',
   'haftelik',
+  'həftəlik',
   '7 gunluk',
+  '7 günlük',
+  // Russian
+  'прогноз',
+  'на неделю',
+  'еженедельный',
 ];
 
 const BASE_SYSTEM_PROMPT = `Siz Sehir Yarmarkasinin resmi virtual komekcisiniz.
@@ -118,7 +172,11 @@ function containsWeatherKeywords(message: string): boolean {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
 
-  const allKeywords = [...WEATHER_KEYWORDS_EN, ...WEATHER_KEYWORDS_AZ];
+  const allKeywords = [
+    ...WEATHER_KEYWORDS_EN,
+    ...WEATHER_KEYWORDS_AZ,
+    ...WEATHER_KEYWORDS_RU,
+  ];
 
   return allKeywords.some((keyword) => {
     const normalizedKeyword = keyword
@@ -251,7 +309,7 @@ The weather service is temporarily unavailable. When the user asks about weather
   return context;
 }
 
-router.post('/chat', async (req: Request, res: Response): Promise<void> => {
+router.post('/chat', chatLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {

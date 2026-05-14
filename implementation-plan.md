@@ -138,11 +138,18 @@ Returns all map objects (vendor houses + facilities) in a single normalized arra
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `search` | string | `""` | Text search across name/description/house_number |
+| `search` | string | `""` | Text search across name / description / houseNumber |
 | `types` | string (comma-separated) | `""` (all) | Filter: `vendor_house,restaurant,cafe,kids_zone,restroom,taxi,bus_stop,parking` |
 | `fairId` | string (UUID) | active fair | Fair ID to determine house occupancy status |
 
 #### Response Format
+
+> **Note:** This section was originally written as a pre-implementation plan
+> using a nested `metadata` object and snake_case field names. The shipped
+> handler in [`backend/src/routes/public.ts`](backend/src/routes/public.ts)
+> returns a **flat** shape with camelCase field names (and `isAvailable`
+> instead of `isOccupied` — note the inversion). The flat shape below is the
+> source of truth.
 
 ```typescript
 interface MapObjectsResponse {
@@ -151,169 +158,80 @@ interface MapObjectsResponse {
   fairId: string | null;
 }
 
-interface MapObject {
+// Common to every object
+interface MapObjectBase {
   id: string;
-  objectType: string;        // 'vendor_house' | 'restaurant' | 'cafe' | etc.
-  name: string;              // house_number for houses, name for facilities
+  type: string;              // 'vendor_house' | 'restaurant' | 'cafe' | 'kids_zone' | etc.
+  label: string;             // "House H-101" for houses, facility name for facilities
   description: string | null;
   latitude: number;
   longitude: number;
-  colorCategory: 'green' | 'orange' | 'blue' | 'purple' | 'gray';
-  icon: string | null;
+  color: string;             // semantic color category
   emoji: string;
-  metadata: HouseMetadata | FacilityMetadata;
 }
 
-interface HouseMetadata {
-  area_sqm: number | null;
+// Extra fields on vendor houses
+interface VendorHouseObject extends MapObjectBase {
+  type: 'vendor_house';
+  isAvailable: boolean | null;   // null when no fair context, false when a booking holds it
+  houseNumber: string;
+  areaSqm: number | null;
   price: number | null;
-  hasPanorama: boolean;
-  panorama_360_url: string | null;
-  isOccupied: boolean;
+  panorama360Url: string | null;
 }
 
-interface FacilityMetadata {
-  photo_url: string | null;
+// Extra fields on facilities
+interface FacilityObject extends MapObjectBase {
+  photoUrl: string | null;
 }
+
+type MapObject = VendorHouseObject | FacilityObject;
 ```
 
 #### Example Response
 
 ```json
 {
+  "fairId": "d3616bcb-...",
+  "count": 2,
   "objects": [
     {
       "id": "54949ed4-...",
-      "objectType": "vendor_house",
-      "name": "H-101",
+      "type": "vendor_house",
+      "label": "House H-101",
       "description": "Test vendor house H-101",
       "latitude": 40.41745,
       "longitude": 49.86803,
-      "colorCategory": "green",
-      "icon": null,
+      "color": "green",
       "emoji": "🏠",
-      "metadata": {
-        "area_sqm": 45.28,
-        "price": 941.09,
-        "hasPanorama": false,
-        "panorama_360_url": null,
-        "isOccupied": false
-      }
+      "isAvailable": true,
+      "houseNumber": "H-101",
+      "areaSqm": 45.28,
+      "price": 941.09,
+      "panorama360Url": null
     },
     {
       "id": "abc123...",
-      "objectType": "restaurant",
-      "name": "Fair Food Court",
+      "type": "restaurant",
+      "label": "Fair Food Court",
       "description": "Main dining area",
       "latitude": 40.4150,
       "longitude": 49.8700,
-      "colorCategory": "orange",
-      "icon": "utensils",
+      "color": "orange",
       "emoji": "🍽️",
-      "metadata": {
-        "photo_url": "/uploads/food-court.jpg"
-      }
+      "photoUrl": "/uploads/food-court.jpg"
     }
-  ],
-  "count": 2,
-  "fairId": "d3616bcb-..."
+  ]
 }
 ```
 
 #### Handler Implementation
 
-```typescript
-router.get('/api/public/map-objects', async (req, res) => {
-  const { search = '', types = '', fairId } = req.query;
-  const typeFilter = types ? types.split(',').map(t => t.trim()) : [];
-  const searchTerm = search.trim().toLowerCase();
-  const targetFairId = fairId || (await getActiveFairId(prisma));
-  const results: MapObject[] = [];
-
-  // Fetch vendor houses (conditionally)
-  const includeHouses = typeFilter.length === 0 || typeFilter.includes('vendor_house');
-  if (includeHouses) {
-    const houses = await prisma.vendorHouse.findMany({
-      where: {
-        is_enabled: true,
-        ...(searchTerm ? {
-          OR: [
-            { house_number: { contains: searchTerm, mode: 'insensitive' } },
-            { description: { contains: searchTerm, mode: 'insensitive' } },
-          ]
-        } : {})
-      },
-      select: {
-        id: true, house_number: true, area_sqm: true, price: true,
-        description: true, latitude: true, longitude: true, panorama_360_url: true,
-      }
-    });
-
-    const occupiedHouseIds = targetFairId
-      ? await getOccupiedHouseIds(prisma, targetFairId)
-      : new Set<string>();
-
-    for (const house of houses) {
-      results.push({
-        id: house.id,
-        objectType: 'vendor_house',
-        name: house.house_number,
-        description: house.description,
-        latitude: house.latitude,
-        longitude: house.longitude,
-        colorCategory: 'green',
-        icon: null,
-        emoji: '🏠',
-        metadata: {
-          area_sqm: house.area_sqm,
-          price: house.price,
-          hasPanorama: !!house.panorama_360_url,
-          panorama_360_url: house.panorama_360_url,
-          isOccupied: occupiedHouseIds.has(house.id),
-        }
-      });
-    }
-  }
-
-  // Fetch facilities (conditionally)
-  const facilityTypes = typeFilter.filter(t => t !== 'vendor_house');
-  const includeFacilities = typeFilter.length === 0 || facilityTypes.length > 0;
-  if (includeFacilities) {
-    const facilities = await prisma.facility.findMany({
-      where: {
-        ...(facilityTypes.length > 0 ? { type: { in: facilityTypes } } : {}),
-        ...(searchTerm ? {
-          OR: [
-            { name: { contains: searchTerm, mode: 'insensitive' } },
-            { description: { contains: searchTerm, mode: 'insensitive' } },
-          ]
-        } : {})
-      },
-      select: {
-        id: true, name: true, type: true, description: true,
-        latitude: true, longitude: true, photo_url: true, icon: true, color: true,
-      }
-    });
-
-    for (const facility of facilities) {
-      results.push({
-        id: facility.id,
-        objectType: facility.type,
-        name: facility.name,
-        description: facility.description,
-        latitude: facility.latitude,
-        longitude: facility.longitude,
-        colorCategory: getColorCategory(facility.type),
-        icon: facility.icon,
-        emoji: getEmoji(facility.type),
-        metadata: { photo_url: facility.photo_url }
-      });
-    }
-  }
-
-  res.json({ objects: results, count: results.length, fairId: targetFairId });
-});
-```
+See the canonical implementation in
+[`backend/src/routes/public.ts`](backend/src/routes/public.ts) (`GET /api/public/map-objects`).
+It uses Prisma's camelCase model fields (`houseNumber`, `areaSqm`,
+`panorama360Url`, `photoUrl`) which are mapped to snake_case columns via
+`@map` in [`prisma/schema.prisma`](backend/prisma/schema.prisma).
 
 #### Helper Functions
 

@@ -315,17 +315,22 @@ model InviteLink {
 
 // Reaction (2GIS-style quick emoji reactions between friends)
 model Reaction {
-  id          String   @id @default(uuid())
-  senderId    String   @map("sender_id")
-  recipientId String   @map("recipient_id")
+  id          String    @id @default(uuid())
+  senderId    String    @map("sender_id")
+  recipientId String    @map("recipient_id")
   emoji       String
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  // Null = unread by the recipient. Set when the recipient acknowledges via
+  // PATCH /api/friends/reactions/mark-seen. Soft-delete preserves history
+  // for analytics / audit / multi-device sync (replaces the old hard delete).
+  seenAt      DateTime? @map("seen_at")
 
   // Relations
   sender    User @relation("ReactionSender", fields: [senderId], references: [id], onDelete: Cascade)
   recipient User @relation("ReactionRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
 
   @@index([recipientId, createdAt(sort: Desc)])
+  @@index([recipientId, seenAt])
   @@index([senderId])
   @@map("reactions")
 }

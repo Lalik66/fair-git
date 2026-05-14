@@ -45,7 +45,10 @@ export interface GetReactionCountsResponse {
 }
 
 /**
- * Mark reactions seen response
+ * Mark reactions seen response.
+ * `clearedCount` is the number of previously-unread reactions that were
+ * marked as seen on the server (rows are preserved for history — they are
+ * no longer hard-deleted).
  */
 export interface MarkReactionsSeenResponse {
   success: boolean;
@@ -131,9 +134,15 @@ export async function getReactionCounts(): Promise<GetReactionCountsResponse> {
 }
 
 /**
- * Mark reactions as seen (deletes them)
- * @param friendId Optional - clear reactions from specific friend, otherwise clears all
- * @returns Success status and count of cleared reactions
+ * Mark reactions as seen.
+ *
+ * Sets the server-side `seenAt` timestamp on unread reactions so they stop
+ * appearing in the unread-count, without deleting the rows. History is
+ * preserved for audit/analytics and multi-device sync.
+ *
+ * @param friendId Optional - mark only reactions from this friend as seen,
+ *                 otherwise marks all unread reactions for the current user.
+ * @returns Success status and the count of rows marked as seen.
  */
 export async function markReactionsSeen(
   friendId?: string

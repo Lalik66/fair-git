@@ -307,11 +307,13 @@ const AppContent: React.FC = () => {
           <Route path="/oauth-callback" element={<OAuthCallback />} />
           <Route path="/invite/:token" element={<InvitePage />} />
 
-          {/* Role Selection Route - For first-time OAuth users (Feature 3 & 221) */}
+          {/* Role Selection Route - For first-time OAuth users (Feature 3 & 221).
+              exactRole="user" keeps admins/vendors from landing on a page the
+              backend would reject with a confusing 400. */}
           <Route
             path="/select-role"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute exactRole="user">
                 <RoleSelection />
               </ProtectedRoute>
             }
