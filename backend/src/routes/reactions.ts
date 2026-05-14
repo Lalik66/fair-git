@@ -144,11 +144,13 @@ router.get(
     try {
       const userId = req.user!.id;
 
-      // Get reactions grouped by sender
+      // Get UNREAD reactions grouped by sender (seenAt = null).
+      // History rows (seenAt != null) are kept for audit but excluded from counts.
       const reactions = await prisma.reaction.groupBy({
         by: ['senderId'],
         where: {
           recipientId: userId,
+          seenAt: null,
         },
         _count: {
           id: true,
@@ -183,7 +185,12 @@ router.get(
 
 /**
  * PATCH /api/friends/reactions/mark-seen
- * Mark reactions from a friend (or all) as seen by deleting them
+ * Soft-mark unread reactions from a friend (or all) as seen by setting
+ * `seenAt` to the current timestamp. Rows are preserved for audit / history /
+ * multi-device sync — previously this endpoint hard-deleted them.
+ *
+ * Response shape (`clearedCount`) is kept for backwards-compatibility with
+ * existing frontend code; semantically it now means "rows marked seen".
  */
 router.patch(
   '/mark-seen',
@@ -195,15 +202,16 @@ router.patch(
 
       const whereClause: any = {
         recipientId: userId,
+        seenAt: null, // only update rows that are still unread
       };
 
       if (friendId && typeof friendId === 'string') {
         whereClause.senderId = friendId;
       }
 
-      // Delete reactions that have been seen
-      const result = await prisma.reaction.deleteMany({
+      const result = await prisma.reaction.updateMany({
         where: whereClause,
+        data: { seenAt: new Date() },
       });
 
       res.json({

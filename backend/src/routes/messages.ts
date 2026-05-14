@@ -289,7 +289,16 @@ router.get(
 
 /**
  * PATCH /api/friends/messages/:conversationId/read
- * Mark all messages in a conversation as read
+ * Mark all messages in a conversation as read.
+ *
+ * NOTE on param naming: the GET handler above uses `:friendId` (the OTHER
+ * user's id) and this PATCH uses `:conversationId` (the conversation UUID).
+ * They don't collide because the HTTP methods differ, but the asymmetry is
+ * easy to misuse from new client code — callers MUST pass a conversation
+ * UUID here, not a friend's user id. `verifyConversationAccess` below will
+ * 404 on a friendId, which is a confusing failure mode. See
+ * frontend/src/services/friendsMessagesService.ts (markAsRead) for the
+ * canonical caller pattern.
  */
 router.patch(
   '/:conversationId/read',

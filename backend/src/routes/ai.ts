@@ -54,21 +54,53 @@ const WEATHER_KEYWORDS_EN = [
   'next week',
 ];
 
+// Azerbaijani keywords — listed in both the proper diacritic form and the
+// ASCII-stripped form so the match works regardless of input normalization
+// (note: `ə` and `ı` are not strip-able combining marks, so they need both).
 const WEATHER_KEYWORDS_AZ = [
+  // proper Azerbaijani spelling
   'hava',
   'temperatur',
-  'yagis',
-  'yaginti',
+  'yağış',
+  'yağıntı',
   'proqnoz',
-  'nemlik',
-  'kulek',
+  'nəmlik',
+  'külək',
+  'əsən',
   'qar',
   'soyuq',
   'isti',
+  'yağış olacaqmı',
+  'hava necədir',
+  '7 günlük',
+  'gələn həftə',
+  // ASCII-stripped fallbacks (legacy spellings without diacritics)
+  'yagis',
+  'yaginti',
+  'nemlik',
+  'kulek',
+  'esen',
   'yagis olacaqmi',
   'hava necedir',
   '7 gunluk',
   'gelen hefte',
+];
+
+// Russian weather keywords (the system prompt explicitly invites Russian replies,
+// so weather injection should trigger on Russian queries too).
+const WEATHER_KEYWORDS_RU = [
+  'погода',
+  'температура',
+  'дождь',
+  'осадки',
+  'прогноз',
+  'влажность',
+  'ветер',
+  'снег',
+  'холодно',
+  'жарко',
+  'будет дождь',
+  'какая погода',
 ];
 
 // Daily forecast detection keywords
@@ -78,10 +110,17 @@ const DAILY_FORECAST_KEYWORDS = [
   'proqnoz',
   'next week',
   'gelen hefte',
+  'gələn həftə',
   'forecast',
   'weekly',
   'haftelik',
+  'həftəlik',
   '7 gunluk',
+  '7 günlük',
+  // Russian
+  'прогноз',
+  'на неделю',
+  'еженедельный',
 ];
 
 const BASE_SYSTEM_PROMPT = `Siz Sehir Yarmarkasinin resmi virtual komekcisiniz.
@@ -133,7 +172,11 @@ function containsWeatherKeywords(message: string): boolean {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
 
-  const allKeywords = [...WEATHER_KEYWORDS_EN, ...WEATHER_KEYWORDS_AZ];
+  const allKeywords = [
+    ...WEATHER_KEYWORDS_EN,
+    ...WEATHER_KEYWORDS_AZ,
+    ...WEATHER_KEYWORDS_RU,
+  ];
 
   return allKeywords.some((keyword) => {
     const normalizedKeyword = keyword
