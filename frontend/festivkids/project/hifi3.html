@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FestivKids — Hi-Fi 3 · Admin CMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f7f3ec;--bg-2:#efe7d7;--paper:#fffaf0;
+    --ink:#161513;--ink-2:#2a2622;--soft:#6c655b;--rule:#d9d1bd;
+    --accent:#c4423a;--accent-soft:#f4d6d2;
+    --accent-2:#1f4f44;--accent-2-soft:#cce0d8;
+    --gold:#caa14b;--sky:#b4d4e0;
+    --display:'Fraunces',ui-serif,Georgia,serif;
+    --body:'Inter Tight',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--body);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding:36px 36px 80px}
+  .shell{max-width:1480px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+
+  .head{display:flex;justify-content:space-between;align-items:end;gap:24px}
+  .head h1{font-family:var(--display);font-size:42px;font-weight:500;letter-spacing:-0.02em;margin:0;line-height:1}
+  .head .meta{font-family:var(--mono);font-size:11px;color:var(--soft);text-align:right;letter-spacing:1.5px;text-transform:uppercase}
+
+  .surface-title{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 4px}
+  .surface-title .num{font-family:var(--display);font-size:62px;color:var(--accent);font-weight:300;line-height:0.8}
+  .surface-title .t{font-family:var(--display);font-size:28px;font-weight:500;letter-spacing:-0.015em}
+  .surface-title .s{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--soft)}
+
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:3px 10px;font-size:12px;background:#fff;color:var(--ink-2);font-weight:500}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--soft)}
+  .pill.ok{background:#e3eee5;border-color:#bcd6c0;color:#1f4f44}
+  .pill.ok .dot{background:#1f4f44}
+  .pill.warn{background:#faecc6;border-color:#e6c97a;color:#7a5413}
+  .pill.warn .dot{background:#caa14b}
+  .pill.live{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .pill.live .dot{background:var(--accent)}
+  .pill.gold{background:#faf1d9;border-color:#e6c97a;color:#7a5413}
+  .pill.gold .dot{background:var(--gold)}
+  .pill.muted{color:var(--soft)}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;font-size:14px;border:1px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;text-decoration:none;line-height:1;white-space:nowrap;transition:transform .12s ease,box-shadow .12s ease}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(20,18,14,0.3)}
+  .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.ghost{background:transparent;border-color:var(--rule)}
+  .btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+  .btn.icon{padding:8px;width:34px;justify-content:center;border-radius:8px;background:#fff;border-color:var(--rule)}
+
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);font-weight:600}
+  .field input,.field textarea,.field select{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;background:#fff;color:var(--ink);outline:none}
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(20,18,14,0.06)}
+
+  .foot{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase;padding:12px 4px}
+
+  /* ---------- ADMIN SHELL ---------- */
+  .ad{background:var(--paper);border:1px solid var(--rule);border-radius:18px;overflow:hidden;
+    box-shadow:0 1px 0 #fff inset,0 30px 60px -30px rgba(20,18,14,0.18)}
+  .ad-shell{display:grid;grid-template-columns:240px 1fr;min-height:760px}
+  .ad-side{background:var(--ink);color:#fff;padding:22px 16px;display:flex;flex-direction:column;gap:18px}
+  .ad-side .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:20px;font-weight:600;letter-spacing:-0.015em;padding:0 8px}
+  .ad-side .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .ad-side .who{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:10px}
+  .ad-side .who .av{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;font-size:14px}
+  .ad-side .who b{display:block;font-size:13px}
+  .ad-side .who span{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:rgba(255,255,255,0.5);text-transform:uppercase}
+  .ad-nav{display:flex;flex-direction:column;gap:2px}
+  .ad-nav .grp{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.4);text-transform:uppercase;padding:14px 10px 6px}
+  .ad-nav a{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:8px;color:rgba(255,255,255,0.8);font-size:13px;font-weight:500;text-decoration:none;cursor:pointer}
+  .ad-nav a:hover{background:rgba(255,255,255,0.06);color:#fff}
+  .ad-nav a.active{background:var(--accent);color:#fff}
+  .ad-nav a .ico{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;opacity:0.85}
+  .ad-nav a.active .ico{opacity:1}
+  .ad-nav a .badge{margin-left:auto;background:rgba(255,255,255,0.15);font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:999px;letter-spacing:1px}
+  .ad-nav a.active .badge{background:rgba(255,255,255,0.25)}
+
+  .ad-main{display:flex;flex-direction:column;min-width:0}
+  .ad-top{display:flex;align-items:center;justify-content:space-between;padding:18px 26px;border-bottom:1px solid var(--rule);gap:14px}
+  .ad-top .crumbs{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase}
+  .ad-top .crumbs .here{color:var(--ink)}
+  .ad-top .search{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:6px 10px;width:280px;color:var(--soft)}
+  .ad-top .search input{border:0;outline:0;background:transparent;font:inherit;font-size:13px;color:var(--ink);flex:1}
+  .ad-top .right{display:flex;gap:8px;align-items:center}
+
+  .ad-page{padding:24px 26px;display:flex;flex-direction:column;gap:18px;min-height:0}
+  .ad-page > .hdr{display:flex;align-items:end;justify-content:space-between;gap:14px}
+  .ad-page > .hdr h2{font-family:var(--display);font-size:32px;margin:0;font-weight:500;letter-spacing:-0.015em}
+  .ad-page > .hdr .lede{color:var(--soft);font-size:13px;margin-top:4px}
+  .ad-page > .hdr .actions{display:flex;gap:8px}
+
+  /* stats row */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stat{background:#fff;border:1px solid var(--rule);border-radius:14px;padding:16px 18px}
+  .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase}
+  .stat .v{font-family:var(--display);font-size:30px;font-weight:500;letter-spacing:-0.02em;line-height:1.05;margin-top:6px}
+  .stat .d{font-size:11px;color:var(--soft);margin-top:4px;display:flex;gap:6px;align-items:center}
+  .stat .d .up{color:#1f6f4f;font-weight:600}
+  .stat .d .down{color:var(--accent);font-weight:600}
+
+  /* toolbar / filters */
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .toolbar .seg{display:inline-flex;border:1px solid var(--rule);border-radius:10px;background:#fff;overflow:hidden}
+  .toolbar .seg button{border:0;background:transparent;padding:7px 12px;font:inherit;font-size:12px;font-weight:600;color:var(--soft);cursor:pointer}
+  .toolbar .seg button.on{background:var(--ink);color:#fff}
+  .toolbar .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);background:#fff;border-radius:999px;padding:5px 10px;font-size:12px;color:var(--ink-2);cursor:pointer}
+  .toolbar .chip .x{color:var(--soft);font-size:11px;margin-left:4px}
+  .toolbar .spacer{flex:1}
+
+  /* table */
+  .tbl-wrap{background:#fff;border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+  table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl thead th{text-align:left;padding:12px 14px;background:var(--bg-2);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase;font-weight:600;border-bottom:1px solid var(--rule);white-space:nowrap}
+  .tbl tbody td{padding:14px;border-bottom:1px solid var(--rule);vertical-align:middle}
+  .tbl tbody tr:last-child td{border-bottom:0}
+  .tbl tbody tr:hover{background:var(--bg)}
+  .tbl .checkcell{width:36px}
+  .tbl .checkcell input{cursor:pointer}
+  .tbl .who{display:flex;gap:10px;align-items:center}
+  .tbl .who .av{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;font-size:13px;flex:none}
+  .tbl .who.green .av{background:var(--accent-2-soft);color:var(--accent-2)}
+  .tbl .who.gold .av{background:#faf1d9;color:var(--gold)}
+  .tbl .who.sky .av{background:#dceaf0;color:#3a6e80}
+  .tbl .who b{display:block;font-size:13px;font-weight:600}
+  .tbl .who span{font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1px}
+  .tbl .actions{display:flex;gap:4px;justify-content:flex-end}
+  .tbl .actions .btn.icon{padding:6px;width:28px;height:28px}
+
+  /* pagination */
+  .pager{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid var(--rule);background:var(--bg);font-size:12px;color:var(--soft)}
+  .pager .pages{display:flex;gap:4px}
+  .pager .pages button{border:1px solid var(--rule);background:#fff;border-radius:7px;width:28px;height:28px;font:inherit;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer}
+  .pager .pages button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  /* fairs grid */
+  .fairs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .fair{background:#fff;border:1px solid var(--rule);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .fair .cover{height:120px;position:relative;border-bottom:1px solid var(--rule);background:#cfe1eb url('https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=900&q=70') center/cover}
+  .fair .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,18,14,0) 40%,rgba(20,18,14,0.25));pointer-events:none}
+  .fair .cover.spring{background:#dceedb url('https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=900&q=70') center/cover}
+  .fair .cover.summer{background:#fff0d6 url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=70') center/cover}
+  .fair .cover.autumn{background:#f4d6d2 url('https://images.unsplash.com/photo-1508361727343-ca787442dcd7?auto=format&fit=crop&w=900&q=70') center/cover}
+  .fair .cover.draft{background:repeating-linear-gradient(45deg,#efe7d7 0 8px,#f7f3ec 8px 16px)}
+  .fair .cover .badge{position:absolute;top:10px;left:10px}
+  .fair .cover .menu{position:absolute;top:10px;right:10px;background:#fff;border:1px solid var(--rule);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--soft);cursor:pointer}
+  .fair .body{padding:14px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .fair h3{font-family:var(--display);font-size:20px;margin:0;font-weight:500;letter-spacing:-0.01em}
+  .fair .when{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--soft)}
+  .fair .stats-mini{display:flex;gap:16px;font-size:12px;color:var(--ink-2);margin-top:auto;padding-top:8px;border-top:1px dashed var(--rule)}
+  .fair .stats-mini b{display:block;font-family:var(--display);font-size:18px;font-weight:600;letter-spacing:-0.01em}
+  .fair .stats-mini .l{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase}
+  .fair-add{
+    border:2px dashed var(--rule);background:transparent;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:30px;color:var(--soft);cursor:pointer;
+    min-height:240px;
+  }
+  .fair-add:hover{border-color:var(--ink);color:var(--ink);background:rgba(255,255,255,0.4)}
+  .fair-add .plus{width:36px;height:36px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:22px}
+
+  /* ---------- MAP CMS ---------- */
+  .map-cms{display:grid;grid-template-columns:280px 1fr 320px;min-height:680px;border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:#fff}
+  .mc-side{border-right:1px solid var(--rule);background:var(--paper);padding:14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+  .mc-side .sec{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--soft);text-transform:uppercase;padding:6px 4px}
+  .mc-tools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .mc-tools button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border:1px solid var(--rule);background:#fff;border-radius:8px;cursor:pointer;font:inherit;font-size:10px;font-weight:600;color:var(--ink-2)}
+  .mc-tools button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .mc-tools .ico{width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+
+  .mc-layers{display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:6px}
+  .mc-layer{display:flex;gap:8px;align-items:center;padding:7px 8px;border-radius:6px;font-size:13px;cursor:pointer}
+  .mc-layer:hover{background:var(--bg)}
+  .mc-layer.on{background:var(--bg)}
+  .mc-layer .dot{width:8px;height:8px;border-radius:2px;background:var(--accent)}
+  .mc-layer .dot.green{background:var(--accent-2)}
+  .mc-layer .dot.gold{background:var(--gold)}
+  .mc-layer .dot.sky{background:#3a6e80}
+  .mc-layer .dot.muted{background:var(--soft)}
+  .mc-layer .count{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1px}
+  .mc-layer .eye{width:14px;height:14px;color:var(--soft)}
+
+  .mc-canvas{position:relative;background:#f1ece1;overflow:hidden}
+  .mc-canvas svg.streets{position:absolute;inset:0;width:100%;height:100%}
+  .mc-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer}
+  .mc-pin .head{width:30px;height:30px;border-radius:50% 50% 50% 0;background:var(--accent);transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--mono);font-size:10px;font-weight:600;border:2px solid #fff;box-shadow:0 4px 10px -2px rgba(20,18,14,0.4)}
+  .mc-pin .head span{transform:rotate(45deg)}
+  .mc-pin.green .head{background:var(--accent-2)}
+  .mc-pin.gold .head{background:var(--gold)}
+  .mc-pin.sky .head{background:#3a6e80}
+  .mc-pin.draft .head{background:#fff;border:2px dashed var(--soft);color:var(--soft)}
+  .mc-pin.sel .head{outline:3px solid var(--ink);outline-offset:2px}
+
+  .mc-canvas .grid-overlay{position:absolute;inset:0;background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:40px 40px;opacity:0.18;pointer-events:none}
+  .mc-toolbar{position:absolute;top:14px;left:14px;display:flex;gap:6px;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:4px;box-shadow:0 4px 14px -6px rgba(20,18,14,0.2)}
+  .mc-toolbar button{border:0;background:transparent;padding:7px 10px;font:inherit;font-size:11px;font-weight:600;color:var(--ink-2);border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .mc-toolbar button.on{background:var(--ink);color:#fff}
+  .mc-zoom{position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;background:#fff;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+  .mc-zoom button{border:0;background:transparent;width:30px;height:30px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--rule)}
+  .mc-zoom button:last-child{border-bottom:0}
+
+  .mc-banner{position:absolute;bottom:14px;left:14px;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:8px 12px;font-size:12px;display:flex;gap:10px;align-items:center;box-shadow:0 4px 14px -6px rgba(20,18,14,0.2)}
+  .mc-banner b{font-weight:600}
+
+  .mc-insp{border-left:1px solid var(--rule);background:var(--paper);padding:18px 20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+  .mc-insp .insp-head{display:flex;justify-content:space-between;align-items:center}
+  .mc-insp .pin-id{font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase}
+  .mc-insp h3{font-family:var(--display);font-size:24px;margin:0;font-weight:500;letter-spacing:-0.015em;line-height:1.1}
+  .mc-insp .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mc-insp .col{font-size:13px}
+  .mc-insp .photo{height:120px;border-radius:10px;background:#dceaf0 url('https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=600&q=70') center/cover;border:1px dashed var(--rule);display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:11px;font-family:var(--mono);letter-spacing:1px}
+  .mc-insp .links-360{background:#fff;border:1px solid var(--rule);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+  .mc-insp .links-360 .l{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+  .mc-insp .links-360 .l b{font-weight:600}
+  .mc-insp .links-360 .l span{font-family:var(--mono);font-size:10px;color:var(--soft)}
+  .mc-insp .save{display:flex;gap:6px;margin-top:auto;padding-top:10px;border-top:1px dashed var(--rule)}
+
+  /* ---------- ABOUT CMS ---------- */
+  .about-cms{display:grid;grid-template-columns:420px 1fr;min-height:740px;border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:var(--paper)}
+  .ac-edit{padding:22px 22px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;border-right:1px solid var(--rule);background:#fff}
+  .ac-edit .blocks{display:flex;flex-direction:column;gap:10px}
+  .ac-block{border:1px solid var(--rule);border-radius:10px;background:var(--paper);padding:10px 12px;display:flex;gap:10px;align-items:center;cursor:pointer}
+  .ac-block:hover{border-color:var(--ink-2)}
+  .ac-block.on{border-color:var(--ink);background:#fff;box-shadow:0 0 0 3px rgba(20,18,14,0.05)}
+  .ac-block .grip{color:var(--soft);font-size:14px;cursor:grab}
+  .ac-block .icob{width:30px;height:30px;border-radius:7px;background:var(--bg-2);display:flex;align-items:center;justify-content:center;color:var(--ink-2);font-size:14px}
+  .ac-block .meta{flex:1;min-width:0}
+  .ac-block .meta b{display:block;font-size:13px}
+  .ac-block .meta span{font-family:var(--mono);font-size:9px;color:var(--soft);letter-spacing:1px;text-transform:uppercase}
+  .ac-block .actions{display:flex;gap:2px;color:var(--soft)}
+  .ac-block .actions button{border:0;background:transparent;cursor:pointer;color:inherit;padding:4px}
+  .ac-add-block{border:1.5px dashed var(--rule);background:transparent;border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--soft);font-weight:600;font-size:13px;cursor:pointer}
+  .ac-add-block:hover{border-color:var(--ink);color:var(--ink)}
+
+  .ac-edit .editor{background:#fff;border:1px solid var(--rule);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+  .ac-edit .editor .lang-tabs{display:flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden;width:max-content}
+  .ac-edit .editor .lang-tabs button{border:0;background:#fff;padding:6px 14px;font:inherit;font-size:11px;font-weight:600;color:var(--soft);cursor:pointer;font-family:var(--mono);letter-spacing:1px}
+  .ac-edit .editor .lang-tabs button.on{background:var(--ink);color:#fff}
+  .ac-edit .editor .toolbar-rt{display:flex;gap:2px;border:1px solid var(--rule);border-radius:8px;padding:3px;width:max-content;background:var(--paper)}
+  .ac-edit .editor .toolbar-rt button{border:0;background:transparent;width:28px;height:28px;font:inherit;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;border-radius:5px}
+  .ac-edit .editor .toolbar-rt button:hover,.ac-edit .editor .toolbar-rt button.on{background:var(--ink);color:#fff}
+
+  .ac-preview{background:var(--bg);padding:30px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+  .ac-preview .frame-bar{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase}
+  .ac-preview .device{display:flex;gap:6px}
+  .ac-preview .device button{border:1px solid var(--rule);background:#fff;border-radius:6px;padding:5px 10px;font:inherit;font-size:11px;font-weight:600;color:var(--ink-2);cursor:pointer}
+  .ac-preview .device button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .ac-frame{background:#fff;border:1px solid var(--rule);border-radius:14px;padding:50px 60px;display:flex;flex-direction:column;gap:26px;flex:1;min-height:0;overflow-y:auto}
+  .ac-frame h1.about-title{font-family:var(--display);font-size:54px;margin:0;font-weight:500;letter-spacing:-0.02em;line-height:1;text-wrap:balance}
+  .ac-frame h1.about-title em{font-style:italic;font-weight:400;color:var(--accent)}
+  .ac-frame .lede{font-size:18px;line-height:1.55;max-width:640px;color:var(--ink-2);text-wrap:pretty}
+  .ac-frame .pull{
+    background:var(--accent-2);color:#fff;padding:30px;border-radius:14px;
+    display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+  }
+  .ac-frame .pull .num{font-family:var(--display);font-size:84px;line-height:0.9;font-weight:300}
+  .ac-frame .pull p{margin:0;font-size:15px;line-height:1.5;color:rgba(255,255,255,0.85)}
+  .ac-frame .pull p b{color:#fff;font-weight:600}
+  .ac-frame .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .ac-frame .gallery .img{aspect-ratio:1.2;border-radius:10px;background:#cfe1eb url('https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=900&q=70') center/cover}
+  .ac-frame .gallery .img:nth-child(2){background:#dceedb url('https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=900&q=70') center/cover}
+  .ac-frame .gallery .img:nth-child(3){background:#fff0d6 url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=70') center/cover}
+  .ac-frame .selectable{position:relative;cursor:pointer}
+  .ac-frame .selectable.on{outline:2px solid var(--accent);outline-offset:6px;border-radius:6px}
+  .ac-frame .selectable.on::before{
+    content:attr(data-label);position:absolute;top:-22px;left:0;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#fff;background:var(--accent);padding:2px 8px;border-radius:4px
+  }
+
+  /* notes block */
+  .notes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 4px}
+  .note{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:18px}
+  .note .k{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--soft);text-transform:uppercase;margin-bottom:8px}
+  .note h5{font-family:var(--display);font-size:18px;margin:0 0 6px;font-weight:500;letter-spacing:-0.01em}
+  .note p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.55}
+
+  @media (max-width:1200px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .map-cms{grid-template-columns:240px 1fr}
+    .map-cms .mc-insp{display:none}
+    .about-cms{grid-template-columns:1fr}
+    .fairs{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:760px){
+    .ad-shell{grid-template-columns:1fr}
+    .ad-side{display:none}
+    .fairs{grid-template-columns:1fr}
+    .stats{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="head">
+    <div>
+      <h1>FestivKids — Hi-Fi 3</h1>
+      <div class="eyebrow" style="margin-top:8px">Admin CMS · users · fairs · map · about</div>
+    </div>
+    <div class="meta">
+      <div>round 3 · admin tools</div>
+      <div>4 surfaces · 1 design system</div>
+    </div>
+  </header>
+
+  <section class="notes" data-screen-label="00 Round 3 notes">
+    <div class="note">
+      <div class="k">Decision · Users</div>
+      <h5>One screen, four roles.</h5>
+      <p>Visitor, Vendor, Admin, Banned all share a single table with a pill column — easier than role-specific views, and admins switch contexts constantly.</p>
+    </div>
+    <div class="note">
+      <div class="k">Decision · Fairs</div>
+      <h5>Cards over rows.</h5>
+      <p>Fairs are big visual moments. Cards with cover art + a "+ create" tile communicate the calendar at a glance. Drill in for the deep editor.</p>
+    </div>
+    <div class="note">
+      <div class="k">Decision · Map CMS</div>
+      <h5>Three-pane editor.</h5>
+      <p>Tools left, canvas centre, inspector right. Snap-to-grid is on by default; layers map directly to public-side filters so admins see what visitors see.</p>
+    </div>
+  </section>
+
+  <!-- ============== 07 · ADMIN USERS ============== -->
+  <section data-screen-label="07 Admin · Users">
+    <div class="surface-title">
+      <div style="display:flex;align-items:end;gap:14px">
+        <div class="surface-title num">07</div>
+        <div>
+          <div class="s">Admin · /admin/users</div>
+          <div class="t">Users management</div>
+        </div>
+      </div>
+      <div class="eyebrow">visitor · vendor · admin · banned</div>
+    </div>
+
+    <div class="ad" style="margin-top:14px">
+      <div class="ad-shell">
+        <!-- SIDE NAV -->
+        <aside class="ad-side">
+          <div class="brand"><span class="dot"></span>FestivKids · Admin</div>
+          <div class="who">
+            <div class="av">A</div>
+            <div style="flex:1">
+              <b>Aysel B.</b>
+              <span>Super-admin</span>
+            </div>
+          </div>
+          <nav class="ad-nav">
+            <div class="grp">Operate</div>
+            <a><span class="ico">▦</span>Dashboard</a>
+            <a class="active"><span class="ico">⎙</span>Users <span class="badge">2.4k</span></a>
+            <a><span class="ico">★</span>Applications <span class="badge">12</span></a>
+            <a><span class="ico">⊞</span>Fairs</a>
+            <a><span class="ico">⊕</span>Map editor</a>
+            <div class="grp">Content</div>
+            <a><span class="ico">¶</span>About page</a>
+            <a><span class="ico">✉</span>Newsletter</a>
+            <a><span class="ico">⌘</span>Audit log</a>
+            <div class="grp">System</div>
+            <a><span class="ico">⚙</span>Settings</a>
+          </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="ad-main">
+          <div class="ad-top">
+            <div class="crumbs">Admin / <span class="here">Users</span></div>
+            <div class="search">
+              <span style="font-size:14px">⌕</span>
+              <input placeholder="Search by name, email, phone…"/>
+              <span style="font-family:var(--mono);font-size:9px;border:1px solid var(--rule);border-radius:4px;padding:1px 4px">⌘K</span>
+            </div>
+            <div class="right">
+              <span class="pill"><span class="dot"></span>EN</span>
+              <span class="pill ok"><span class="dot"></span>System nominal</span>
+            </div>
+          </div>
+
+          <div class="ad-page">
+            <div class="hdr">
+              <div>
+                <h2>Users</h2>
+                <div class="lede">2,431 accounts · 38 new this week · 4 banned · 12 vendor applications open.</div>
+              </div>
+              <div class="actions">
+                <button class="btn ghost sm">↑ Export CSV</button>
+                <button class="btn primary sm">+ Invite admin</button>
+              </div>
+            </div>
+
+            <!-- stats -->
+            <div class="stats">
+              <div class="stat"><div class="k">Visitors</div><div class="v">2,194</div><div class="d"><span class="up">↑ 38</span><span>this week</span></div></div>
+              <div class="stat"><div class="k">Vendors</div><div class="v">218</div><div class="d"><span class="up">↑ 6</span><span>this week · 12 pending</span></div></div>
+              <div class="stat"><div class="k">Admins</div><div class="v">15</div><div class="d"><span>3 super · 12 staff</span></div></div>
+              <div class="stat"><div class="k">Banned</div><div class="v">4</div><div class="d"><span class="down">↑ 1</span><span>this month</span></div></div>
+            </div>
+
+            <!-- toolbar -->
+            <div class="toolbar">
+              <div class="seg">
+                <button class="on">All · 2,431</button>
+                <button>Visitor</button>
+                <button>Vendor</button>
+                <button>Admin</button>
+                <button>Banned</button>
+              </div>
+              <span class="chip">Joined: any <span class="x">▾</span></span>
+              <span class="chip">Source: Google · OAuth <span class="x">×</span></span>
+              <span class="chip">Region: any <span class="x">▾</span></span>
+              <span class="spacer"></span>
+              <span style="font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1px">12 selected</span>
+              <button class="btn ghost sm">Email…</button>
+              <button class="btn ghost sm" style="color:var(--accent);border-color:var(--accent-soft)">Suspend</button>
+            </div>
+
+            <!-- table -->
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th class="checkcell"><input type="checkbox"/></th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Last seen</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="checkcell"><input type="checkbox" checked/></td>
+                    <td>
+                      <div class="who">
+                        <div class="av">A</div>
+                        <div><b>Aytan Mammadova</b><span>aytan@example.az</span></div>
+                      </div>
+                    </td>
+                    <td><span class="pill">Visitor</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Mar 14 '26</span></td>
+                    <td><span style="color:var(--accent-2);font-weight:600;font-size:12px">● 2 min ago</span></td>
+                    <td><span class="pill muted">OAuth · Google</span></td>
+                    <td><span class="pill ok"><span class="dot"></span>Active</span></td>
+                    <td>
+                      <div class="actions">
+                        <button class="btn icon" title="View">↗</button>
+                        <button class="btn icon" title="Edit">✎</button>
+                        <button class="btn icon" title="More">⋯</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="checkcell"><input type="checkbox" checked/></td>
+                    <td>
+                      <div class="who green">
+                        <div class="av">N</div>
+                        <div><b>Nigar Aliyeva — Sweet Snowflakes</b><span>sweetsnow.az@example.com</span></div>
+                      </div>
+                    </td>
+                    <td><span class="pill"><span class="dot" style="background:var(--accent-2)"></span>Vendor</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Nov 02 '25</span></td>
+                    <td><span style="font-size:12px;color:var(--soft)">12 min ago</span></td>
+                    <td><span class="pill muted">Email</span></td>
+                    <td><span class="pill ok"><span class="dot"></span>Approved · A-3</span></td>
+                    <td>
+                      <div class="actions">
+                        <button class="btn icon" title="View">↗</button>
+                        <button class="btn icon" title="Edit">✎</button>
+                        <button class="btn icon" title="More">⋯</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="checkcell"><input type="checkbox"/></td>
+                    <td>
+                      <div class="who gold">
+                        <div class="av">A</div>
+                        <div><b>Aysel Bayramova</b><span>aysel@festivkids.az · admin invite</span></div>
+                      </div>
+                    </td>
+                    <td><span class="pill gold"><span class="dot"></span>Super-admin</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Jan 04 '25</span></td>
+                    <td><span style="color:var(--accent-2);font-weight:600;font-size:12px">● now</span></td>
+                    <td><span class="pill muted">Invited</span></td>
+                    <td><span class="pill ok"><span class="dot"></span>Active</span></td>
+                    <td>
+                      <div class="actions">
+                        <button class="btn icon" title="View">↗</button>
+                        <button class="btn icon" title="Edit">✎</button>
+                        <button class="btn icon" title="More">⋯</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="checkcell"><input type="checkbox"/></td>
+                    <td>
+                      <div class="who sky">
+                        <div class="av">R</div>
+                        <div><b>Rashad Quliyev</b><span>r.quliyev@example.az</span></div>
+                      </div>
+                    </td>
+                    <td><span class="pill">Visitor</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Apr 22 '26</span></td>
+                    <td><span style="font-size:12px;color:var(--soft)">3 days ago</span></td>
+                    <td><span class="pill muted">OAuth · Facebook</span></td>
+                    <td><span class="pill warn"><span class="dot"></span>Unverified</span></td>
+                    <td>
+                      <div class="actions">
+                        <button class="btn icon" title="View">↗</button>
+                        <button class="btn icon" title="Edit">✎</button>
+                        <button class="btn icon" title="More">⋯</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="checkcell"><input type="checkbox"/></td>
+                    <td>
+                      <div class="who">
+                        <div class="av" style="background:#f4d6d2;color:var(--accent)">L</div>
+                        <div><b>Leyla Hasanova — Tiny Forest Toys</b><span>tinyforest@example.com · awaiting decision</span></div>
+                      </div>
+                    </td>
+                    <td><span class="pill">Vendor (pending)</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Apr 30 '26</span></td>
+                    <td><span style="font-size:12px;color:var(--soft)">6 hrs ago</span></td>
+                    <td><span class="pill muted">Email</span></td>
+                    <td><span class="pill warn"><span class="dot"></span>Application · 18h</span></td>
+                    <td>
+                      <div class="actions">
+                        <button class="btn icon" title="View">↗</button>
+                        <button class="btn icon" title="Edit">✎</button>
+                        <button class="btn icon" title="More">⋯</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="checkcell"><input type="checkbox"/></td>
+                    <td>
+                      <div class="who">
+                        <div class="av" style="background:#e6c8c5;color:#7a2a23">K</div>
+                        <div><b>Kamran "spam.bot" Account</b><span>kamran-spam@throwaway.io</span></div>
+                      </div>
+                    </td>
+                    <td><span class="pill">Visitor</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Apr 28 '26</span></td>
+                    <td><span style="font-size:12px;color:var(--soft)">5 days ago</span></td>
+                    <td><span class="pill muted">Email · disposable</span></td>
+                    <td><span class="pill" style="background:#f4d6d2;border-color:var(--accent);color:var(--accent)"><span class="dot" style="background:var(--accent)"></span>Banned</span></td>
+                    <td>
+                      <div class="actions">
+                        <button class="btn icon" title="View">↗</button>
+                        <button class="btn icon" title="Restore">↺</button>
+                        <button class="btn icon" title="More">⋯</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="checkcell"><input type="checkbox"/></td>
+                    <td>
+                      <div class="who green">
+                        <div class="av">İ</div>
+                        <div><b>İlkin Hüseynov — Şəki Kərəyağı</b><span>sheki.dairy@example.com</span></div>
+                      </div>
+                    </td>
+                    <td><span class="pill"><span class="dot" style="background:var(--accent-2)"></span>Vendor</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Sep 18 '25</span></td>
+                    <td><span style="font-size:12px;color:var(--soft)">1 hr ago</span></td>
+                    <td><span class="pill muted">Email</span></td>
+                    <td><span class="pill ok"><span class="dot"></span>Approved · B-12</span></td>
+                    <td>
+                      <div class="actions">
+                        <button class="btn icon" title="View">↗</button>
+                        <button class="btn icon" title="Edit">✎</button>
+                        <button class="btn icon" title="More">⋯</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="pager">
+                <div>Showing 1–7 of 2,431 · 12 selected</div>
+                <div class="pages">
+                  <button>‹</button>
+                  <button class="on">1</button>
+                  <button>2</button>
+                  <button>3</button>
+                  <button>4</button>
+                  <button>…</button>
+                  <button>348</button>
+                  <button>›</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== 08 · ADMIN FAIRS ============== -->
+  <section data-screen-label="08 Admin · Fairs">
+    <div class="surface-title">
+      <div style="display:flex;align-items:end;gap:14px">
+        <div class="surface-title num">08</div>
+        <div>
+          <div class="s">Admin · /admin/fairs</div>
+          <div class="t">Fairs &amp; events</div>
+        </div>
+      </div>
+      <div class="eyebrow">live · upcoming · drafts · archive</div>
+    </div>
+
+    <div class="ad" style="margin-top:14px">
+      <div class="ad-shell">
+        <aside class="ad-side">
+          <div class="brand"><span class="dot"></span>FestivKids · Admin</div>
+          <div class="who">
+            <div class="av">A</div>
+            <div style="flex:1"><b>Aysel B.</b><span>Super-admin</span></div>
+          </div>
+          <nav class="ad-nav">
+            <div class="grp">Operate</div>
+            <a><span class="ico">▦</span>Dashboard</a>
+            <a><span class="ico">⎙</span>Users <span class="badge">2.4k</span></a>
+            <a><span class="ico">★</span>Applications <span class="badge">12</span></a>
+            <a class="active"><span class="ico">⊞</span>Fairs <span class="badge">5</span></a>
+            <a><span class="ico">⊕</span>Map editor</a>
+            <div class="grp">Content</div>
+            <a><span class="ico">¶</span>About page</a>
+            <a><span class="ico">✉</span>Newsletter</a>
+            <a><span class="ico">⌘</span>Audit log</a>
+          </nav>
+        </aside>
+
+        <div class="ad-main">
+          <div class="ad-top">
+            <div class="crumbs">Admin / <span class="here">Fairs</span></div>
+            <div class="search">
+              <span style="font-size:14px">⌕</span>
+              <input placeholder="Find a fair…"/>
+            </div>
+            <div class="right">
+              <span class="pill ok"><span class="dot"></span>1 live · 7 days remaining</span>
+            </div>
+          </div>
+
+          <div class="ad-page">
+            <div class="hdr">
+              <div>
+                <h2>Fairs &amp; events</h2>
+                <div class="lede">5 events · 1 live · 2 upcoming · 1 draft · 1 archived. The next fair opens in 7 days.</div>
+              </div>
+              <div class="actions">
+                <button class="btn ghost sm">📅 Calendar view</button>
+                <button class="btn primary sm">+ New fair</button>
+              </div>
+            </div>
+
+            <div class="toolbar">
+              <div class="seg">
+                <button class="on">All · 5</button>
+                <button>Live · 1</button>
+                <button>Upcoming · 2</button>
+                <button>Draft · 1</button>
+                <button>Archive · 1</button>
+              </div>
+              <span class="chip">Year: 2026 <span class="x">▾</span></span>
+              <span class="chip">Region: any <span class="x">▾</span></span>
+              <span class="spacer"></span>
+              <span style="font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1px">Sort: Date ↓</span>
+            </div>
+
+            <div class="fairs">
+              <!-- LIVE -->
+              <article class="fair">
+                <div class="cover">
+                  <span class="pill live badge"><span class="dot"></span>Live · ends in 7d</span>
+                  <button class="menu" aria-label="More">⋯</button>
+                </div>
+                <div class="body">
+                  <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+                    <div>
+                      <h3>Winter Fair · Baku 2026</h3>
+                      <div class="when">Yasamal Park · Dec 18 → Jan 6</div>
+                    </div>
+                    <span class="pill" style="font-family:var(--mono);font-size:10px">v 2.4</span>
+                  </div>
+                  <div class="stats-mini">
+                    <div><div class="l">Houses</div><b>48</b></div>
+                    <div><div class="l">Vendors</div><b>62</b></div>
+                    <div><div class="l">Visitors</div><b>11.2k</b></div>
+                    <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+                      <button class="btn ghost sm">↗ Open</button>
+                      <button class="btn primary sm">Edit</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- UPCOMING -->
+              <article class="fair">
+                <div class="cover spring">
+                  <span class="pill warn badge"><span class="dot"></span>Upcoming · Apr 4</span>
+                  <button class="menu">⋯</button>
+                </div>
+                <div class="body">
+                  <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+                    <div>
+                      <h3>Spring Fair · Ganja 2026</h3>
+                      <div class="when">Heydar Aliyev Park · Apr 4 → 19</div>
+                    </div>
+                    <span class="pill" style="font-family:var(--mono);font-size:10px">v 0.7</span>
+                  </div>
+                  <div class="stats-mini">
+                    <div><div class="l">Houses</div><b>32</b></div>
+                    <div><div class="l">Vendors</div><b>14</b></div>
+                    <div><div class="l">Tickets</div><b>—</b></div>
+                    <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+                      <button class="btn ghost sm">Preview</button>
+                      <button class="btn primary sm">Edit</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- UPCOMING 2 -->
+              <article class="fair">
+                <div class="cover summer">
+                  <span class="pill warn badge"><span class="dot"></span>Upcoming · Jun 7</span>
+                  <button class="menu">⋯</button>
+                </div>
+                <div class="body">
+                  <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+                    <div>
+                      <h3>Night Bazaar · Baku</h3>
+                      <div class="when">Old City Square · Jun 7 (one night)</div>
+                    </div>
+                    <span class="pill" style="font-family:var(--mono);font-size:10px">v 0.3</span>
+                  </div>
+                  <div class="stats-mini">
+                    <div><div class="l">Houses</div><b>18</b></div>
+                    <div><div class="l">Vendors</div><b>6</b></div>
+                    <div><div class="l">Tickets</div><b>—</b></div>
+                    <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+                      <button class="btn ghost sm">Preview</button>
+                      <button class="btn primary sm">Edit</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- DRAFT -->
+              <article class="fair">
+                <div class="cover draft">
+                  <span class="pill badge"><span class="dot"></span>Draft · not visible</span>
+                  <button class="menu">⋯</button>
+                </div>
+                <div class="body">
+                  <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+                    <div>
+                      <h3>Harvest · Şəki 2026</h3>
+                      <div class="when">Khan's Garden · Sep 12 → 26</div>
+                    </div>
+                    <span class="pill" style="font-family:var(--mono);font-size:10px">v 0.1</span>
+                  </div>
+                  <div class="stats-mini">
+                    <div><div class="l">Houses</div><b>—</b></div>
+                    <div><div class="l">Vendors</div><b>—</b></div>
+                    <div><div class="l">Tickets</div><b>—</b></div>
+                    <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+                      <button class="btn ghost sm">Discard</button>
+                      <button class="btn primary sm">Continue</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- ARCHIVE -->
+              <article class="fair" style="opacity:0.78">
+                <div class="cover autumn">
+                  <span class="pill badge muted"><span class="dot"></span>Archived · ended Jan 6 '25</span>
+                  <button class="menu">⋯</button>
+                </div>
+                <div class="body">
+                  <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+                    <div>
+                      <h3>Winter Fair · Baku 2025</h3>
+                      <div class="when">Yasamal Park · Dec 19 '24 → Jan 6 '25</div>
+                    </div>
+                    <span class="pill" style="font-family:var(--mono);font-size:10px">v 4.0 final</span>
+                  </div>
+                  <div class="stats-mini">
+                    <div><div class="l">Houses</div><b>42</b></div>
+                    <div><div class="l">Vendors</div><b>54</b></div>
+                    <div><div class="l">Visitors</div><b>9.4k</b></div>
+                    <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+                      <button class="btn ghost sm">↑ Duplicate</button>
+                      <button class="btn ghost sm">Stats</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- ADD NEW -->
+              <button class="fair-add">
+                <span class="plus">+</span>
+                <b>Plan a new fair</b>
+                <span style="font-size:12px;font-weight:400">Use a template or start from scratch</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== 09 · MAP CMS ============== -->
+  <section data-screen-label="09 Admin · Map CMS">
+    <div class="surface-title">
+      <div style="display:flex;align-items:end;gap:14px">
+        <div class="surface-title num">09</div>
+        <div>
+          <div class="s">Admin · /admin/map</div>
+          <div class="t">Map editor — Winter Baku '26</div>
+        </div>
+      </div>
+      <div class="eyebrow">place houses · draw paths · attach 360°</div>
+    </div>
+
+    <div class="ad" style="margin-top:14px">
+      <div class="ad-shell">
+        <aside class="ad-side">
+          <div class="brand"><span class="dot"></span>FestivKids · Admin</div>
+          <div class="who">
+            <div class="av">A</div>
+            <div style="flex:1"><b>Aysel B.</b><span>Super-admin</span></div>
+          </div>
+          <nav class="ad-nav">
+            <div class="grp">Operate</div>
+            <a><span class="ico">▦</span>Dashboard</a>
+            <a><span class="ico">⎙</span>Users</a>
+            <a><span class="ico">★</span>Applications <span class="badge">12</span></a>
+            <a><span class="ico">⊞</span>Fairs</a>
+            <a class="active"><span class="ico">⊕</span>Map editor</a>
+            <div class="grp">Content</div>
+            <a><span class="ico">¶</span>About page</a>
+            <a><span class="ico">⌘</span>Audit log</a>
+          </nav>
+        </aside>
+
+        <div class="ad-main">
+          <div class="ad-top">
+            <div class="crumbs">Admin / Fairs / Winter Baku '26 / <span class="here">Map</span></div>
+            <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--soft)">
+              <span class="pill"><span class="dot" style="background:var(--accent-2)"></span>Auto-saved 2s ago</span>
+              <span class="pill warn"><span class="dot"></span>2 unpublished changes</span>
+            </div>
+            <div class="right">
+              <button class="btn ghost sm">↗ Open public</button>
+              <button class="btn primary sm">Publish changes</button>
+            </div>
+          </div>
+
+          <div class="ad-page" style="padding:18px 18px;flex:1">
+
+            <div class="map-cms">
+              <!-- LEFT: tools + layers -->
+              <aside class="mc-side">
+                <div class="sec">Tools</div>
+                <div class="mc-tools">
+                  <button class="on" title="Select"><span class="ico">↖</span>Select</button>
+                  <button title="Place pin"><span class="ico">⊕</span>Pin</button>
+                  <button title="Draw path"><span class="ico">⎯</span>Path</button>
+                  <button title="Polygon"><span class="ico">⬠</span>Area</button>
+                  <button title="Text label"><span class="ico">¶</span>Text</button>
+                  <button title="Upload base map"><span class="ico">⤴</span>Base</button>
+                  <button title="Snap toggle (on)"><span class="ico">⊞</span>Snap</button>
+                  <button title="Measure"><span class="ico">↔</span>Meas.</button>
+                </div>
+
+                <div class="sec">Layers</div>
+                <div class="mc-layers">
+                  <div class="mc-layer on"><span class="dot"></span>Vendor houses<span class="count">48</span><span class="eye">👁</span></div>
+                  <div class="mc-layer"><span class="dot green"></span>Workshops<span class="count">12</span><span class="eye">👁</span></div>
+                  <div class="mc-layer"><span class="dot gold"></span>Stages &amp; shows<span class="count">4</span><span class="eye">👁</span></div>
+                  <div class="mc-layer"><span class="dot sky"></span>Facilities<span class="count">14</span><span class="eye">👁</span></div>
+                  <div class="mc-layer"><span class="dot muted"></span>Paths &amp; routes<span class="count">26</span><span class="eye">👁</span></div>
+                  <div class="mc-layer" style="opacity:0.5"><span class="dot muted"></span>Base map<span class="count">·</span><span class="eye">👁</span></div>
+                </div>
+
+                <div class="sec">Quick add</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <button class="btn ghost sm" style="justify-content:flex-start">+ Vendor house</button>
+                  <button class="btn ghost sm" style="justify-content:flex-start">+ Workshop tent</button>
+                  <button class="btn ghost sm" style="justify-content:flex-start">+ Toilet / facility</button>
+                  <button class="btn ghost sm" style="justify-content:flex-start">+ Stage</button>
+                </div>
+
+                <div class="sec" style="margin-top:auto">View</div>
+                <div style="display:flex;gap:6px;font-size:11px;color:var(--soft)">
+                  <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" checked/>Grid</label>
+                  <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" checked/>Snap</label>
+                  <label style="display:flex;gap:4px;align-items:center"><input type="checkbox"/>Labels</label>
+                </div>
+              </aside>
+
+              <!-- CENTRE: canvas -->
+              <div class="mc-canvas">
+                <svg class="streets" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+                  <g stroke="#161513" stroke-width="3" fill="none" opacity="0.45" stroke-linecap="round">
+                    <path d="M 0 220 C 200 200, 400 260, 1000 240"/>
+                    <path d="M 0 420 C 280 400, 520 460, 1000 430"/>
+                    <path d="M 200 0 C 220 200, 180 400, 240 700"/>
+                    <path d="M 600 0 C 580 200, 640 380, 600 700"/>
+                    <path d="M 820 0 C 800 220, 860 460, 820 700"/>
+                  </g>
+                  <path d="M 320 280 L 720 280 L 720 480 L 320 480 Z" fill="#dde8d2" stroke="#1f4f44" stroke-opacity="0.5" stroke-width="2"/>
+                  <text x="520" y="390" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1f4f44" letter-spacing="2" opacity="0.6">YASAMAL PARK</text>
+                  <!-- planned route -->
+                  <g stroke="#c4423a" stroke-width="2" fill="none" stroke-dasharray="6 5" opacity="0.65">
+                    <path d="M 360 320 L 460 320 L 460 420 L 620 420"/>
+                  </g>
+                </svg>
+
+                <div class="grid-overlay"></div>
+
+                <!-- toolbar floating -->
+                <div class="mc-toolbar">
+                  <button class="on">↖ Select</button>
+                  <button>⊕ Pin</button>
+                  <button>⎯ Path</button>
+                  <button>↶ Undo</button>
+                  <button>↷ Redo</button>
+                </div>
+
+                <!-- pins -->
+                <div class="mc-pin" style="left:36%;top:46%"><div class="head"><span>A1</span></div></div>
+                <div class="mc-pin" style="left:46%;top:46%"><div class="head"><span>A2</span></div></div>
+                <div class="mc-pin sel" style="left:54%;top:48%"><div class="head"><span>A3</span></div></div>
+                <div class="mc-pin" style="left:62%;top:48%"><div class="head"><span>A4</span></div></div>
+                <div class="mc-pin green" style="left:48%;top:62%"><div class="head"><span>W1</span></div></div>
+                <div class="mc-pin green" style="left:58%;top:62%"><div class="head"><span>W2</span></div></div>
+                <div class="mc-pin gold" style="left:42%;top:34%"><div class="head"><span>S1</span></div></div>
+                <div class="mc-pin sky" style="left:30%;top:60%"><div class="head"><span>WC</span></div></div>
+                <div class="mc-pin sky" style="left:72%;top:36%"><div class="head"><span>☕</span></div></div>
+                <div class="mc-pin draft" style="left:68%;top:56%"><div class="head"><span>+</span></div></div>
+
+                <div class="mc-zoom">
+                  <button>+</button>
+                  <button>−</button>
+                  <button>⌖</button>
+                </div>
+
+                <div class="mc-banner">
+                  <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase">Selected</span>
+                  <b>House A-3 · Sweet Snowflakes</b>
+                  <span style="color:var(--soft)">·</span>
+                  <span style="font-family:var(--mono);font-size:11px;color:var(--soft)">42.0094 N · 49.8271 E</span>
+                </div>
+              </div>
+
+              <!-- RIGHT: inspector -->
+              <aside class="mc-insp">
+                <div class="insp-head">
+                  <div>
+                    <div class="pin-id">House · A-3</div>
+                    <h3>Sweet Snowflakes</h3>
+                  </div>
+                  <button class="btn icon" title="More">⋯</button>
+                </div>
+
+                <div class="row">
+                  <div class="field"><label>House code</label><input value="A-3"/></div>
+                  <div class="field"><label>Hall</label><select><option>Hall A — Crafts</option><option>Hall B — Food</option><option>Hall C — Workshops</option></select></div>
+                </div>
+
+                <div class="field">
+                  <label>Vendor</label>
+                  <div style="display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:8px 10px">
+                    <div style="width:28px;height:28px;border-radius:50%;background:var(--accent-2-soft);color:var(--accent-2);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;font-size:13px">N</div>
+                    <div style="flex:1"><b style="font-size:13px">Nigar Aliyeva</b><div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--soft)">SWEETSNOW.AZ</div></div>
+                    <button class="btn icon" title="Change">↗</button>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="field"><label>Lat</label><input value="42.00942" style="font-family:var(--mono);font-size:12px"/></div>
+                  <div class="field"><label>Lng</label><input value="49.82716" style="font-family:var(--mono);font-size:12px"/></div>
+                </div>
+
+                <div class="field">
+                  <label>Cover photo</label>
+                  <div class="photo" style="position:relative"><span style="position:absolute;left:8px;bottom:8px;font-family:var(--mono);font-size:9px;color:#fff;background:rgba(20,18,14,0.5);padding:3px 7px;border-radius:4px;letter-spacing:1px">SWEET SNOWFLAKES · COVER</span></div>
+                </div>
+
+                <div class="field">
+                  <label>360° captures</label>
+                  <div class="links-360">
+                    <div class="l"><b>Front of stand</b><span>360 · 8.4 MB · ↗</span></div>
+                    <div class="l"><b>Inside the cabin</b><span>360 · 6.9 MB · ↗</span></div>
+                    <div class="l" style="color:var(--soft)"><b>+ Add capture</b><span></span></div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="field"><label>Status</label>
+                    <select>
+                      <option>Published — visible</option>
+                      <option>Draft</option>
+                      <option>Hidden</option>
+                    </select>
+                  </div>
+                  <div class="field"><label>Layer</label>
+                    <select><option>Vendor houses</option><option>Workshops</option><option>Stages</option><option>Facilities</option></select>
+                  </div>
+                </div>
+
+                <div class="save">
+                  <button class="btn ghost sm" style="flex:1">Discard</button>
+                  <button class="btn primary sm" style="flex:1">Save pin</button>
+                </div>
+              </aside>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== 10 · ABOUT CMS ============== -->
+  <section data-screen-label="10 Admin · About CMS">
+    <div class="surface-title">
+      <div style="display:flex;align-items:end;gap:14px">
+        <div class="surface-title num">10</div>
+        <div>
+          <div class="s">Admin · /admin/about</div>
+          <div class="t">About page editor</div>
+        </div>
+      </div>
+      <div class="eyebrow">block-based · EN ↔ AZ side-by-side · live preview</div>
+    </div>
+
+    <div class="ad" style="margin-top:14px">
+      <div class="ad-shell">
+        <aside class="ad-side">
+          <div class="brand"><span class="dot"></span>FestivKids · Admin</div>
+          <div class="who"><div class="av">A</div><div style="flex:1"><b>Aysel B.</b><span>Super-admin</span></div></div>
+          <nav class="ad-nav">
+            <div class="grp">Operate</div>
+            <a><span class="ico">▦</span>Dashboard</a>
+            <a><span class="ico">⎙</span>Users</a>
+            <a><span class="ico">★</span>Applications <span class="badge">12</span></a>
+            <a><span class="ico">⊞</span>Fairs</a>
+            <a><span class="ico">⊕</span>Map editor</a>
+            <div class="grp">Content</div>
+            <a class="active"><span class="ico">¶</span>About page</a>
+            <a><span class="ico">✉</span>Newsletter</a>
+            <a><span class="ico">⌘</span>Audit log</a>
+          </nav>
+        </aside>
+
+        <div class="ad-main">
+          <div class="ad-top">
+            <div class="crumbs">Admin / Content / <span class="here">About page</span></div>
+            <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--soft)">
+              <span class="pill"><span class="dot" style="background:var(--accent-2)"></span>Auto-saved 4s ago</span>
+              <span class="pill warn"><span class="dot"></span>Pull-quote · AZ missing</span>
+            </div>
+            <div class="right">
+              <button class="btn ghost sm">↗ View public</button>
+              <button class="btn primary sm">Publish</button>
+            </div>
+          </div>
+
+          <div class="ad-page" style="padding:0;flex:1">
+            <div class="about-cms">
+              <!-- LEFT: editor -->
+              <div class="ac-edit">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div>
+                    <div class="eyebrow">Page</div>
+                    <div style="font-family:var(--display);font-size:22px;font-weight:500;letter-spacing:-0.015em">About FestivKids</div>
+                  </div>
+                  <button class="btn ghost sm">⌖ History</button>
+                </div>
+
+                <div>
+                  <div class="eyebrow" style="margin-bottom:8px">Blocks · drag to reorder</div>
+                  <div class="blocks">
+                    <div class="ac-block">
+                      <span class="grip">⋮⋮</span>
+                      <span class="icob">H1</span>
+                      <div class="meta"><b>Where winter meets wonder.</b><span>Page title · EN ✓ AZ ✓</span></div>
+                      <div class="actions"><button title="Up">↑</button><button title="Down">↓</button><button title="Hide">👁</button><button title="Delete">🗑</button></div>
+                    </div>
+                    <div class="ac-block">
+                      <span class="grip">⋮⋮</span>
+                      <span class="icob">¶</span>
+                      <div class="meta"><b>Lede paragraph</b><span>Body · EN ✓ AZ ✓</span></div>
+                      <div class="actions"><button>↑</button><button>↓</button><button>👁</button><button>🗑</button></div>
+                    </div>
+                    <div class="ac-block on">
+                      <span class="grip">⋮⋮</span>
+                      <span class="icob" style="background:var(--accent-soft);color:var(--accent)">❝</span>
+                      <div class="meta"><b>Pull-quote · "5 years of winter"</b><span style="color:var(--accent)">Quote · EN ✓ <b style="color:var(--accent)">AZ missing</b></span></div>
+                      <div class="actions"><button>↑</button><button>↓</button><button>👁</button><button>🗑</button></div>
+                    </div>
+                    <div class="ac-block">
+                      <span class="grip">⋮⋮</span>
+                      <span class="icob">▢▢</span>
+                      <div class="meta"><b>Photo gallery · 3 images</b><span>Gallery · 3 captions · EN ✓ AZ ✓</span></div>
+                      <div class="actions"><button>↑</button><button>↓</button><button>👁</button><button>🗑</button></div>
+                    </div>
+                    <div class="ac-block">
+                      <span class="grip">⋮⋮</span>
+                      <span class="icob">▶</span>
+                      <div class="meta"><b>Promo video — Charityfair.webm</b><span>Embed · 1:24 · poster set</span></div>
+                      <div class="actions"><button>↑</button><button>↓</button><button>👁</button><button>🗑</button></div>
+                    </div>
+                    <div class="ac-block">
+                      <span class="grip">⋮⋮</span>
+                      <span class="icob">CTA</span>
+                      <div class="meta"><b>Become a vendor — call to action</b><span>CTA · EN ✓ AZ ✓</span></div>
+                      <div class="actions"><button>↑</button><button>↓</button><button>👁</button><button>🗑</button></div>
+                    </div>
+                    <button class="ac-add-block">+ Add block</button>
+                  </div>
+                </div>
+
+                <!-- editor for selected block (Pull-quote) -->
+                <div class="editor">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                    <div>
+                      <div class="eyebrow">Editing</div>
+                      <div style="font-family:var(--display);font-size:18px;font-weight:500;letter-spacing:-0.01em">Pull-quote · "5 years of winter"</div>
+                    </div>
+                    <div class="lang-tabs"><button class="on">EN</button><button>AZ</button></div>
+                  </div>
+
+                  <div class="toolbar-rt">
+                    <button class="on" style="font-style:italic">B</button>
+                    <button style="font-style:italic">I</button>
+                    <button style="text-decoration:underline">U</button>
+                    <button>“ ”</button>
+                    <button>⎯</button>
+                    <button>↻</button>
+                  </div>
+
+                  <div class="field">
+                    <label>Big number</label>
+                    <input value="5" style="font-family:var(--display);font-size:24px;font-weight:600;width:120px"/>
+                  </div>
+                  <div class="field">
+                    <label>Quote text · EN</label>
+                    <textarea rows="3">Five winters in, FestivKids has welcomed <b>over 38,000</b> families across Baku, Ganja and Şəki — and we're just getting started.</textarea>
+                  </div>
+                  <div style="font-size:11px;color:var(--accent);font-family:var(--mono);letter-spacing:1px">⚠ AZ TRANSLATION MISSING — switch tab to add</div>
+                </div>
+              </div>
+
+              <!-- RIGHT: live preview -->
+              <div class="ac-preview">
+                <div class="frame-bar">
+                  <div>Live preview · /about</div>
+                  <div class="device">
+                    <button class="on">Desktop</button>
+                    <button>Tablet</button>
+                    <button>Mobile</button>
+                  </div>
+                </div>
+
+                <div class="ac-frame">
+                  <h1 class="about-title selectable" data-label="H1">Where winter <em>meets</em><br/>wonder.</h1>
+                  <p class="lede selectable" data-label="LEDE">FestivKids brings family-friendly seasonal fairs to cities across Azerbaijan. Each event is a temporary village — wooden houses, vendor stands, kids' workshops, and warm food — that you can walk before you arrive.</p>
+
+                  <div class="pull selectable on" data-label="PULL-QUOTE">
+                    <div class="num">5</div>
+                    <p>Five winters in, <b>FestivKids</b> has welcomed <b>over 38,000 families</b> across Baku, Ganja and Şəki — and we're just getting started.</p>
+                  </div>
+
+                  <div class="gallery selectable" data-label="GALLERY">
+                    <div class="img"></div>
+                    <div class="img"></div>
+                    <div class="img"></div>
+                  </div>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase">
+                  <span>1280 × — · scroll to see more</span>
+                  <span>EN preview · AZ tab to switch</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>FestivKids · Hi-fi round 3</span>
+    <span>Admin · Users · Fairs · Map · About</span>
+  </div>
+</div>
+</body>
+</html>

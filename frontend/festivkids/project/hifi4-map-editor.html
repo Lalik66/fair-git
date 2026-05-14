@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FestivKids — Hi-Fi 4 · Interactive Map Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f7f3ec;--bg-2:#efe7d7;--paper:#fffaf0;
+    --ink:#161513;--ink-2:#2a2622;--soft:#6c655b;--rule:#d9d1bd;
+    --accent:#c4423a;--accent-soft:#f4d6d2;
+    --accent-2:#1f4f44;--accent-2-soft:#cce0d8;
+    --gold:#caa14b;--sky:#3a6e80;--sky-soft:#dceaf0;
+    --display:'Fraunces',ui-serif,Georgia,serif;
+    --body:'Inter Tight',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{font-family:var(--body);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+
+  /* shell */
+  .ad{position:fixed;inset:18px;background:var(--paper);border:1px solid var(--rule);border-radius:18px;overflow:hidden;
+    display:grid;grid-template-rows:auto 1fr;
+    box-shadow:0 1px 0 #fff inset,0 30px 60px -30px rgba(20,18,14,0.18)}
+
+  .ad-top{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--rule);gap:14px;background:linear-gradient(180deg,rgba(255,255,255,0.6),transparent)}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:18px;font-weight:600;letter-spacing:-0.015em}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+  .crumbs{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase;flex:1}
+  .crumbs .here{color:var(--ink)}
+
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:3px 10px;font-size:12px;background:#fff;color:var(--ink-2);font-weight:500}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--soft)}
+  .pill.ok{background:#e3eee5;border-color:#bcd6c0;color:#1f4f44}
+  .pill.ok .dot{background:#1f4f44}
+  .pill.warn{background:#faecc6;border-color:#e6c97a;color:#7a5413}
+  .pill.warn .dot{background:var(--gold)}
+  .pill.live{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .pill.live .dot{background:var(--accent)}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:8px 14px;font:inherit;font-weight:600;font-size:13px;border:1px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;text-decoration:none;line-height:1;white-space:nowrap;transition:transform .12s ease,box-shadow .12s ease}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(20,18,14,0.3)}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.ghost{background:transparent;border-color:var(--rule)}
+  .btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+  .btn.icon{padding:8px;width:32px;justify-content:center;border-radius:8px;background:#fff;border-color:var(--rule)}
+
+  /* layout */
+  .editor{display:grid;grid-template-columns:280px 1fr 340px;min-height:0}
+  aside.left,aside.right{background:var(--paper);overflow-y:auto}
+  aside.left{border-right:1px solid var(--rule);padding:14px}
+  aside.right{border-left:1px solid var(--rule);padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+
+  .sec{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--soft);text-transform:uppercase;padding:10px 4px 6px}
+
+  /* tools */
+  .tools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .tools button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border:1px solid var(--rule);background:#fff;border-radius:8px;cursor:pointer;font:inherit;font-size:10px;font-weight:600;color:var(--ink-2);position:relative}
+  .tools button:hover{border-color:var(--ink-2)}
+  .tools button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .tools button .ico{font-size:14px;line-height:1}
+  .tools button .kbd{position:absolute;top:3px;right:3px;font-family:var(--mono);font-size:8px;color:var(--soft);background:var(--bg);padding:1px 3px;border-radius:3px;letter-spacing:0.5px}
+  .tools button.on .kbd{color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.1)}
+
+  /* layers */
+  .layers{display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:6px}
+  .layer{display:flex;gap:8px;align-items:center;padding:7px 8px;border-radius:6px;font-size:13px;cursor:pointer;user-select:none}
+  .layer:hover{background:var(--bg)}
+  .layer.on{background:var(--bg)}
+  .layer.hidden{opacity:0.4}
+  .layer .dot{width:9px;height:9px;border-radius:2px;flex:none}
+  .layer .name{flex:1}
+  .layer .count{font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1px}
+  .layer .eye{width:18px;height:18px;border:1px solid transparent;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--soft);background:transparent}
+  .layer:hover .eye{border-color:var(--rule);background:#fff}
+
+  /* canvas */
+  .canvas-wrap{position:relative;background:#f1ece1;overflow:hidden}
+  .canvas{position:absolute;inset:0;cursor:default}
+  .canvas.tool-pin{cursor:crosshair}
+  .canvas.tool-path{cursor:cell}
+  .canvas.tool-text{cursor:text}
+  .canvas.tool-area{cursor:crosshair}
+
+  svg.streets{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:40px 40px;opacity:0.18;pointer-events:none}
+  .grid.off{display:none}
+
+  /* pins */
+  .pin{position:absolute;transform:translate(-50%,-100%);cursor:grab;transition:filter .12s ease;z-index:5}
+  .pin:active{cursor:grabbing}
+  .pin .head{
+    width:32px;height:32px;border-radius:50% 50% 50% 0;background:var(--accent);
+    transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-family:var(--mono);font-size:10px;font-weight:600;
+    border:2px solid #fff;box-shadow:0 6px 12px -3px rgba(20,18,14,0.4)
+  }
+  .pin .head span{transform:rotate(45deg);text-align:center;line-height:1}
+  .pin.green .head{background:var(--accent-2)}
+  .pin.gold .head{background:var(--gold)}
+  .pin.sky .head{background:var(--sky)}
+  .pin.draft .head{background:#fff;border:2px dashed var(--soft);color:var(--soft)}
+  .pin.sel{z-index:10}
+  .pin.sel .head{outline:3px solid var(--ink);outline-offset:2px;animation:bob 1.2s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:rotate(-45deg) translateY(0)}50%{transform:rotate(-45deg) translateY(-3px)}}
+  .pin.dragging{filter:drop-shadow(0 12px 14px rgba(20,18,14,0.4));z-index:20}
+  .pin.layer-hidden{display:none}
+
+  /* floating toolbar */
+  .floating{position:absolute;top:14px;left:14px;display:flex;gap:6px;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:4px;box-shadow:0 4px 14px -6px rgba(20,18,14,0.2);z-index:30}
+  .floating button{border:0;background:transparent;padding:7px 10px;font:inherit;font-size:11px;font-weight:600;color:var(--ink-2);border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .floating button:hover{background:var(--bg)}
+  .floating button.on{background:var(--ink);color:#fff}
+  .floating button:disabled{opacity:0.35;cursor:not-allowed}
+  .floating .sep{width:1px;background:var(--rule);margin:4px 2px}
+
+  .zoom{position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;background:#fff;border:1px solid var(--rule);border-radius:8px;overflow:hidden;z-index:30}
+  .zoom button{border:0;background:transparent;width:32px;height:32px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--rule)}
+  .zoom button:hover{background:var(--bg)}
+  .zoom button:last-child{border-bottom:0}
+
+  .banner{position:absolute;bottom:14px;left:14px;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:8px 14px;font-size:12px;display:flex;gap:10px;align-items:center;box-shadow:0 4px 14px -6px rgba(20,18,14,0.2);z-index:30;min-height:38px}
+  .banner b{font-weight:600}
+  .banner .lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase}
+  .banner .coord{font-family:var(--mono);font-size:11px;color:var(--soft)}
+
+  /* hint */
+  .hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(22,21,19,0.9);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;display:none;align-items:center;gap:10px;z-index:25;pointer-events:none;backdrop-filter:blur(8px)}
+  .hint.show{display:flex;animation:fadeIn .15s ease}
+  .hint .kbd{font-family:var(--mono);font-size:10px;background:rgba(255,255,255,0.15);padding:2px 6px;border-radius:4px;letter-spacing:0.5px}
+  @keyframes fadeIn{from{opacity:0;transform:translate(-50%,-40%)}to{opacity:1;transform:translate(-50%,-50%)}}
+
+  /* toast */
+  .toast{position:absolute;top:14px;right:14px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:12px;display:flex;gap:10px;align-items:center;z-index:40;animation:slideIn .2s ease;box-shadow:0 8px 22px -8px rgba(0,0,0,0.4)}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .toast .ic{width:6px;height:6px;border-radius:50%;background:var(--accent-2-soft)}
+
+  /* inspector */
+  .insp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:100%;gap:12px;color:var(--soft);padding:24px}
+  .insp-empty .glyph{font-family:var(--display);font-size:48px;color:var(--rule);font-weight:300;line-height:1}
+  .insp-empty h3{font-family:var(--display);font-size:22px;margin:0;font-weight:500;letter-spacing:-0.01em;color:var(--ink-2)}
+  .insp-empty p{margin:0;font-size:13px;line-height:1.5;max-width:240px}
+  .insp-empty .tips{margin-top:6px;display:flex;flex-direction:column;gap:6px;font-size:12px}
+  .insp-empty .tips .row{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:6px 10px;width:240px}
+  .insp-empty .tips .kbd{font-family:var(--mono);font-size:10px;color:var(--soft);background:var(--bg);padding:2px 6px;border-radius:4px;letter-spacing:0.5px}
+
+  .insp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .insp-head .pin-id{font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+  .insp-head h3{font-family:var(--display);font-size:24px;margin:0;font-weight:500;letter-spacing:-0.015em;line-height:1.1}
+  .insp-head .more{display:flex;gap:4px}
+
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);font-weight:600}
+  .field input,.field textarea,.field select{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;background:#fff;color:var(--ink);outline:none}
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(20,18,14,0.06)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  .vendor-card{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:8px 10px}
+  .vendor-card .av{width:30px;height:30px;border-radius:50%;background:var(--accent-2-soft);color:var(--accent-2);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;font-size:13px}
+  .vendor-card b{font-size:13px}
+  .vendor-card span{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--soft);display:block}
+
+  .photo-drop{height:110px;border-radius:10px;background:linear-gradient(160deg,var(--sky-soft),var(--accent-soft));border:1px dashed var(--rule);display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:11px;font-family:var(--mono);letter-spacing:1px}
+
+  .save-bar{display:flex;gap:6px;margin-top:auto;padding-top:12px;border-top:1px dashed var(--rule)}
+
+  /* statusbar at bottom */
+  .statusbar{position:absolute;bottom:0;left:0;right:0;background:var(--ink);color:rgba(255,255,255,0.85);padding:5px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;height:24px;text-transform:uppercase}
+  .statusbar .group{display:flex;gap:14px}
+  .statusbar .ok{color:#9bd1aa}
+  .statusbar .warn{color:#e6c97a}
+  .statusbar .accent{color:#f29d97}
+
+  @media (max-width:1100px){
+    .editor{grid-template-columns:240px 1fr}
+    aside.right{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="ad">
+
+  <!-- TOP BAR -->
+  <header class="ad-top">
+    <div class="brand"><span class="dot"></span>FestivKids · Admin</div>
+    <div class="crumbs">Admin / Fairs / Winter Baku '26 / <span class="here">Map editor</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="pill" id="save-pill"><span class="dot" style="background:var(--accent-2)"></span>Auto-saved</span>
+      <span class="pill warn" id="dirty-pill"><span class="dot"></span><span id="dirty-count">0 unpublished</span></span>
+      <button class="btn ghost sm">↗ Open public</button>
+      <button class="btn primary sm">Publish changes</button>
+    </div>
+  </header>
+
+  <!-- EDITOR -->
+  <div class="editor">
+
+    <!-- LEFT -->
+    <aside class="left">
+      <div class="sec">Tools — <span style="color:var(--ink-2);font-family:var(--body);text-transform:none;letter-spacing:0">click or press shortcut</span></div>
+      <div class="tools" id="tools">
+        <button data-tool="select" class="on"><span class="ico">↖</span>Select<span class="kbd">V</span></button>
+        <button data-tool="pin"><span class="ico">⊕</span>Pin<span class="kbd">P</span></button>
+        <button data-tool="path"><span class="ico">⎯</span>Path<span class="kbd">L</span></button>
+        <button data-tool="area"><span class="ico">⬠</span>Area<span class="kbd">A</span></button>
+        <button data-tool="text"><span class="ico">¶</span>Text<span class="kbd">T</span></button>
+        <button data-tool="base"><span class="ico">⤴</span>Base<span class="kbd">B</span></button>
+        <button data-tool="snap" class="on"><span class="ico">⊞</span>Snap<span class="kbd">S</span></button>
+        <button data-tool="meas"><span class="ico">↔</span>Meas.<span class="kbd">M</span></button>
+      </div>
+
+      <div class="sec">Layers — toggle visibility</div>
+      <div class="layers" id="layers">
+        <div class="layer on" data-layer="house">
+          <span class="dot" style="background:var(--accent)"></span>
+          <span class="name">Vendor houses</span>
+          <span class="count" id="count-house">0</span>
+          <button class="eye" title="Toggle">●</button>
+        </div>
+        <div class="layer on" data-layer="workshop">
+          <span class="dot" style="background:var(--accent-2)"></span>
+          <span class="name">Workshops</span>
+          <span class="count" id="count-workshop">0</span>
+          <button class="eye">●</button>
+        </div>
+        <div class="layer on" data-layer="stage">
+          <span class="dot" style="background:var(--gold)"></span>
+          <span class="name">Stages &amp; shows</span>
+          <span class="count" id="count-stage">0</span>
+          <button class="eye">●</button>
+        </div>
+        <div class="layer on" data-layer="facility">
+          <span class="dot" style="background:var(--sky)"></span>
+          <span class="name">Facilities</span>
+          <span class="count" id="count-facility">0</span>
+          <button class="eye">●</button>
+        </div>
+      </div>
+
+      <div class="sec">Quick add — drops in centre</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn ghost sm" style="justify-content:flex-start" data-quick="house">+ Vendor house</button>
+        <button class="btn ghost sm" style="justify-content:flex-start" data-quick="workshop">+ Workshop tent</button>
+        <button class="btn ghost sm" style="justify-content:flex-start" data-quick="facility">+ Toilet / facility</button>
+        <button class="btn ghost sm" style="justify-content:flex-start" data-quick="stage">+ Stage</button>
+      </div>
+
+      <div class="sec" style="margin-top:18px">Selection</div>
+      <div style="font-size:12px;color:var(--ink-2);background:#fff;border:1px solid var(--rule);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--soft)">Pins on canvas</span><b id="total-pins">0</b></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--soft)">Selected</span><b id="sel-info">none</b></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--soft)">Unsaved</span><b id="unsaved-info">0</b></div>
+      </div>
+    </aside>
+
+    <!-- CENTRE: canvas -->
+    <div class="canvas-wrap">
+
+      <div class="floating">
+        <button data-tool="select" class="on" title="Select (V)">↖ Select</button>
+        <button data-tool="pin" title="Place pin (P)">⊕ Pin</button>
+        <button data-tool="path" title="Draw path (L)">⎯ Path</button>
+        <span class="sep"></span>
+        <button id="undoBtn" disabled title="Undo (⌘Z)">↶ Undo</button>
+        <button id="redoBtn" disabled title="Redo (⌘⇧Z)">↷ Redo</button>
+        <span class="sep"></span>
+        <button id="resetBtn" title="Reset to demo state">↺ Reset</button>
+      </div>
+
+      <div class="canvas tool-select" id="canvas">
+        <svg class="streets" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+          <g stroke="#161513" stroke-width="3" fill="none" opacity="0.45" stroke-linecap="round">
+            <path d="M 0 220 C 200 200, 400 260, 1000 240"/>
+            <path d="M 0 420 C 280 400, 520 460, 1000 430"/>
+            <path d="M 200 0 C 220 200, 180 400, 240 700"/>
+            <path d="M 600 0 C 580 200, 640 380, 600 700"/>
+            <path d="M 820 0 C 800 220, 860 460, 820 700"/>
+          </g>
+          <path d="M 280 240 L 740 240 L 740 500 L 280 500 Z" fill="#dde8d2" stroke="#1f4f44" stroke-opacity="0.45" stroke-width="2"/>
+          <text x="510" y="380" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1f4f44" letter-spacing="2" opacity="0.5">YASAMAL PARK</text>
+          <g stroke="#c4423a" stroke-width="2" fill="none" stroke-dasharray="6 5" opacity="0.55">
+            <path d="M 360 320 L 460 320 L 460 420 L 620 420"/>
+          </g>
+        </svg>
+
+        <div class="grid" id="grid"></div>
+      </div>
+
+      <div class="hint" id="hint">Click on the map to place a pin <span class="kbd">Esc</span> to cancel</div>
+
+      <div class="zoom">
+        <button>+</button>
+        <button>−</button>
+        <button title="Fit">⌖</button>
+      </div>
+
+      <div class="banner" id="banner">
+        <span class="lbl">Status</span>
+        <b id="banner-text">Ready · 0 pins · select a tool to begin</b>
+      </div>
+
+      <div class="statusbar">
+        <div class="group">
+          <span>Tool · <span class="accent" id="status-tool">SELECT</span></span>
+          <span>Snap · <span class="ok" id="status-snap">ON</span></span>
+          <span>Grid · <span class="ok" id="status-grid">ON</span></span>
+        </div>
+        <div class="group">
+          <span>Pins · <span id="status-count">0</span></span>
+          <span id="status-cursor">—</span>
+          <span class="ok">42.0094 N · 49.8271 E</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: inspector -->
+    <aside class="right" id="inspector">
+      <div class="insp-empty" id="empty">
+        <div class="glyph">⌖</div>
+        <h3>No pin selected</h3>
+        <p>Click any pin on the map to edit its details, or place a new one with the Pin tool.</p>
+        <div class="tips">
+          <div class="row"><span>Place pin</span><span class="kbd">P</span></div>
+          <div class="row"><span>Select / drag</span><span class="kbd">V</span></div>
+          <div class="row"><span>Delete pin</span><span class="kbd">⌫</span></div>
+          <div class="row"><span>Undo · Redo</span><span class="kbd">⌘ Z</span></div>
+        </div>
+      </div>
+
+      <div id="form" style="display:none;flex-direction:column;gap:14px;height:100%">
+        <div class="insp-head">
+          <div>
+            <div class="pin-id" id="f-id">House · A-3</div>
+            <h3 id="f-title">Sweet Snowflakes</h3>
+          </div>
+          <div class="more">
+            <button class="btn icon" title="Duplicate" id="dupBtn">⎘</button>
+            <button class="btn icon" title="Delete" id="delBtn">🗑</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field"><label>House code</label><input id="f-code" value="A-3"/></div>
+          <div class="field"><label>Layer</label>
+            <select id="f-layer">
+              <option value="house">Vendor house</option>
+              <option value="workshop">Workshop</option>
+              <option value="stage">Stage</option>
+              <option value="facility">Facility</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Vendor</label>
+          <div class="vendor-card">
+            <div class="av" id="f-av">N</div>
+            <div style="flex:1">
+              <b id="f-vendor-name">Nigar Aliyeva</b>
+              <span id="f-vendor-handle">SWEETSNOW.AZ</span>
+            </div>
+            <button class="btn icon" title="Change">↗</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field"><label>X · % of canvas</label><input id="f-x" readonly style="font-family:var(--mono);font-size:12px;background:var(--bg)"/></div>
+          <div class="field"><label>Y · % of canvas</label><input id="f-y" readonly style="font-family:var(--mono);font-size:12px;background:var(--bg)"/></div>
+        </div>
+
+        <div class="field">
+          <label>Cover photo</label>
+          <div class="photo-drop">drop photo · or browse</div>
+        </div>
+
+        <div class="field">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="published">Published — visible</option>
+            <option value="draft">Draft</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </div>
+
+        <div class="save-bar">
+          <button class="btn ghost sm" style="flex:1" id="discardBtn">Discard</button>
+          <button class="btn primary sm" style="flex:1" id="saveBtn">Save pin</button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+(() => {
+  // ---------- state ----------
+  const LAYERS = {
+    house:    {label:'House',    cls:'',       prefix:'A', vendor:{name:'New vendor', handle:'TBD'} },
+    workshop: {label:'Workshop', cls:'green',  prefix:'W', vendor:{name:'Workshop',  handle:'WS'} },
+    stage:    {label:'Stage',    cls:'gold',   prefix:'S', vendor:{name:'Stage',     handle:'ST'} },
+    facility: {label:'Facility', cls:'sky',    prefix:'F', vendor:{name:'Facility',  handle:'FAC'} },
+  };
+
+  const SEED = [
+    {id:1, x:36, y:46, layer:'house',    code:'A-1', vendor:{name:'Aytan Crafts',     handle:'AYTAN.AZ'},     status:'published'},
+    {id:2, x:46, y:46, layer:'house',    code:'A-2', vendor:{name:'Forest Toys',       handle:'FORESTTOYS'},   status:'published'},
+    {id:3, x:54, y:48, layer:'house',    code:'A-3', vendor:{name:'Nigar Aliyeva',     handle:'SWEETSNOW.AZ'}, status:'published'},
+    {id:4, x:62, y:48, layer:'house',    code:'A-4', vendor:{name:'Şəki Kərəyağı',     handle:'SHEKI.DAIRY'},  status:'published'},
+    {id:5, x:48, y:62, layer:'workshop', code:'W-1', vendor:{name:'Candle making',     handle:'WS-CANDLE'},    status:'published'},
+    {id:6, x:58, y:62, layer:'workshop', code:'W-2', vendor:{name:'Story circle',      handle:'WS-STORY'},     status:'published'},
+    {id:7, x:42, y:34, layer:'stage',    code:'S-1', vendor:{name:'Main stage',        handle:'STAGE-MAIN'},   status:'published'},
+    {id:8, x:30, y:60, layer:'facility', code:'F-1', vendor:{name:'Toilets · north',   handle:'WC-N'},         status:'published'},
+    {id:9, x:72, y:36, layer:'facility', code:'F-2', vendor:{name:'Coffee &amp; tea cart',handle:'CAFE-2'},     status:'published'},
+  ];
+
+  let pins = [];
+  let nextId = 100;
+  let selected = null;
+  let tool = 'select';
+  let snap = true;
+  let gridOn = true;
+  let layerVis = {house:true, workshop:true, stage:true, facility:true};
+  let dirty = 0;
+
+  const undoStack = [];
+  const redoStack = [];
+
+  // ---------- elements ----------
+  const canvas      = document.getElementById('canvas');
+  const inspector   = document.getElementById('inspector');
+  const formEl      = document.getElementById('form');
+  const emptyEl     = document.getElementById('empty');
+  const banner      = document.getElementById('banner-text');
+  const hint        = document.getElementById('hint');
+  const undoBtn     = document.getElementById('undoBtn');
+  const redoBtn     = document.getElementById('redoBtn');
+
+  // ---------- history ----------
+  function snapshot() {
+    return {
+      pins: JSON.parse(JSON.stringify(pins)),
+      selected,
+      nextId,
+    };
+  }
+  function pushUndo() {
+    undoStack.push(snapshot());
+    if (undoStack.length > 60) undoStack.shift();
+    redoStack.length = 0;
+    updateHistoryBtns();
+  }
+  function applySnap(s) {
+    pins = JSON.parse(JSON.stringify(s.pins));
+    selected = s.selected;
+    nextId = s.nextId;
+    render();
+  }
+  function undo() {
+    if (!undoStack.length) return;
+    redoStack.push(snapshot());
+    applySnap(undoStack.pop());
+    updateHistoryBtns();
+    toast('Undone');
+  }
+  function redo() {
+    if (!redoStack.length) return;
+    undoStack.push(snapshot());
+    applySnap(redoStack.pop());
+    updateHistoryBtns();
+    toast('Redone');
+  }
+  function updateHistoryBtns() {
+    undoBtn.disabled = !undoStack.length;
+    redoBtn.disabled = !redoStack.length;
+  }
+
+  // ---------- pin ops ----------
+  function snapVal(v) {
+    if (!snap) return v;
+    // snap to 4% grid
+    return Math.round(v / 4) * 4;
+  }
+  function clamp(v) { return Math.max(2, Math.min(98, v)); }
+
+  function addPin(x, y, layer) {
+    pushUndo();
+    const layerDef = LAYERS[layer];
+    const sameLayer = pins.filter(p => p.layer === layer);
+    const code = `${layerDef.prefix}-${sameLayer.length + 1}`;
+    const p = {
+      id: nextId++,
+      x: clamp(snapVal(x)),
+      y: clamp(snapVal(y)),
+      layer,
+      code,
+      vendor: { ...layerDef.vendor },
+      status: 'draft',
+    };
+    pins.push(p);
+    selected = p.id;
+    dirty++;
+    render();
+    toast(`Placed ${code} · ${layerDef.label.toLowerCase()}`);
+  }
+
+  function deleteSelected() {
+    if (selected == null) return;
+    const p = pins.find(p => p.id === selected);
+    if (!p) return;
+    pushUndo();
+    pins = pins.filter(p => p.id !== selected);
+    selected = null;
+    dirty++;
+    render();
+    toast(`Deleted ${p.code}`);
+  }
+
+  function duplicateSelected() {
+    if (selected == null) return;
+    const p = pins.find(p => p.id === selected);
+    if (!p) return;
+    pushUndo();
+    const layerDef = LAYERS[p.layer];
+    const sameLayer = pins.filter(x => x.layer === p.layer);
+    const copy = {
+      ...JSON.parse(JSON.stringify(p)),
+      id: nextId++,
+      x: clamp(p.x + 4),
+      y: clamp(p.y + 4),
+      code: `${layerDef.prefix}-${sameLayer.length + 1}`,
+      status: 'draft',
+    };
+    pins.push(copy);
+    selected = copy.id;
+    dirty++;
+    render();
+    toast(`Duplicated ${p.code} → ${copy.code}`);
+  }
+
+  function selectPin(id) {
+    selected = id;
+    render();
+  }
+
+  function deselect() { selected = null; render(); }
+
+  // ---------- tool ----------
+  function setTool(t) {
+    if (t === 'snap') { snap = !snap; render(); toast(`Snap ${snap?'on':'off'}`); return; }
+    tool = t;
+    canvas.className = `canvas tool-${t}`;
+    document.querySelectorAll('[data-tool]').forEach(b=>{
+      if (b.dataset.tool === 'snap') {
+        b.classList.toggle('on', snap);
+      } else {
+        b.classList.toggle('on', b.dataset.tool === t);
+      }
+    });
+    hint.classList.toggle('show', t === 'pin' || t === 'path' || t === 'area');
+    if (t === 'pin')   hint.innerHTML = 'Click on the map to place a pin · <span class="kbd">Esc</span> to cancel';
+    if (t === 'path')  hint.innerHTML = 'Path tool — coming next iteration · <span class="kbd">V</span> to return';
+    if (t === 'area')  hint.innerHTML = 'Polygon tool — coming next iteration · <span class="kbd">V</span> to return';
+    document.getElementById('status-tool').textContent = t.toUpperCase();
+    updateBanner();
+  }
+
+  // ---------- canvas events ----------
+  canvas.addEventListener('click', e => {
+    if (e.target.closest('.pin')) return;
+    if (tool === 'select') { deselect(); return; }
+    if (tool === 'pin') {
+      const r = canvas.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width)  * 100;
+      const y = ((e.clientY - r.top)  / r.height) * 100;
+      addPin(x, y, 'house');
+    }
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width)  * 100;
+    const y = ((e.clientY - r.top)  / r.height) * 100;
+    document.getElementById('status-cursor').textContent = `${x.toFixed(1)}% , ${y.toFixed(1)}%`;
+  });
+
+  // ---------- drag ----------
+  let drag = null;
+  canvas.addEventListener('mousedown', e => {
+    const pinEl = e.target.closest('.pin');
+    if (!pinEl) return;
+    if (tool !== 'select') return;
+    const id = +pinEl.dataset.id;
+    selectPin(id);
+    const r = canvas.getBoundingClientRect();
+    drag = { id, startX:e.clientX, startY:e.clientY, rect:r, moved:false };
+    pinEl.classList.add('dragging');
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!drag) return;
+    const r = drag.rect;
+    const x = ((e.clientX - r.left) / r.width)  * 100;
+    const y = ((e.clientY - r.top)  / r.height) * 100;
+    if (Math.abs(e.clientX - drag.startX) + Math.abs(e.clientY - drag.startY) > 3) {
+      drag.moved = true;
+    }
+    const p = pins.find(p => p.id === drag.id);
+    if (p) {
+      p.x = clamp(x);
+      p.y = clamp(y);
+      // live update without snap, snap on drop
+      const el = document.querySelector(`.pin[data-id="${p.id}"]`);
+      if (el) { el.style.left = p.x + '%'; el.style.top = p.y + '%'; }
+      updateForm();
+    }
+  });
+  document.addEventListener('mouseup', e => {
+    if (!drag) return;
+    const p = pins.find(p => p.id === drag.id);
+    if (p && drag.moved) {
+      pushUndo();
+      // re-snap on release
+      p.x = clamp(snapVal(p.x));
+      p.y = clamp(snapVal(p.y));
+      dirty++;
+      toast(`Moved ${p.code} → ${p.x.toFixed(0)}, ${p.y.toFixed(0)}`);
+    }
+    drag = null;
+    render();
+  });
+
+  // ---------- form ----------
+  document.getElementById('f-code').addEventListener('input', e => {
+    const p = pins.find(p => p.id === selected);
+    if (p) { p.code = e.target.value; dirty++; renderPins(); updateInspectorTitle(); updateBanner(); }
+  });
+  document.getElementById('f-layer').addEventListener('change', e => {
+    const p = pins.find(p => p.id === selected);
+    if (p) { pushUndo(); p.layer = e.target.value; dirty++; render(); }
+  });
+  document.getElementById('f-status').addEventListener('change', e => {
+    const p = pins.find(p => p.id === selected);
+    if (p) { p.status = e.target.value; dirty++; render(); }
+  });
+  document.getElementById('delBtn').addEventListener('click', deleteSelected);
+  document.getElementById('dupBtn').addEventListener('click', duplicateSelected);
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    if (selected == null) return;
+    const p = pins.find(p => p.id === selected);
+    toast(`Saved ${p.code}`, 'ok');
+    dirty = Math.max(0, dirty - 1);
+    render();
+  });
+  document.getElementById('discardBtn').addEventListener('click', () => {
+    deselect();
+    toast('Cleared selection');
+  });
+
+  // ---------- toolbar ----------
+  document.getElementById('tools').addEventListener('click', e => {
+    const b = e.target.closest('button[data-tool]');
+    if (b) setTool(b.dataset.tool);
+  });
+  document.querySelectorAll('.floating button[data-tool]').forEach(b => {
+    b.addEventListener('click', () => setTool(b.dataset.tool));
+  });
+  document.querySelectorAll('[data-quick]').forEach(b => {
+    b.addEventListener('click', () => {
+      addPin(50, 50, b.dataset.quick);
+    });
+  });
+
+  // ---------- layers ----------
+  document.getElementById('layers').addEventListener('click', e => {
+    const l = e.target.closest('.layer');
+    if (!l) return;
+    const lyr = l.dataset.layer;
+    layerVis[lyr] = !layerVis[lyr];
+    l.classList.toggle('hidden', !layerVis[lyr]);
+    l.querySelector('.eye').textContent = layerVis[lyr] ? '●' : '○';
+    renderPins();
+    toast(`${LAYERS[lyr].label}s ${layerVis[lyr]?'shown':'hidden'}`);
+  });
+
+  // ---------- history btns ----------
+  undoBtn.addEventListener('click', undo);
+  redoBtn.addEventListener('click', redo);
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    pushUndo();
+    pins = JSON.parse(JSON.stringify(SEED));
+    nextId = 100;
+    selected = null;
+    dirty = 0;
+    render();
+    toast('Reset to demo state');
+  });
+
+  // ---------- shortcuts ----------
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input,textarea,select')) return;
+    const k = e.key.toLowerCase();
+    if ((e.metaKey||e.ctrlKey) && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if ((e.metaKey||e.ctrlKey) && k === 'y') { e.preventDefault(); redo(); return; }
+    if (k === 'v') setTool('select');
+    else if (k === 'p') setTool('pin');
+    else if (k === 'l') setTool('path');
+    else if (k === 'a') setTool('area');
+    else if (k === 't') setTool('text');
+    else if (k === 's') setTool('snap');
+    else if (k === 'escape') { deselect(); setTool('select'); }
+    else if (k === 'backspace' || k === 'delete') { e.preventDefault(); deleteSelected(); }
+    else if (k === 'd' && selected != null) { e.preventDefault(); duplicateSelected(); }
+  });
+
+  // ---------- render ----------
+  function renderPins() {
+    canvas.querySelectorAll('.pin').forEach(el => el.remove());
+    for (const p of pins) {
+      const el = document.createElement('div');
+      el.className = `pin ${LAYERS[p.layer].cls}`;
+      if (p.id === selected) el.classList.add('sel');
+      if (p.status === 'draft') el.classList.add('draft');
+      if (!layerVis[p.layer]) el.classList.add('layer-hidden');
+      el.dataset.id = p.id;
+      el.style.left = p.x + '%';
+      el.style.top = p.y + '%';
+      el.innerHTML = `<div class="head"><span>${p.code.replace('-','')}</span></div>`;
+      el.addEventListener('click', e => { e.stopPropagation(); selectPin(p.id); setTool('select'); });
+      canvas.appendChild(el);
+    }
+  }
+
+  function updateInspectorTitle() {
+    const p = pins.find(p => p.id === selected);
+    if (!p) return;
+    document.getElementById('f-id').textContent = `${LAYERS[p.layer].label} · ${p.code}`;
+    document.getElementById('f-title').textContent = p.vendor.name.replace(/&amp;/g,'&');
+  }
+
+  function updateForm() {
+    const p = pins.find(p => p.id === selected);
+    if (!p) return;
+    document.getElementById('f-code').value = p.code;
+    document.getElementById('f-layer').value = p.layer;
+    document.getElementById('f-status').value = p.status;
+    document.getElementById('f-x').value = p.x.toFixed(1);
+    document.getElementById('f-y').value = p.y.toFixed(1);
+    document.getElementById('f-vendor-name').innerHTML = p.vendor.name;
+    document.getElementById('f-vendor-handle').textContent = p.vendor.handle;
+    document.getElementById('f-av').textContent = p.vendor.name.replace(/&amp;/g,'').trim().charAt(0).toUpperCase();
+    updateInspectorTitle();
+  }
+
+  function updateBanner() {
+    const p = pins.find(p => p.id === selected);
+    if (p) {
+      banner.innerHTML = `<span style="color:var(--soft);font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase">Selected</span> &nbsp; <b>${LAYERS[p.layer].label} ${p.code}</b> · ${p.vendor.name} <span class="coord" style="margin-left:8px">${p.x.toFixed(1)}, ${p.y.toFixed(1)}</span>`;
+    } else if (tool === 'pin') {
+      banner.textContent = `Pin tool — click anywhere on the map to place a vendor house. Snap is ${snap?'on':'off'}.`;
+    } else {
+      banner.textContent = `${pins.length} pin${pins.length===1?'':'s'} · ${tool} tool · click a pin to edit`;
+    }
+  }
+
+  function render() {
+    // tool button states
+    document.querySelectorAll('.floating button[data-tool]').forEach(b=>{
+      b.classList.toggle('on', b.dataset.tool === tool);
+    });
+    // grid
+    document.getElementById('grid').classList.toggle('off', !gridOn);
+    // counts
+    let counts = {house:0, workshop:0, stage:0, facility:0};
+    for (const p of pins) counts[p.layer]++;
+    Object.keys(counts).forEach(k => {
+      const el = document.getElementById('count-'+k);
+      if (el) el.textContent = counts[k];
+    });
+    document.getElementById('total-pins').textContent = pins.length;
+    document.getElementById('status-count').textContent = pins.length;
+    document.getElementById('unsaved-info').textContent = dirty;
+    // dirty pill
+    const dp = document.getElementById('dirty-pill');
+    const dc = document.getElementById('dirty-count');
+    if (dirty > 0) {
+      dp.style.display = 'inline-flex';
+      dc.textContent = `${dirty} unpublished change${dirty===1?'':'s'}`;
+    } else {
+      dp.style.display = 'none';
+    }
+    // pins
+    renderPins();
+    // inspector
+    if (selected != null) {
+      const p = pins.find(p => p.id === selected);
+      if (p) {
+        emptyEl.style.display = 'none';
+        formEl.style.display = 'flex';
+        updateForm();
+        document.getElementById('sel-info').textContent = p.code;
+      } else {
+        selected = null;
+        emptyEl.style.display = 'flex';
+        formEl.style.display = 'none';
+        document.getElementById('sel-info').textContent = 'none';
+      }
+    } else {
+      emptyEl.style.display = 'flex';
+      formEl.style.display = 'none';
+      document.getElementById('sel-info').textContent = 'none';
+    }
+    // status bar
+    document.getElementById('status-snap').textContent = snap ? 'ON' : 'OFF';
+    document.getElementById('status-snap').className = snap ? 'ok' : 'warn';
+    // snap tool button
+    const snapBtn = document.querySelector('[data-tool="snap"]');
+    if (snapBtn) snapBtn.classList.toggle('on', snap);
+    updateBanner();
+  }
+
+  // ---------- toast ----------
+  function toast(msg, kind='') {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<span class="ic"></span>${msg}`;
+    document.getElementById('toast-container').appendChild(t);
+    setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(-8px)'; t.style.transition='opacity .2s, transform .2s'; }, 1800);
+    setTimeout(()=> t.remove(), 2100);
+  }
+
+  // ---------- init ----------
+  pins = JSON.parse(JSON.stringify(SEED));
+  // pre-select A-3 to make the inspector immediately useful
+  selected = 3;
+  render();
+  setTool('select');
+})();
+</script>
+
+</body>
+</html>

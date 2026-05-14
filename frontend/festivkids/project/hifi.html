@@ -1,0 +1,1238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FestivKids — Hi-Fi · Home · Map · Admin Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f7f3ec;
+    --bg-2:#efe7d7;
+    --paper:#fffaf0;
+    --ink:#161513;
+    --ink-2:#2a2622;
+    --soft:#6c655b;
+    --rule:#d9d1bd;
+    --accent:#c4423a;        /* deep cranberry */
+    --accent-soft:#f4d6d2;
+    --accent-2:#1f4f44;       /* fir green for friends/secondary */
+    --accent-2-soft:#cce0d8;
+    --gold:#caa14b;
+    --sky:#b4d4e0;
+
+    --display:'Fraunces', ui-serif, Georgia, serif;
+    --body:'Inter Tight', system-ui, -apple-system, sans-serif;
+    --mono:'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--body);
+    color:var(--ink); background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+
+  /* ---------- top app bar (within mockups) ---------- */
+  .app{
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 1px 0 #fff inset, 0 30px 60px -30px rgba(20,18,14,0.18), 0 8px 18px -10px rgba(20,18,14,0.10);
+  }
+  .nav{
+    display:flex;align-items:center;gap:24px;
+    padding:14px 22px;
+    border-bottom:1px solid var(--rule);
+    background:linear-gradient(180deg, rgba(255,255,255,0.6), transparent);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-0.02em;line-height:1}
+  .brand small{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);font-weight:500}
+  .nav .links{display:flex;gap:4px;flex:1;margin-left:18px}
+  .nav .links a{
+    color:var(--ink-2);text-decoration:none;font-size:14px;font-weight:500;
+    padding:8px 12px;border-radius:8px;letter-spacing:-0.005em;white-space:nowrap;
+  }
+  .nav .links a.active{background:var(--ink);color:var(--paper)}
+  .nav .right{display:flex;align-items:center;gap:8px}
+  .lang{
+    display:inline-flex;align-items:center;gap:0;
+    border:1px solid var(--rule);border-radius:999px;padding:2px;font-family:var(--mono);font-size:10px;background:#fff;
+  }
+  .lang span{padding:3px 8px;border-radius:999px;color:var(--soft);cursor:pointer;user-select:none}
+  .lang span.on{background:var(--ink);color:var(--paper)}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;color:var(--accent)}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    border-radius:10px;padding:10px 16px;
+    font-family:var(--body);font-weight:600;font-size:14px;
+    border:1px solid var(--ink);background:#fff;color:var(--ink);
+    cursor:pointer;text-decoration:none;line-height:1;white-space:nowrap;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(20,18,14,0.3)}
+  .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.ghost{background:transparent;border-color:var(--rule)}
+  .btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+  .btn.icon{padding:8px;width:36px;justify-content:center;border-radius:10px;background:#fff}
+
+  /* ---------- typography helpers ---------- */
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--soft)}
+  .display{font-family:var(--display);font-weight:500;letter-spacing:-0.025em;line-height:0.96;font-variation-settings:'opsz' 144;text-wrap:balance}
+  .display em{font-style:italic;font-weight:400;font-variation-settings:'opsz' 144}
+  /* Azerbaijani is wordier — pull line-height back up so descenders breathe */
+  body[data-lang="az"] .display{letter-spacing:-0.022em;line-height:1.02}
+  body[data-lang="az"] .hero h2{font-size:78px}
+  body[data-lang="az"] .hero .lead{max-width:560px}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    border:1px solid var(--rule);border-radius:999px;padding:3px 10px;font-size:12px;background:#fff;color:var(--ink-2);font-weight:500;
+  }
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--soft)}
+  .pill.live{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .pill.live .dot{background:var(--accent);box-shadow:0 0 0 3px rgba(196,66,58,0.18)}
+  .pill.ok{background:#e3eee5;border-color:#bcd6c0;color:#1f4f44}
+  .pill.ok .dot{background:#1f4f44}
+  .pill.warn{background:#faecc6;border-color:#e6c97a;color:#7a5413}
+  .pill.warn .dot{background:#caa14b}
+
+  /* ---------- shared layout shell ---------- */
+  body{padding:36px 36px 80px}
+  .shell{max-width:1480px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+  .head{display:flex;justify-content:space-between;align-items:end;gap:24px}
+  .head h1{font-family:var(--display);font-size:42px;font-weight:500;letter-spacing:-0.02em;margin:0;line-height:1}
+  .head .meta{font-family:var(--mono);font-size:11px;color:var(--soft);text-align:right;letter-spacing:1.5px;text-transform:uppercase}
+  .surface-title{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 4px}
+  .surface-title .num{font-family:var(--display);font-size:62px;color:var(--accent);font-weight:300;line-height:0.8}
+  .surface-title .t{font-family:var(--display);font-size:28px;font-weight:500;letter-spacing:-0.015em}
+  .surface-title .s{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase}
+  .divider{height:1px;background:var(--rule)}
+
+  /* ---------- HOME ---------- */
+  .hero{
+    display:grid;grid-template-columns: 1.05fr 0.95fr;gap:0;
+    border-bottom:1px solid var(--rule);
+    background:
+      radial-gradient(1200px 500px at 0% 0%, rgba(196,66,58,0.07), transparent 55%),
+      radial-gradient(900px 500px at 100% 100%, rgba(31,79,68,0.06), transparent 55%);
+  }
+  .hero .left{padding:54px 48px 48px;display:flex;flex-direction:column;justify-content:space-between;gap:32px}
+  .hero h2{font-size:88px;margin:0}
+  .hero .lead{font-size:17px;color:var(--ink-2);max-width:520px;line-height:1.45}
+  .hero .ctas{display:flex;gap:10px;flex-wrap:wrap}
+  .hero .right{
+    position:relative;border-left:1px solid var(--rule);
+    background:
+      radial-gradient(circle at 60% 60%, #fff7e6 0%, #f3e6cc 60%, #ddc59a 100%);
+    overflow:hidden;
+  }
+  .snowflakes{position:absolute;inset:0;pointer-events:none;opacity:.65}
+  .snowflakes svg{display:block;width:100%;height:100%}
+
+  /* train */
+  .train{position:absolute;left:-10%;bottom:18%;width:120%;}
+  .track{height:1px;background:repeating-linear-gradient(90deg, var(--ink) 0 6px, transparent 6px 12px);position:absolute;left:0;right:0;bottom:0;opacity:0.45}
+  .train-svg{display:block;width:140px;height:auto;animation: trainMove 14s linear infinite}
+  @keyframes trainMove { from{transform:translateX(-10%)} to{transform:translateX(900%)} }
+
+  .fox-stage{
+    position:absolute;right:8%;bottom:16%;width:230px;height:240px;
+  }
+
+  /* status / countdown band */
+  .live-band{
+    background:var(--paper);
+    display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;
+    padding:22px 28px;
+    border-bottom:1px solid var(--rule);
+  }
+  .next{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .next h3{font-family:var(--display);font-size:30px;margin:0;font-weight:500;letter-spacing:-0.015em}
+  .next .meta{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase}
+  .countdown{display:flex;gap:8px}
+  .countdown .d{
+    background:#fff;border:1px solid var(--rule);border-radius:12px;
+    padding:10px 14px;min-width:64px;text-align:center;
+    box-shadow:inset 0 -2px 0 rgba(20,18,14,0.04);
+  }
+  .countdown .num{font-family:var(--display);font-size:28px;font-weight:500;letter-spacing:-0.02em;line-height:1}
+  .countdown .lbl{font-family:var(--mono);font-size:9px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px}
+
+  /* upcoming events grid */
+  .events{padding:36px 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;border-bottom:1px solid var(--rule)}
+  .ev{
+    border:1px solid var(--rule);border-radius:14px;background:#fff;overflow:hidden;
+    display:flex;flex-direction:column;
+    transition:transform .15s ease;
+  }
+  .ev:hover{transform:translateY(-2px)}
+  .ev .img{
+    aspect-ratio:5/3;
+    background:
+      repeating-linear-gradient(135deg, rgba(0,0,0,0.05) 0 6px, transparent 6px 12px),
+      var(--bg-2);
+    border-bottom:1px solid var(--rule);
+    display:flex;align-items:flex-end;justify-content:flex-start;
+    padding:12px;
+    color:var(--soft);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;
+    position:relative;
+  }
+  .ev .img.w{background:#cfe1eb url('https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=900&q=70') center/cover;background-blend-mode:multiply}
+  .ev .img.s{background:#f5dee0 url('https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=900&q=70') center/cover}
+  .ev .img.h{background:#e3d2a4 url('https://images.unsplash.com/photo-1508361727343-ca787442dcd7?auto=format&fit=crop&w=900&q=70') center/cover}
+  .ev .img.n{background:#1c2238 url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=70') center/cover;color:#cfe1eb}
+  .ev .body{padding:14px 16px 18px;display:flex;flex-direction:column;gap:6px}
+  .ev h4{font-family:var(--display);font-size:22px;margin:0;font-weight:500;letter-spacing:-0.015em}
+  .ev .row{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-top:6px}
+
+  /* AI float */
+  .ai{
+    position:absolute;right:24px;bottom:24px;width:280px;
+    background:var(--paper);
+    border:1px solid var(--rule);border-radius:16px;
+    box-shadow:0 18px 40px -16px rgba(20,18,14,0.25);
+    padding:14px 16px 14px;
+  }
+  .ai .hd{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase}
+  .ai .msg{font-size:13px;line-height:1.45;margin-top:8px}
+  .ai .msg.user{color:var(--soft)}
+  .ai .msg b{color:var(--ink)}
+  .ai .input{
+    margin-top:10px;display:flex;align-items:center;gap:8px;
+    border:1px solid var(--rule);border-radius:10px;padding:7px 10px;background:#fff;
+  }
+  .ai .input span{font-size:13px;color:var(--soft);flex:1}
+  .ai .input kbd{font-family:var(--mono);font-size:10px;color:var(--soft)}
+
+  /* ---------- MAP ---------- */
+  .map-shell{position:relative;height:760px;overflow:hidden;border-radius:18px}
+  .map-canvas{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(196,66,58,0.07), transparent 32%),
+      radial-gradient(circle at 70% 65%, rgba(31,79,68,0.07), transparent 36%),
+      repeating-linear-gradient(0deg, rgba(20,18,14,0.04) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, rgba(20,18,14,0.04) 0 1px, transparent 1px 28px),
+      linear-gradient(160deg, #efe7d6 0%, #e6dcc5 100%);
+  }
+  .map-canvas svg.streets{position:absolute;inset:0;width:100%;height:100%;opacity:.55}
+  .map-pin{
+    position:absolute; transform:translate(-50%,-100%);
+    display:flex;flex-direction:column;align-items:center;cursor:pointer;
+  }
+  .map-pin .head{
+    width:36px;height:36px;border-radius:50% 50% 50% 0;
+    background:var(--accent);border:1.5px solid var(--ink);
+    transform:rotate(-45deg);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 14px -6px rgba(20,18,14,0.4);
+  }
+  .map-pin .head span{transform:rotate(45deg);color:#fff;font-family:var(--mono);font-size:11px;font-weight:600}
+  .map-pin.fac .head{background:#fff;}
+  .map-pin.fac .head span{color:var(--ink)}
+  .map-pin.sel .head{width:46px;height:46px;background:var(--ink)}
+  .map-pin.sel::after{
+    content:"";width:14px;height:14px;border-radius:50%;
+    background:rgba(20,18,14,0.18);margin-top:2px;
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {0%,100%{transform:scale(1);opacity:0.4}50%{transform:scale(1.5);opacity:0.1}}
+
+  .friend-dot{
+    position:absolute;width:18px;height:18px;border-radius:50%;
+    background:var(--accent-2);border:2px solid #fff;
+    box-shadow:0 0 0 1px var(--ink), 0 4px 8px -4px rgba(20,18,14,0.4);
+    transform:translate(-50%,-50%);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-family:var(--mono);font-size:9px;font-weight:600;
+  }
+
+  /* top floating bar */
+  .map-top{position:absolute;top:16px;left:16px;right:16px;display:flex;gap:10px;z-index:5}
+  .map-top .panel{
+    background:var(--paper);border:1px solid var(--rule);border-radius:12px;
+    box-shadow:0 8px 20px -10px rgba(20,18,14,0.2);
+    display:flex;align-items:center;gap:10px;padding:8px 12px;
+  }
+  .fair-pick{font-family:var(--display);font-weight:500;font-size:18px;letter-spacing:-0.01em;display:flex;align-items:center;gap:6px}
+  .fair-pick .pill{font-family:var(--body)}
+  .map-search{flex:1;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--soft)}
+  .map-search input{
+    border:0;background:transparent;outline:none;flex:1;font:inherit;color:var(--ink);font-size:14px;
+  }
+
+  .filters{position:absolute;top:74px;left:16px;right:16px;display:flex;gap:6px;flex-wrap:wrap;z-index:4}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--paper);border:1px solid var(--rule);border-radius:999px;
+    padding:5px 12px;font-size:12px;font-weight:500;color:var(--ink-2);cursor:pointer;
+    box-shadow:0 4px 8px -6px rgba(20,18,14,0.2);
+  }
+  .chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+  /* zoom */
+  .zoom{position:absolute;left:16px;bottom:280px;display:flex;flex-direction:column;gap:6px;z-index:5}
+  .zoom .btn{background:var(--paper);box-shadow:0 8px 18px -10px rgba(20,18,14,0.25)}
+
+  /* selected card floating */
+  .sel-card{
+    position:absolute;top:130px;right:16px;width:320px;z-index:5;
+    background:var(--paper);border:1px solid var(--rule);border-radius:16px;
+    box-shadow:0 18px 40px -18px rgba(20,18,14,0.3);
+    overflow:hidden;
+  }
+  .sel-card .pano{position:relative;aspect-ratio:5/3;background:#a5c9d4 url('https://images.unsplash.com/photo-1485808191679-5f86510681a2?auto=format&fit=crop&w=900&q=70') center/cover;border-bottom:1px solid var(--rule);}
+  .sel-card .pano::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(circle at 30% 60%, rgba(20,18,14,0.15), transparent 30%),
+      radial-gradient(circle at 70% 50%, rgba(20,18,14,0.1), transparent 30%);
+  }
+  .sel-card .pano-tag{position:absolute;top:10px;left:10px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;background:rgba(20,18,14,0.85);color:#fff;padding:4px 8px;border-radius:6px}
+  .sel-card .pano-eye{position:absolute;right:10px;bottom:10px;background:#fff;border:1px solid var(--rule);border-radius:999px;padding:6px 10px;font-size:11px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--ink-2)}
+  .sel-card .info{padding:14px 16px}
+  .sel-card h4{font-family:var(--display);font-size:22px;margin:0 0 4px;font-weight:500;letter-spacing:-0.01em}
+  .sel-card .row{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:10px}
+
+  /* friends panel (sheet on right OR popup) */
+  .friends-fab{
+    position:absolute;right:16px;top:16px;z-index:6;display:none;
+  }
+  .friends-pop{
+    position:absolute;right:16px;top:130px;width:300px;background:var(--paper);
+    border:1px solid var(--rule);border-radius:16px;padding:14px;
+    box-shadow:0 18px 40px -18px rgba(20,18,14,0.3);z-index:6;
+    transform:translateY(calc(100% + 60px));opacity:0;pointer-events:none;
+    transition:all .25s ease;
+  }
+  .friends-pop.open{transform:translateY(0);opacity:1;pointer-events:auto}
+  .friends-pop .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .friends-pop h4{font-family:var(--display);font-size:18px;margin:0;font-weight:500}
+  .friend-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--rule)}
+  .friend-row:last-of-type{border-bottom:0}
+  .friend-row .av{width:34px;height:34px;border-radius:50%;background:var(--accent-2-soft);border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;color:var(--accent-2);font-size:16px}
+  .friend-row .meta{flex:1}
+  .friend-row .meta b{font-size:14px;display:block}
+  .friend-row .meta span{font-family:var(--mono);font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1px}
+  .badge{
+    background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;
+    font-family:var(--mono);font-size:10px;font-weight:600;
+  }
+  .react-row{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .react-row span{
+    border:1px solid var(--rule);border-radius:999px;padding:4px 8px;font-size:14px;background:#fff;cursor:pointer;
+  }
+
+  /* bottom sheet */
+  .sheet{
+    position:absolute;left:16px;right:16px;bottom:16px;z-index:5;
+    background:var(--paper);border:1px solid var(--rule);border-radius:18px;
+    box-shadow:0 -8px 28px -16px rgba(20,18,14,0.25);
+    padding:14px 16px;
+  }
+  .sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--rule);margin:0 auto 8px}
+  .sheet .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .sheet .head h4{font-family:var(--display);font-size:18px;margin:0;font-weight:500}
+  .sheet .head .meta{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase}
+  .sheet-list{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px}
+  .place-card{
+    flex:0 0 220px;border:1px solid var(--rule);border-radius:14px;background:#fff;overflow:hidden;
+  }
+  .place-card .img{aspect-ratio:5/3;background:#f4d6d2 url('https://images.unsplash.com/photo-1481389517-77d3a3e8ee27?auto=format&fit=crop&w=900&q=70') center/cover;border-bottom:1px solid var(--rule);}
+  .place-card .img.b{background:#cfe1eb url('https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=900&q=70') center/cover}
+  .place-card .img.c{background:#dde8d2 url('https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=900&q=70') center/cover}
+  .place-card .img.d{background:#e8d7eb url('https://images.unsplash.com/photo-1545558014-8692077e9b5c?auto=format&fit=crop&w=900&q=70') center/cover}
+  .place-card .img.e{background:#f5e7c4 url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=70') center/cover}
+  .place-card .body{padding:10px 12px}
+  .place-card h5{font-family:var(--display);font-size:16px;margin:0;font-weight:500;letter-spacing:-0.01em}
+  .place-card .row{display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-family:var(--mono);font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1.2px}
+
+  /* ---------- ADMIN APPLICATION REVIEW ---------- */
+  .admin{display:grid;grid-template-columns:240px 1fr;min-height:780px}
+  .side{
+    background:#fffaf0;border-right:1px solid var(--rule);padding:18px 14px;display:flex;flex-direction:column;gap:6px;
+  }
+  .side .brand{padding:6px 8px 14px}
+  .side .item{
+    display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;font-size:14px;color:var(--ink-2);font-weight:500;cursor:pointer;
+  }
+  .side .item.on{background:var(--ink);color:var(--paper)}
+  .side .item .k{font-family:var(--mono);font-size:10px;color:var(--soft);margin-left:auto;letter-spacing:1px}
+  .side .item.on .k{color:rgba(255,255,255,0.6)}
+  .side .sect{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--soft);padding:14px 10px 6px}
+
+  .work{padding:24px 28px;display:flex;flex-direction:column;gap:18px;min-width:0}
+  .crumb{font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase}
+  .crumb b{color:var(--ink)}
+  .work .head{display:flex;justify-content:space-between;align-items:end;gap:16px}
+  .work h2{font-family:var(--display);font-size:32px;margin:0;font-weight:500;letter-spacing:-0.02em}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stat{border:1px solid var(--rule);border-radius:14px;background:#fff;padding:14px 16px}
+  .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft)}
+  .stat .v{font-family:var(--display);font-size:32px;font-weight:500;letter-spacing:-0.02em;line-height:1;margin-top:6px}
+  .stat .delta{font-family:var(--mono);font-size:10px;color:var(--soft);margin-top:4px;letter-spacing:1px}
+  .stat .delta.up{color:#1f4f44}
+  .stat .delta.down{color:var(--accent)}
+  .stat.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .stat.accent .k,.stat.accent .delta{color:rgba(255,255,255,0.7)}
+
+  .toolbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:#fff;border:1px solid var(--rule);border-radius:14px;padding:10px 12px;
+  }
+  .input{
+    display:flex;align-items:center;gap:8px;border:1px solid var(--rule);border-radius:10px;padding:8px 12px;background:#fff;flex:1;min-width:240px;
+  }
+  .input input{border:0;outline:none;flex:1;font:inherit;font-size:14px;color:var(--ink)}
+  .input span{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase}
+
+  .tablewrap{border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:#fff}
+  table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+  table.tbl th,table.tbl td{padding:12px 14px;text-align:left;vertical-align:middle}
+  table.tbl thead th{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);font-weight:600;background:#fffaf0;border-bottom:1px solid var(--rule)}
+  table.tbl tbody tr{border-top:1px solid var(--rule)}
+  table.tbl tbody tr:first-child{border-top:0}
+  table.tbl tbody tr:hover{background:#fffaf0}
+  table.tbl tbody tr.sel{background:var(--accent-soft)}
+  table.tbl tbody tr.sel:hover{background:var(--accent-soft)}
+  .vendor-cell{display:flex;align-items:center;gap:10px}
+  .vendor-cell .av{width:36px;height:36px;border-radius:8px;background:var(--bg-2);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;color:var(--ink-2)}
+  .vendor-cell b{display:block;font-weight:600}
+  .vendor-cell span{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase}
+
+  /* drawer */
+  .layout{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start}
+  .drawer{
+    border:1px solid var(--rule);border-radius:14px;background:#fff;overflow:hidden;
+    position:sticky;top:24px;
+  }
+  .drawer .img{aspect-ratio:5/3;background:#f4d6d2 url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=70') center/cover;position:relative}
+  .drawer .img::before{content:"FOXIE CAFÉ — APPLICATION COVER";position:absolute;left:14px;bottom:12px;font-family:var(--mono);font-size:10px;letter-spacing:2px;color:#fff;background:rgba(20,18,14,0.45);padding:4px 8px;border-radius:4px;backdrop-filter:blur(6px)}
+  .drawer .body{padding:16px 18px}
+  .drawer h3{font-family:var(--display);font-size:24px;margin:0;font-weight:500;letter-spacing:-0.015em}
+  .drawer .sub{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+  .drawer .kvs{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--rule)}
+  .drawer .k{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft)}
+  .drawer .v{font-size:14px;color:var(--ink);margin-top:2px}
+  .drawer .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid var(--rule)}
+  .drawer .gallery .ph{aspect-ratio:1;border-radius:8px;background:#dbeaf0 url('https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=600&q=70') center/cover;border:1px solid var(--rule)}
+  .drawer .gallery .ph:nth-child(2){background:#f4d6d2 url('https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&w=600&q=70') center/cover}
+  .drawer .gallery .ph:nth-child(3){background:#dde8d2 url('https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=600&q=70') center/cover}
+  .drawer .reason{
+    margin-top:14px;padding:14px;border:1px dashed var(--rule);border-radius:10px;background:#fffaf0;
+  }
+  .drawer .reason .k{margin-bottom:6px}
+  .drawer textarea{
+    width:100%;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;color:var(--ink);background:#fff;resize:none;min-height:60px;
+  }
+  .drawer .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .drawer .actions .btn{justify-content:center}
+
+  /* annotations row */
+  .notes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 4px}
+  .note{
+    background:#fff;border:1px solid var(--rule);border-radius:12px;padding:14px 16px;
+  }
+  .note .k{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .note h5{font-family:var(--display);font-size:18px;margin:0 0 4px;font-weight:500}
+  .note p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.5}
+
+  /* foot */
+  .foot{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase;padding:12px 4px}
+
+  @media (max-width:900px){
+    body{padding:18px}
+    .hero{grid-template-columns:1fr}
+    .hero h2{font-size:54px}
+    .hero .right{aspect-ratio:5/3}
+    .events{grid-template-columns:1fr 1fr}
+    .stats{grid-template-columns:1fr 1fr}
+    .layout{grid-template-columns:1fr}
+    .admin{grid-template-columns:1fr}
+    .side{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ============== HEADER ============== -->
+  <header class="head">
+    <div>
+      <div class="eyebrow" style="margin-bottom:8px">FestivKids · Hi-Fi · Round 1</div>
+      <h1>Home <span style="color:var(--soft)">·</span> Map <span style="color:var(--soft)">·</span> Admin Review</h1>
+    </div>
+    <div class="meta">
+      Decisions locked<br/>
+      Home A · Map B · Admin Apps<br/>
+      26 Apr 2026
+    </div>
+  </header>
+
+  <!-- design notes -->
+  <section class="notes" data-screen-label="00 Design notes">
+    <div class="note">
+      <div class="k">Decision · Social</div>
+      <h5>Peer &amp; playful.</h5>
+      <p>Map presence among people you follow, emoji reactions, light meet-up messaging — not a private DM product.</p>
+    </div>
+    <div class="note">
+      <div class="k">Decision · AI</div>
+      <h5>Home only (MVP).</h5>
+      <p>Single floating Foxie chat on <code style="font-family:var(--mono);font-size:12px">/</code>. No AI in nav, map, vendor or admin yet.</p>
+    </div>
+    <div class="note">
+      <div class="k">Decision · i18n &amp; mobile</div>
+      <h5>Wrap, don't truncate. Sheets, not splits.</h5>
+      <p>AZ wraps to 2 lines where needed. Mobile map = full-screen + bottom sheet. One pattern.</p>
+    </div>
+  </section>
+
+  <!-- ============== 01 · HOME ============== -->
+  <section data-screen-label="01 Home">
+    <div class="surface-title">
+      <div style="display:flex;align-items:end;gap:14px">
+        <div class="num">01</div>
+        <div>
+          <div class="s">Public · marketing</div>
+          <div class="t">Home — variant A</div>
+        </div>
+      </div>
+      <div class="eyebrow">festivkids.az/</div>
+    </div>
+
+    <div class="app" style="margin-top:14px">
+      <nav class="nav">
+        <div class="brand">
+          <svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true">
+            <g>
+              <path d="M10 22 L22 10 L26 24 Z" fill="#c4423a" stroke="#161513" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M54 22 L42 10 L38 24 Z" fill="#c4423a" stroke="#161513" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M14 26 C 14 46, 22 56, 32 56 C 42 56, 50 46, 50 26 Z" fill="#e8702a" stroke="#161513" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M22 38 C 26 34, 38 34, 42 38 C 40 48, 24 48, 22 38 Z" fill="#fffaf0" stroke="#161513" stroke-width="2"/>
+              <circle cx="24" cy="32" r="2" fill="#161513"/>
+              <circle cx="40" cy="32" r="2" fill="#161513"/>
+            </g>
+          </svg>
+          FestivKids
+        </div>
+        <div class="links">
+          <a href="#" class="active" data-i18n="navHome">Home</a>
+          <a href="#" data-i18n="navMap">Map</a>
+          <a href="#" data-i18n="navAbout">About</a>
+        </div>
+        <div class="right">
+          <span class="lang" id="langSwitch" role="group" aria-label="Language">
+            <span data-set-lang="en" class="on">EN</span><span data-set-lang="az">AZ</span>
+          </span>
+          <a href="#" class="btn ghost sm" data-i18n="signIn">Sign in</a>
+          <a href="#" class="btn primary sm" data-i18n="applyVendor">Apply as vendor</a>
+        </div>
+      </nav>
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="left">
+          <div>
+            <div class="eyebrow" style="margin-bottom:14px">
+              <span class="pill live"><span class="dot"></span> <span data-i18n="heroPill">Winter Fair · opens in 7 days</span></span>
+            </div>
+            <h2 class="display" data-i18n-html="heroTitle">Where winter <em>meets</em><br/>wonder.</h2>
+            <p class="lead" style="margin-top:18px" data-i18n="heroLead">
+              Family seasonal fairs across Azerbaijan. Walk the map before you arrive — every house, every vendor, every 360° corner.
+            </p>
+          </div>
+          <div class="ctas">
+            <a href="#" class="btn accent" data-i18n="ctaMap">Browse the map →</a>
+            <a href="#" class="btn" data-i18n="ctaApply">Apply as a vendor</a>
+            <a href="#" class="btn ghost" data-i18n="ctaAbout">About FestivKids</a>
+          </div>
+        </div>
+        <div class="right">
+          <div class="snowflakes">
+            <svg viewBox="0 0 600 500" preserveAspectRatio="none">
+              <g stroke="#161513" stroke-width="1" fill="none" opacity="0.6">
+                <g transform="translate(80 60)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g>
+                <g transform="translate(180 130)"><line x1="-6" y1="0" x2="6" y2="0"/><line x1="0" y1="-6" x2="0" y2="6"/><line x1="-4" y1="-4" x2="4" y2="4"/><line x1="-4" y1="4" x2="4" y2="-4"/></g>
+                <g transform="translate(280 80)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/></g>
+                <g transform="translate(420 50)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g>
+                <g transform="translate(520 110)"><line x1="-5" y1="0" x2="5" y2="0"/><line x1="0" y1="-5" x2="0" y2="5"/></g>
+                <g transform="translate(120 220)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+                <g transform="translate(360 200)"><line x1="-6" y1="0" x2="6" y2="0"/><line x1="0" y1="-6" x2="0" y2="6"/></g>
+                <g transform="translate(480 240)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+              </g>
+            </svg>
+          </div>
+          <!-- distant city -->
+          <svg viewBox="0 0 600 500" preserveAspectRatio="none" style="position:absolute;inset:auto 0 25% 0;height:42%">
+            <g fill="#161513" opacity="0.16">
+              <rect x="40" y="280" width="40" height="100"/>
+              <polygon points="40,280 60,260 80,280"/>
+              <rect x="100" y="240" width="50" height="140"/>
+              <polygon points="100,240 125,210 150,240"/>
+              <rect x="170" y="270" width="40" height="110"/>
+              <rect x="230" y="220" width="60" height="160"/>
+              <polygon points="230,220 260,190 290,220"/>
+              <rect x="310" y="260" width="40" height="120"/>
+              <rect x="370" y="230" width="50" height="150"/>
+              <polygon points="370,230 395,200 420,230"/>
+              <rect x="440" y="270" width="40" height="110"/>
+              <rect x="500" y="240" width="60" height="140"/>
+              <polygon points="500,240 530,210 560,240"/>
+            </g>
+          </svg>
+
+          <!-- ground -->
+          <div style="position:absolute;left:0;right:0;bottom:0;height:25%;background:linear-gradient(180deg,transparent,#fff8e8 30%, #f0dfb8)"></div>
+
+          <div class="train">
+            <div class="track"></div>
+            <svg class="train-svg" viewBox="0 0 220 60">
+              <g stroke="#161513" stroke-width="2" stroke-linejoin="round">
+                <rect x="2" y="20" width="56" height="28" fill="#c4423a"/>
+                <rect x="60" y="14" width="36" height="34" fill="#fffaf0"/>
+                <rect x="14" y="6" width="14" height="14" fill="#161513"/>
+                <rect x="100" y="22" width="40" height="26" fill="#1f4f44"/>
+                <rect x="142" y="22" width="40" height="26" fill="#caa14b"/>
+                <rect x="184" y="22" width="30" height="26" fill="#b4d4e0"/>
+                <circle cx="14" cy="50" r="6" fill="#fffaf0"/>
+                <circle cx="48" cy="50" r="6" fill="#fffaf0"/>
+                <circle cx="80" cy="50" r="6" fill="#fffaf0"/>
+                <circle cx="112" cy="50" r="6" fill="#fffaf0"/>
+                <circle cx="160" cy="50" r="6" fill="#fffaf0"/>
+                <circle cx="194" cy="50" r="6" fill="#fffaf0"/>
+                <path d="M 24 6 L 32 -2 L 36 -2 L 28 6 Z" fill="#161513"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- snowman -->
+          <div class="fox-stage">
+            <svg viewBox="0 0 240 260" width="100%" height="100%">
+              <g stroke="#161513" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+                <!-- ground shadow -->
+                <ellipse cx="120" cy="248" rx="90" ry="7" fill="#161513" opacity="0.14" stroke="none"/>
+                <!-- bottom snowball -->
+                <circle cx="120" cy="200" r="58" fill="#fffaf0"/>
+                <!-- buttons -->
+                <circle cx="120" cy="178" r="3.5" fill="#161513" stroke="none"/>
+                <circle cx="120" cy="200" r="3.5" fill="#161513" stroke="none"/>
+                <circle cx="120" cy="222" r="3.5" fill="#161513" stroke="none"/>
+                <!-- middle snowball -->
+                <circle cx="120" cy="138" r="44" fill="#fffaf0"/>
+                <!-- twig arms -->
+                <path d="M76 138 C 56 132, 42 116, 38 96 M 38 96 L 32 92 M 38 96 L 38 88 M 50 108 L 44 102" fill="none"/>
+                <path d="M164 138 C 184 132, 198 116, 202 96 M 202 96 L 208 92 M 202 96 L 202 88 M 190 108 L 196 102" fill="none"/>
+                <!-- scarf wrap -->
+                <path d="M82 96 C 100 108, 140 108, 158 96 L 158 112 C 140 122, 100 122, 82 112 Z" fill="#c4423a"/>
+                <path d="M152 116 L 174 124 L 168 144 L 148 132 Z" fill="#c4423a"/>
+                <!-- head snowball -->
+                <circle cx="120" cy="74" r="34" fill="#fffaf0"/>
+                <!-- carrot nose -->
+                <path d="M120 76 L 152 82 L 120 84 Z" fill="#e8702a"/>
+                <!-- coal eyes (happy curve) -->
+                <path d="M104 64 C 108 60, 114 60, 116 64" fill="none"/>
+                <path d="M124 64 C 126 60, 132 60, 136 64" fill="none"/>
+                <!-- coal mouth -->
+                <circle cx="108" cy="92" r="2" fill="#161513" stroke="none"/>
+                <circle cx="116" cy="94" r="2" fill="#161513" stroke="none"/>
+                <circle cx="124" cy="94" r="2" fill="#161513" stroke="none"/>
+                <circle cx="132" cy="92" r="2" fill="#161513" stroke="none"/>
+                <!-- top hat -->
+                <path d="M86 46 L 154 46 L 154 50 L 86 50 Z" fill="#1f4f44"/>
+                <path d="M96 14 L 144 14 L 148 46 L 92 46 Z" fill="#1f4f44"/>
+                <!-- hat band -->
+                <path d="M93 38 L 147 38" stroke="#caa14b" stroke-width="4"/>
+                <!-- holly on hat -->
+                <circle cx="138" cy="36" r="3" fill="#c4423a" stroke="none"/>
+                <circle cx="143" cy="34" r="3" fill="#c4423a" stroke="none"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- foxie AI float -->
+          <div class="ai">
+            <div class="hd">
+              <span>Foxie · AI</span>
+              <span data-i18n="aiOnline">online · EN only (MVP)</span>
+            </div>
+            <div class="msg user" data-i18n="aiUser">"Where are the toy workshops?"</div>
+            <div class="msg" data-i18n-html="aiBot"><b>Hall B</b> has 4 toy makers. Saturdays they run two free sessions for kids 6+.</div>
+            <div class="input">
+              <span data-i18n="aiPh">Ask Foxie about the fair…</span>
+              <kbd>↵</kbd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE BAND / COUNTDOWN -->
+      <div class="live-band">
+        <div class="next">
+          <div>
+            <div class="eyebrow" data-i18n="nextFair">Next fair</div>
+            <h3 data-i18n="nextFairName">Winter Fair · Baku 2026</h3>
+            <div class="meta" data-i18n="nextFairWhen">Yasamal Park · Dec 18 → Jan 6</div>
+          </div>
+          <span class="pill warn"><span class="dot"></span><span data-i18n="opensIn">Opens in 7 days</span></span>
+        </div>
+        <div class="countdown" aria-label="Countdown to opening">
+          <div class="d"><div class="num">07</div><div class="lbl" data-i18n="cdDays">days</div></div>
+          <div class="d"><div class="num">12</div><div class="lbl" data-i18n="cdHrs">hrs</div></div>
+          <div class="d"><div class="num">44</div><div class="lbl" data-i18n="cdMin">min</div></div>
+          <div class="d"><div class="num">08</div><div class="lbl" data-i18n="cdSec">sec</div></div>
+        </div>
+      </div>
+
+      <!-- UPCOMING EVENTS -->
+      <div class="events">
+        <article class="ev">
+          <div class="img w">cover · winter</div>
+          <div class="body">
+            <span class="eyebrow" data-i18n="evWinter">Winter</span>
+            <h4 data-i18n="evBaku">Baku 2026</h4>
+            <div class="row"><span data-i18n="evBakuDate">Dec 18 → Jan 6</span><span class="pill warn"><span class="dot"></span><span data-i18n="evSoon">Soon</span></span></div>
+          </div>
+        </article>
+        <article class="ev">
+          <div class="img s">cover · spring</div>
+          <div class="body">
+            <span class="eyebrow" data-i18n="evSpring">Spring</span>
+            <h4 data-i18n="evGanja">Ganja 2026</h4>
+            <div class="row"><span data-i18n="evGanjaDate">Apr 4 → 19</span><span class="pill" data-i18n="evTickets">Tickets soon</span></div>
+          </div>
+        </article>
+        <article class="ev">
+          <div class="img n">cover · night bazaar</div>
+          <div class="body">
+            <span class="eyebrow" data-i18n="evNight">Night bazaar</span>
+            <h4 data-i18n="evNightTitle">One night only</h4>
+            <div class="row"><span data-i18n="evNightDate">Jun 7</span><span class="pill" data-i18n="evPlanning">Planning</span></div>
+          </div>
+        </article>
+        <article class="ev">
+          <div class="img h">cover · harvest</div>
+          <div class="body">
+            <span class="eyebrow" data-i18n="evHarvest">Harvest</span>
+            <h4 data-i18n="evSheki">Şəki 2026</h4>
+            <div class="row"><span data-i18n="evShekiDate">Sep 12 → 26</span><span class="pill" data-i18n="evSave">Save the date</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== 02 · MAP ============== -->
+  <section data-screen-label="02 Map">
+    <div class="surface-title">
+      <div style="display:flex;align-items:end;gap:14px">
+        <div class="num">02</div>
+        <div>
+          <div class="s">Core product · /map</div>
+          <div class="t">Map — variant B (map-first + bottom sheet)</div>
+        </div>
+      </div>
+      <div class="eyebrow">friends layer · 360° · routing</div>
+    </div>
+
+    <div class="app" style="margin-top:14px;padding:0">
+      <div class="map-shell">
+        <div class="map-canvas">
+          <!-- streets -->
+          <svg class="streets" viewBox="0 0 1000 700" preserveAspectRatio="none">
+            <g stroke="#161513" stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round">
+              <path d="M 0 220 C 200 200, 400 260, 1000 240"/>
+              <path d="M 0 420 C 280 400, 520 460, 1000 430"/>
+              <path d="M 200 0 C 220 200, 180 400, 240 700"/>
+              <path d="M 600 0 C 580 200, 640 380, 600 700"/>
+              <path d="M 820 0 C 800 220, 860 460, 820 700"/>
+            </g>
+            <g stroke="#1f4f44" stroke-width="2" fill="none" opacity="0.35" stroke-dasharray="2 6">
+              <path d="M 200 420 L 380 420 L 380 250 L 600 250"/>
+            </g>
+            <!-- park area -->
+            <path d="M 320 280 L 720 280 L 720 480 L 320 480 Z" fill="#dde8d2" stroke="#1f4f44" stroke-opacity="0.4" stroke-width="2"/>
+            <text x="520" y="390" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1f4f44" letter-spacing="2" opacity="0.5">YASAMAL PARK</text>
+          </svg>
+
+          <!-- pins -->
+          <div class="map-pin" style="left:24%;top:40%"><div class="head"><span>1</span></div></div>
+          <div class="map-pin" style="left:38%;top:32%"><div class="head"><span>2</span></div></div>
+          <div class="map-pin sel" style="left:52%;top:46%"><div class="head"><span>3</span></div></div>
+          <div class="map-pin" style="left:64%;top:58%"><div class="head"><span>4</span></div></div>
+          <div class="map-pin" style="left:78%;top:38%"><div class="head"><span>5</span></div></div>
+          <div class="map-pin fac" style="left:34%;top:62%"><div class="head"><span>WC</span></div></div>
+          <div class="map-pin fac" style="left:70%;top:34%"><div class="head"><span>☕</span></div></div>
+
+          <!-- friend dots -->
+          <div class="friend-dot" style="left:46%;top:52%">A</div>
+          <div class="friend-dot" style="left:60%;top:42%">M</div>
+
+          <!-- route dashed -->
+          <svg style="position:absolute;inset:0" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M 460 322 Q 500 290, 520 322 T 600 294" stroke="#c4423a" stroke-width="3" stroke-dasharray="6 6" fill="none"/>
+          </svg>
+        </div>
+
+        <!-- top bar -->
+        <div class="map-top">
+          <div class="panel" style="flex:0 0 auto">
+            <div class="fair-pick">
+              <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);font-weight:500">Fair</span>
+              Winter Baku '26
+              <span class="pill live" style="margin-left:6px"><span class="dot"></span>Live in 7d</span>
+            </div>
+          </div>
+          <div class="panel" style="flex:1">
+            <div class="map-search">
+              <span style="font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);font-weight:500">⌕</span>
+              <input placeholder="Search vendors, facilities, products — 'hot cocoa', 'restroom', 'Foxie Café'..." />
+            </div>
+          </div>
+          <div class="panel" style="flex:0 0 auto;padding:6px">
+            <button class="btn icon" id="friendsBtn" aria-label="Friends">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M14 20c0-2 2-3 4-3s3 1 3 3"/></svg>
+            </button>
+            <button class="btn icon" aria-label="Geolocate me">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- filter chips -->
+        <div class="filters">
+          <span class="chip on">All</span>
+          <span class="chip on">Vendors · 24</span>
+          <span class="chip on">Facilities · 6</span>
+          <span class="chip">Food</span>
+          <span class="chip">Toys</span>
+          <span class="chip">Crafts</span>
+          <span class="chip">Workshops</span>
+          <span class="chip">Open now</span>
+          <span class="chip" style="background:var(--accent-2);color:#fff;border-color:var(--accent-2)">Friends · 3</span>
+        </div>
+
+        <!-- zoom -->
+        <div class="zoom">
+          <button class="btn icon">+</button>
+          <button class="btn icon">−</button>
+          <button class="btn icon">⌖</button>
+        </div>
+
+        <!-- selected card -->
+        <aside class="sel-card" data-screen-label="02b Selected">
+          <div class="pano">
+            <span class="pano-tag">360° preview</span>
+            <span class="pano-eye">⤢ open</span>
+          </div>
+          <div class="info">
+            <div class="eyebrow">House #3 · Hall B · Food</div>
+            <h4>Foxie Café · B-12</h4>
+            <p style="margin:6px 0 0;font-size:13px;color:var(--ink-2)">Cozy bakery &amp; hot drinks. Try the cinnamon stars by the train track.</p>
+            <div class="row">
+              <span class="pill ok"><span class="dot"></span>Open · 10–22</span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase">120m away</span>
+            </div>
+            <div class="row" style="gap:6px;justify-content:flex-start;margin-top:12px">
+              <a href="#" class="btn accent sm">Open 360°</a>
+              <a href="#" class="btn sm">Route here</a>
+              <a href="#" class="btn ghost sm">Share</a>
+            </div>
+          </div>
+        </aside>
+
+        <!-- friends popover -->
+        <aside class="friends-pop open" id="friendsPop">
+          <div class="hd">
+            <h4>Friends · at the fair</h4>
+            <span class="pill"><span class="dot" style="background:var(--accent-2)"></span>3 nearby</span>
+          </div>
+          <div class="friend-row">
+            <div class="av">A</div>
+            <div class="meta"><b>Aytan M.</b><span>120 m · near Foxie</span></div>
+            <span class="badge">2</span>
+          </div>
+          <div class="friend-row">
+            <div class="av">M</div>
+            <div class="meta"><b>Murad Q.</b><span>310 m · Hall H</span></div>
+          </div>
+          <div class="friend-row">
+            <div class="av">L</div>
+            <div class="meta"><b>Leyla H.</b><span>450 m · café row</span></div>
+            <span class="badge">1</span>
+          </div>
+          <div class="react-row">
+            <span>❤️</span><span>🔥</span><span>❄️</span><span>🦊</span><span>✨</span><span>🍪</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:12px;gap:6px">
+            <a href="#" class="btn ghost sm" style="flex:1;justify-content:center">+ Invite</a>
+            <a href="#" class="btn sm" style="flex:1;justify-content:center">Sort: nearest</a>
+          </div>
+        </aside>
+
+        <!-- bottom sheet -->
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="head">
+            <h4>24 places nearby</h4>
+            <div class="meta">drag ↑ to expand · sort: nearest</div>
+          </div>
+          <div class="sheet-list">
+            <article class="place-card" style="border-color:var(--accent)">
+              <div class="img"></div>
+              <div class="body"><h5>Foxie Café · B-12</h5><div class="row"><span>Food · 120m</span><span class="pill ok"><span class="dot"></span>Open</span></div></div>
+            </article>
+            <article class="place-card">
+              <div class="img b"></div>
+              <div class="body"><h5>LunaToys · A-4</h5><div class="row"><span>Toys · 200m</span><span class="pill warn"><span class="dot"></span>Busy</span></div></div>
+            </article>
+            <article class="place-card">
+              <div class="img c"></div>
+              <div class="body"><h5>Yarn Yard · C-1</h5><div class="row"><span>Crafts · 240m</span><span class="pill ok"><span class="dot"></span>Open</span></div></div>
+            </article>
+            <article class="place-card">
+              <div class="img d"></div>
+              <div class="body"><h5>Snowy Mtn · H-3</h5><div class="row"><span>Workshops · 310m</span><span class="pill"><span class="dot"></span>Soon</span></div></div>
+            </article>
+            <article class="place-card">
+              <div class="img e"></div>
+              <div class="body"><h5>Bake &amp; Co · B-7</h5><div class="row"><span>Food · 380m</span><span class="pill ok"><span class="dot"></span>Open</span></div></div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== 03 · ADMIN APPLICATION REVIEW ============== -->
+  <section data-screen-label="03 Admin Application Review">
+    <div class="surface-title">
+      <div style="display:flex;align-items:end;gap:14px">
+        <div class="num">03</div>
+        <div>
+          <div class="s">Admin · /admin/applications</div>
+          <div class="t">Vendor application review</div>
+        </div>
+      </div>
+      <div class="eyebrow">14 pending · 62 active bookings</div>
+    </div>
+
+    <div class="app" style="margin-top:14px;padding:0">
+      <div class="admin">
+        <!-- sidebar -->
+        <aside class="side">
+          <div class="brand">
+            <div style="display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:18px;font-weight:600">FestivKids <small style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);font-weight:500">admin</small></div>
+          </div>
+          <div class="sect">Workspace</div>
+          <div class="item"><span>◇</span>Overview<span class="k">G</span></div>
+          <div class="item"><span>◌</span>Users<span class="k">U</span></div>
+          <div class="item"><span>◷</span>Logs<span class="k">L</span></div>
+          <div class="sect">Content</div>
+          <div class="item"><span>✦</span>Fairs<span class="k">F</span></div>
+          <div class="item on"><span>★</span>Applications<span class="k">A</span></div>
+          <div class="item"><span>✎</span>About CMS<span class="k">B</span></div>
+          <div class="item"><span>◍</span>Map CMS<span class="k">M</span></div>
+          <div style="margin-top:auto;padding-top:18px;border-top:1px solid var(--rule);display:flex;align-items:center;gap:10px">
+            <div class="avatar" style="width:32px;height:32px">A</div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600">Aysel B.</div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:1px">admin · baku</div>
+            </div>
+            <button class="btn sm ghost" aria-label="Logout">↩</button>
+          </div>
+        </aside>
+
+        <!-- work area -->
+        <div class="work">
+          <div class="crumb">Admin › <b>Applications</b></div>
+          <div class="head">
+            <div>
+              <h2>Applications</h2>
+              <div class="eyebrow" style="margin-top:6px">Review &amp; respond — auto-emails the vendor in their language.</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn ghost sm">⤓ Export CSV</button>
+              <button class="btn ghost sm">⤓ Export PDF</button>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat accent">
+              <div class="k">Pending</div>
+              <div class="v">14</div>
+              <div class="delta">3 over 48h SLA</div>
+            </div>
+            <div class="stat">
+              <div class="k">Approved · this fair</div>
+              <div class="v">62</div>
+              <div class="delta up">↑ 12 vs last fair</div>
+            </div>
+            <div class="stat">
+              <div class="k">Rejected · this fair</div>
+              <div class="v">9</div>
+              <div class="delta down">↓ 3 vs last fair</div>
+            </div>
+            <div class="stat">
+              <div class="k">Avg response</div>
+              <div class="v">21h</div>
+              <div class="delta up">↑ within SLA</div>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="input">
+              <span>⌕</span>
+              <input placeholder="Search vendor, house, product..." />
+            </div>
+            <div style="display:flex;gap:6px">
+              <span class="chip on">Pending · 14</span>
+              <span class="chip">Approved</span>
+              <span class="chip">Rejected</span>
+              <span class="chip">All</span>
+            </div>
+            <div style="display:flex;gap:6px;margin-left:auto">
+              <span class="chip">Fair: Winter '26 ▾</span>
+              <span class="chip">Category: Any ▾</span>
+              <span class="chip">Sort: Oldest ▾</span>
+            </div>
+          </div>
+
+          <div class="layout">
+            <div class="tablewrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th style="width:32px"><input type="checkbox" aria-label="Select all"/></th>
+                    <th>Vendor</th>
+                    <th>House</th>
+                    <th>Fair</th>
+                    <th>Category</th>
+                    <th>Submitted</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="sel">
+                    <td><input type="checkbox" aria-label="Select"/></td>
+                    <td>
+                      <div class="vendor-cell">
+                        <div class="av" style="background:var(--accent-soft);color:var(--accent)">F</div>
+                        <div><b>Foxie Café</b><span>est 2018 · baku</span></div>
+                      </div>
+                    </td>
+                    <td><b>B-12</b><div class="eyebrow" style="font-size:9px;letter-spacing:1px">Hall B · Food row</div></td>
+                    <td>Winter '26</td>
+                    <td><span class="pill">Food</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Nov 02</span><div class="eyebrow" style="font-size:9px;letter-spacing:1px;color:var(--accent)">52h ago · over SLA</div></td>
+                    <td><span class="pill warn"><span class="dot"></span>Pending</span></td>
+                    <td><a href="#" class="btn accent sm">Review →</a></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" aria-label="Select"/></td>
+                    <td>
+                      <div class="vendor-cell">
+                        <div class="av" style="background:#dbeaf0;color:#1c4a5a">L</div>
+                        <div><b>LunaToys</b><span>handmade · baku</span></div>
+                      </div>
+                    </td>
+                    <td><b>H-3</b><div class="eyebrow" style="font-size:9px;letter-spacing:1px">Hall H · Toys</div></td>
+                    <td>Spring '26</td>
+                    <td><span class="pill">Toys</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Nov 05</span><div class="eyebrow" style="font-size:9px;letter-spacing:1px">36h ago</div></td>
+                    <td><span class="pill warn"><span class="dot"></span>Pending</span></td>
+                    <td><button class="btn ghost sm">Review</button></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" aria-label="Select"/></td>
+                    <td>
+                      <div class="vendor-cell">
+                        <div class="av" style="background:#dde8d2;color:#3c5a32">Y</div>
+                        <div><b>Yarn Yard</b><span>fiber arts · ganja</span></div>
+                      </div>
+                    </td>
+                    <td><b>A-1</b><div class="eyebrow" style="font-size:9px;letter-spacing:1px">Hall A · Crafts</div></td>
+                    <td>Winter '26</td>
+                    <td><span class="pill">Crafts</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Nov 07</span><div class="eyebrow" style="font-size:9px;letter-spacing:1px">18h ago</div></td>
+                    <td><span class="pill warn"><span class="dot"></span>Pending</span></td>
+                    <td><button class="btn ghost sm">Review</button></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" aria-label="Select"/></td>
+                    <td>
+                      <div class="vendor-cell">
+                        <div class="av" style="background:#f5e7c4;color:#7a5413">S</div>
+                        <div><b>Snowy Mtn</b><span>workshops · şəki</span></div>
+                      </div>
+                    </td>
+                    <td><b>C-9</b><div class="eyebrow" style="font-size:9px;letter-spacing:1px">Hall C · Workshops</div></td>
+                    <td>Winter '26</td>
+                    <td><span class="pill">Workshops</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Nov 09</span><div class="eyebrow" style="font-size:9px;letter-spacing:1px">6h ago</div></td>
+                    <td><span class="pill warn"><span class="dot"></span>Pending</span></td>
+                    <td><button class="btn ghost sm">Review</button></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" aria-label="Select"/></td>
+                    <td>
+                      <div class="vendor-cell">
+                        <div class="av" style="background:#e8d7eb;color:#5a346b">B</div>
+                        <div><b>Bake &amp; Co</b><span>pastry · baku</span></div>
+                      </div>
+                    </td>
+                    <td><b>B-7</b><div class="eyebrow" style="font-size:9px;letter-spacing:1px">Hall B · Food</div></td>
+                    <td>Winter '26</td>
+                    <td><span class="pill">Food</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Nov 09</span><div class="eyebrow" style="font-size:9px;letter-spacing:1px">2h ago</div></td>
+                    <td><span class="pill ok"><span class="dot"></span>Approved</span></td>
+                    <td><button class="btn ghost sm">View</button></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" aria-label="Select"/></td>
+                    <td>
+                      <div class="vendor-cell">
+                        <div class="av">O</div>
+                        <div><b>OldShop LLC</b><span>2019 · baku</span></div>
+                      </div>
+                    </td>
+                    <td><b>A-3</b><div class="eyebrow" style="font-size:9px;letter-spacing:1px">Hall A</div></td>
+                    <td>Winter '26</td>
+                    <td><span class="pill">Toys</span></td>
+                    <td><span style="font-family:var(--mono);font-size:12px">Oct 28</span></td>
+                    <td><span class="pill" style="background:var(--accent-soft);border-color:var(--accent);color:var(--accent)"><span class="dot" style="background:var(--accent)"></span>Rejected</span></td>
+                    <td><button class="btn ghost sm">View</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- drawer -->
+            <aside class="drawer" data-screen-label="03b Review drawer">
+              <div class="img"></div>
+              <div class="body">
+                <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
+                  <div>
+                    <h3>Foxie Café · B-12</h3>
+                    <div class="sub">Pending · 52h ago · over SLA</div>
+                  </div>
+                  <span class="pill warn"><span class="dot"></span>Priority</span>
+                </div>
+
+                <div class="kvs">
+                  <div><div class="k">Fair</div><div class="v">Winter Baku '26</div></div>
+                  <div><div class="k">House</div><div class="v">B-12 · Hall B · Food</div></div>
+                  <div><div class="k">Category</div><div class="v">Food · pastry</div></div>
+                  <div><div class="k">Languages</div><div class="v">EN · AZ</div></div>
+                  <div style="grid-column:1/-1"><div class="k">Products</div><div class="v">Pastries, cinnamon stars, hot cocoa, pirojki, mulled apple</div></div>
+                </div>
+
+                <div class="gallery" aria-label="Sample photos">
+                  <div class="ph"></div>
+                  <div class="ph"></div>
+                  <div class="ph"></div>
+                </div>
+
+                <div class="reason">
+                  <div class="k">Rejection reason · sent to vendor in EN+AZ</div>
+                  <textarea placeholder="Optional. Plain language — this goes in the email."></textarea>
+                </div>
+
+                <div class="actions">
+                  <button class="btn accent">Approve</button>
+                  <button class="btn" style="background:#fff;border-color:var(--accent);color:var(--accent)">Reject</button>
+                </div>
+                <div class="eyebrow" style="margin-top:10px;text-align:center">
+                  Auto-emails vendor · logs to /admin/logs
+                </div>
+              </div>
+            </aside>
+          </div>
+
+          <div class="foot">
+            <span>Showing 1–6 of 14 pending</span>
+            <span>Updated · 2 min ago</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>FestivKids · Hi-fi round 1</span>
+    <span>Home A · Map B · Admin Apps</span>
+  </div>
+</div>
+
+<script>
+  // ----- i18n -----
+  const I18N = {
+    en: {
+      navHome:'Home', navMap:'Map', navAbout:'About',
+      signIn:'Sign in', applyVendor:'Apply as vendor',
+      heroPill:'Winter Fair · opens in 7 days',
+      heroTitle:'Where winter <em>meets</em><br/>wonder.',
+      heroLead:'Family seasonal fairs across Azerbaijan. Walk the map before you arrive — every house, every vendor, every 360° corner.',
+      ctaMap:'Browse the map →', ctaApply:'Apply as a vendor', ctaAbout:'About FestivKids',
+      nextFair:'Next fair', nextFairName:"Winter Fair · Baku 2026", nextFairWhen:'Yasamal Park · Dec 18 → Jan 6',
+      opensIn:'Opens in 7 days', cdDays:'days', cdHrs:'hrs', cdMin:'min', cdSec:'sec',
+      evWinter:'Winter', evBaku:'Baku 2026', evBakuDate:'Dec 18 → Jan 6', evSoon:'Soon',
+      evSpring:'Spring', evGanja:'Ganja 2026', evGanjaDate:'Apr 4 → 19', evTickets:'Tickets soon',
+      evNight:'Night bazaar', evNightTitle:'One night only', evNightDate:'Jun 7', evPlanning:'Planning',
+      evHarvest:'Harvest', evSheki:'Şəki 2026', evShekiDate:'Sep 12 → 26', evSave:'Save the date',
+      aiOnline:'online', aiUser:'"Where are the toy workshops?"',
+      aiBot:'<b>Hall B</b> has 4 toy makers. Saturdays they run two free sessions for kids 6+.',
+      aiPh:'Ask Foxie about the fair…'
+    },
+    az: {
+      navHome:'Ɗsas', navMap:'Xaritə', navAbout:'Haqqımızda',
+      signIn:'Daxil ol', applyVendor:'Müraciət et',
+      heroPill:'Qış Yarmarkası · 7 günə açılır',
+      heroTitle:'Qış<em>ın</em> möcüzə<br/>görüş yəri.',
+      heroLead:'Azərbaycan boyu ailə üçün mehriban yarmarkalar. Gəlmədən əvvəl xaritəni gəzin — hər ev, hər satıcı, hər 360° künc burada.',
+      ctaMap:'Xaritəni gəz →', ctaApply:'Müraciət et', ctaAbout:'FestivKids haqqında',
+      nextFair:'Növbəti yarmarka', nextFairName:'Qış Yarmarkası · Bakı 2026', nextFairWhen:'Yasamal Parkı · 18 dek → 6 yan',
+      opensIn:'7 günə açılır', cdDays:'gün', cdHrs:'saat', cdMin:'dəq', cdSec:'san',
+      evWinter:'Qış', evBaku:'Bakı 2026', evBakuDate:'18 dek → 6 yan', evSoon:'Tezliklə',
+      evSpring:'Yaz', evGanja:'Gəncə 2026', evGanjaDate:'4 → 19 apr', evTickets:'Biletlər tezliklə',
+      evNight:'Gecə bazarı', evNightTitle:'Təkcə bir gecə', evNightDate:'7 iyn', evPlanning:'Planlaşırılır',
+      evHarvest:'Məhsul', evSheki:'Şəki 2026', evShekiDate:'12 → 26 sen', evSave:'Tarixi qeyd et',
+      aiOnline:'onlayn · EN only (MVP)', aiUser:'"Oyuncaq emalatxanaları hardadır?" (EN only)',
+      aiBot:'<b>Hall B</b> has 4 toy makers. Saturdays they run two free sessions for kids 6+.',
+      aiPh:'Foxie’yə sual ver… (EN only)'
+    }
+  };
+  function applyLang(lang){
+    document.body.dataset.lang = lang;
+    const dict = I18N[lang] || I18N.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const k = el.getAttribute('data-i18n'); if (dict[k]) el.textContent = dict[k];
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const k = el.getAttribute('data-i18n-html'); if (dict[k]) el.innerHTML = dict[k];
+    });
+    document.querySelectorAll('#langSwitch [data-set-lang]').forEach(el => {
+      el.classList.toggle('on', el.dataset.setLang === lang);
+    });
+  }
+  document.getElementById('langSwitch')?.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-set-lang]'); if (t) applyLang(t.dataset.setLang);
+  });
+  applyLang('en');
+
+  // Friends popover toggle (existing)
+  document.getElementById('friendsBtn')?.addEventListener('click', () => {
+    document.getElementById('friendsPop')?.classList.toggle('open');
+  });
+</script>
+</body>
+</html>
