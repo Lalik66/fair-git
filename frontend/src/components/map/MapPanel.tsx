@@ -3,13 +3,24 @@ import { useTranslation } from 'react-i18next';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { distance, point } from '@turf/turf';
-import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEmojiForType } from '../../types/map';
+import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEmojiForType, getCategoryColor, getCategoryLabel, getCategoryEmoji } from '../../types/map';
 import type { FriendLocation } from '../../services/friendsService';
 import { getAvatarLetter, getAvatarColor, getAvatarAnimationDelay } from '../../utils/avatarHelpers';
 
 // Set Mapbox access token
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 mapboxgl.accessToken = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
+
+// Escape text/attribute content before injecting into popup HTML (Mapbox
+// setHTML). Covers &, <, >, and both quote styles so it is safe in attributes.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 interface MapPanelProps {
   objects: MapObject[];
@@ -28,6 +39,12 @@ interface MapPanelProps {
   onSendReaction?: (friendId: string, friendName: string) => void;
   /** Callback when map is ready (for parent to get map instance) */
   onMapReady?: (map: mapboxgl.Map) => void;
+  /**
+   * True for vendor/admin accounts. Privileged viewers see operational data
+   * (area, price, occupancy red/green). Regular visitors see the public
+   * story: panorama, business identity, category-colored markers.
+   */
+  isPrivileged?: boolean;
 }
 
 export interface MapPanelRef {
@@ -47,6 +64,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   onGetDirections,
   onSendReaction,
   onMapReady,
+  isPrivileged = false,
 }, ref) => {
   const { t } = useTranslation();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -152,24 +170,67 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     const isVendorHouse = obj.type === 'vendor_house';
 
     if (isVendorHouse) {
-      const availabilityText = obj.isAvailable === null
-        ? ''
-        : obj.isAvailable
-          ? '<span class="status available">Bos</span>'
-          : '<span class="status occupied">Tutulub</span>';
+      const panoramaBtn = `
+          <button class="btn btn-sm btn-panorama" onclick="window.dispatchEvent(new CustomEvent('openPanorama', { detail: '${escapeHtml(obj.id)}' }))">
+            360° Bax${!obj.panorama360Url ? ' (Demo)' : ''}
+          </button>`;
 
-      return `
+      // Vendor/admin: operational popup (area, price, occupancy, internal note).
+      if (isPrivileged) {
+        const availabilityText = obj.isAvailable === null || obj.isAvailable === undefined
+          ? ''
+          : obj.isAvailable
+            ? '<span class="status available">Bos</span>'
+            : '<span class="status occupied">Tutulub</span>';
+
+        return `
         <div class="marker-popup vendor-popup">
-          <h3>${obj.emoji} ${obj.label}</h3>
+          <h3>${obj.emoji} ${escapeHtml(obj.label)}</h3>
           ${availabilityText}
           <div class="house-details">
             ${obj.areaSqm ? `<p><strong>Sahe:</strong> ${obj.areaSqm.toFixed(1)} m²</p>` : ''}
             ${obj.price ? `<p><strong>Qiymət:</strong> ${obj.price.toFixed(2)} AZN</p>` : ''}
-            ${obj.description ? `<p>${obj.description}</p>` : ''}
+            ${obj.description ? `<p>${escapeHtml(obj.description)}</p>` : ''}
           </div>
-          <button class="btn btn-sm btn-panorama" onclick="window.dispatchEvent(new CustomEvent('openPanorama', { detail: '${obj.id}' }))">
-            360° Bax${!obj.panorama360Url ? ' (Demo)' : ''}
-          </button>
+          ${panoramaBtn}
+        </div>
+      `;
+      }
+
+      // Regular visitor: the public story — who is here and what it's about.
+      // No area / price / occupancy.
+      const vendor = obj.vendor;
+      const category = vendor?.productCategory;
+      const title = escapeHtml(vendor?.companyName || obj.label);
+      const headEmoji = getCategoryEmoji(category) || obj.emoji;
+
+      const categoryBadge = category
+        ? `<span class="popup-category">${getCategoryEmoji(category)} ${escapeHtml(getCategoryLabel(category, 'az'))}</span>`
+        : '';
+      const logo = vendor?.logoUrl
+        ? `<img src="${escapeHtml(vendor.logoUrl)}" alt="" class="popup-vendor-logo" />`
+        : '';
+      const about = vendor?.businessDescription
+        ? `<p class="popup-about">${escapeHtml(vendor.businessDescription)}</p>`
+        : '';
+      const story = obj.visitorStory
+        ? `<p class="popup-story">${escapeHtml(obj.visitorStory)}</p>`
+        : '';
+      const images = (vendor?.productImages || [])
+        .slice(0, 3)
+        .map((src) => `<img src="${escapeHtml(src)}" alt="" class="popup-product-img" />`)
+        .join('');
+      const imagesRow = images ? `<div class="popup-product-images">${images}</div>` : '';
+
+      return `
+        <div class="marker-popup vendor-popup visitor-popup">
+          <h3>${headEmoji} ${title}</h3>
+          ${categoryBadge}
+          ${logo}
+          ${about}
+          ${story}
+          ${imagesRow}
+          ${panoramaBtn}
         </div>
       `;
     }
@@ -182,7 +243,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         ${obj.photoUrl ? `<img src="${obj.photoUrl}" alt="${obj.label}" class="facility-photo" />` : ''}
       </div>
     `;
-  }, []);
+  }, [isPrivileged]);
 
   // Update markers when objects change
   useEffect(() => {
@@ -200,13 +261,18 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       const isVendorHouse = obj.type === 'vendor_house';
       let markerColor = obj.color || getColorForType(obj.type);
 
-      // For vendor houses, color based on availability
       if (isVendorHouse) {
-        markerColor = obj.isAvailable === null
-          ? '#3B82F6' // Blue if no fair selected
-          : obj.isAvailable
-            ? '#10B981' // Green for available
-            : '#EF4444'; // Red for occupied
+        if (isPrivileged) {
+          // Vendor/admin: occupancy status (operational signal).
+          markerColor = obj.isAvailable === null || obj.isAvailable === undefined
+            ? '#3B82F6' // Blue if no fair selected
+            : obj.isAvailable
+              ? '#10B981' // Green for available
+              : '#EF4444'; // Red for occupied
+        } else {
+          // Regular visitor: color by what the stall sells, not occupancy.
+          markerColor = getCategoryColor(obj.vendor?.productCategory);
+        }
       }
 
       // Create custom marker element
@@ -235,7 +301,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       markersRef.current.set(obj.id, marker);
       popupsRef.current.set(obj.id, popup);
     });
-  }, [objects, createPopupContent, onObjectSelect]);
+  }, [objects, createPopupContent, onObjectSelect, isPrivileged]);
 
   // Helper function to escape HTML for XSS prevention
   const escapeHTML = useCallback((str: string): string => {

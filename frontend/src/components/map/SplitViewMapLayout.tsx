@@ -47,6 +47,10 @@ const SplitViewMapLayout: React.FC = () => {
   // Get auth state for location tracking
   const { user } = useAuth();
 
+  // Vendor/admin see operational data (area, price, occupancy); regular
+  // visitors (anonymous or role 'user') see only the public story.
+  const isPrivileged = user?.role === 'vendor' || user?.role === 'admin';
+
   // Enable location tracking when user is authenticated and geolocateControl is ready
   useLocationTracking({
     geolocateControl,
@@ -268,6 +272,7 @@ const SplitViewMapLayout: React.FC = () => {
           selectedFairId={selectedFairId}
           onFairChange={setSelectedFairId}
           isLoading={isLoading}
+          isPrivileged={isPrivileged}
         />
       )}
 
@@ -324,6 +329,7 @@ const SplitViewMapLayout: React.FC = () => {
           onGetDirections={handleGetDirections}
           onSendReaction={handleOpenReactionPicker}
           onMapReady={handleMapReady}
+          isPrivileged={isPrivileged}
         />
         <FoxMapPeek />
 

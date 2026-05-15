@@ -2162,7 +2162,7 @@ router.post('/vendor-houses/:houseId/panorama-upload', panoramaUpload.single('pa
 // Create a new vendor house
 router.post('/vendor-houses', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { houseNumber, areaSqm, price, description, latitude, longitude } = req.body;
+    const { houseNumber, areaSqm, price, description, visitorStory, latitude, longitude } = req.body;
 
     if (!houseNumber || !houseNumber.trim()) {
       res.status(400).json({ error: 'House number is required' });
@@ -2218,6 +2218,10 @@ router.post('/vendor-houses', async (req: Request, res: Response): Promise<void>
       createData.description = String(description).trim() || null;
     }
 
+    if (visitorStory !== undefined && visitorStory !== null) {
+      createData.visitorStory = String(visitorStory).trim() || null;
+    }
+
     const vendorHouse = await prisma.vendorHouse.create({
       data: createData as {
         houseNumber: string;
@@ -2226,6 +2230,7 @@ router.post('/vendor-houses', async (req: Request, res: Response): Promise<void>
         areaSqm?: number;
         price?: number;
         description?: string | null;
+        visitorStory?: string | null;
       },
     });
 
@@ -2253,6 +2258,7 @@ router.post('/vendor-houses', async (req: Request, res: Response): Promise<void>
         areaSqm: vendorHouse.areaSqm,
         price: vendorHouse.price,
         description: vendorHouse.description,
+        visitorStory: vendorHouse.visitorStory,
         latitude: vendorHouse.latitude,
         longitude: vendorHouse.longitude,
         panorama360Url: vendorHouse.panorama360Url,
@@ -2276,6 +2282,7 @@ router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> 
         areaSqm: true,
         price: true,
         description: true,
+        visitorStory: true,
         latitude: true,
         longitude: true,
         panorama360Url: true,
@@ -2294,7 +2301,7 @@ router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> 
 router.put('/vendor-houses/:houseId', async (req: Request, res: Response): Promise<void> => {
   try {
     const { houseId } = req.params;
-    const { houseNumber, areaSqm, price, description, isEnabled } = req.body;
+    const { houseNumber, areaSqm, price, description, visitorStory, isEnabled } = req.body;
 
     const vendorHouse = await prisma.vendorHouse.findUnique({
       where: { id: houseId },
@@ -2332,6 +2339,10 @@ router.put('/vendor-houses/:houseId', async (req: Request, res: Response): Promi
       updateData.description = description || null;
     }
 
+    if (visitorStory !== undefined) {
+      updateData.visitorStory = (typeof visitorStory === 'string' ? visitorStory.trim() : visitorStory) || null;
+    }
+
     if (isEnabled !== undefined) {
       updateData.isEnabled = Boolean(isEnabled);
     }
@@ -2349,6 +2360,7 @@ router.put('/vendor-houses/:houseId', async (req: Request, res: Response): Promi
         areaSqm: updated.areaSqm,
         price: updated.price,
         description: updated.description,
+        visitorStory: updated.visitorStory,
         isEnabled: updated.isEnabled,
         panorama360Url: updated.panorama360Url,
         latitude: updated.latitude,

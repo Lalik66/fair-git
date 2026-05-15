@@ -14,6 +14,16 @@ export type FilterType =
 
 export type ColorCategory = 'green' | 'orange' | 'blue' | 'purple' | 'gray';
 
+// Public business identity of the vendor occupying a house. Contact details
+// are intentionally never included.
+export interface VendorInfo {
+  companyName: string | null;
+  productCategory: string | null;
+  businessDescription: string | null;
+  logoUrl: string | null;
+  productImages: string[];
+}
+
 export interface MapObject {
   id: string;
   type: string;
@@ -23,11 +33,16 @@ export interface MapObject {
   longitude: number;
   color: string;
   emoji: string;
+  // Operational fields: present only for privileged viewers (vendor/admin).
+  // The backend omits them (sends null) for regular visitors.
   isAvailable?: boolean | null;
   houseNumber?: string;
   areaSqm?: number | null;
   price?: number | null;
   panorama360Url?: string | null;
+  // Public, visitor-facing fields shown to everyone.
+  visitorStory?: string | null;
+  vendor?: VendorInfo | null;
   photoUrl?: string | null;
 }
 
@@ -97,6 +112,44 @@ export function getColorForType(type: string): string {
 
 export function getEmojiForType(type: string): string {
   return TYPE_EMOJIS[type] || '📍';
+}
+
+// Product-category presentation for vendor houses. Regular visitors see
+// houses colored by what the occupying vendor sells (instead of the
+// occupancy red/green, which would leak operational status).
+export const CATEGORY_META: Record<string, { color: string; emoji: string; labelAz: string; labelEn: string }> = {
+  food_beverages: { color: '#f97316', emoji: '🍔', labelAz: 'Yemək və içki', labelEn: 'Food & drink' },
+  handicrafts: { color: '#a855f7', emoji: '🧵', labelAz: 'Əl işləri', labelEn: 'Handicrafts' },
+  clothing: { color: '#ec4899', emoji: '👕', labelAz: 'Geyim', labelEn: 'Clothing' },
+  accessories: { color: '#0ea5e9', emoji: '💍', labelAz: 'Aksesuarlar', labelEn: 'Accessories' },
+  other: { color: '#14b8a6', emoji: '🛍️', labelAz: 'Digər', labelEn: 'Other' },
+};
+
+// Neutral brand color for a vendor house with no known product category
+// (e.g. vacant, or vendor hasn't set one). Deliberately not red/green so it
+// carries no occupancy meaning.
+export const VENDOR_HOUSE_NEUTRAL_COLOR = '#6366F1';
+
+export function getCategoryColor(productCategory: string | null | undefined): string {
+  if (productCategory && CATEGORY_META[productCategory]) {
+    return CATEGORY_META[productCategory].color;
+  }
+  return VENDOR_HOUSE_NEUTRAL_COLOR;
+}
+
+export function getCategoryLabel(productCategory: string | null | undefined, language: string): string {
+  if (productCategory && CATEGORY_META[productCategory]) {
+    const meta = CATEGORY_META[productCategory];
+    return language === 'en' ? meta.labelEn : meta.labelAz;
+  }
+  return '';
+}
+
+export function getCategoryEmoji(productCategory: string | null | undefined): string {
+  if (productCategory && CATEGORY_META[productCategory]) {
+    return CATEGORY_META[productCategory].emoji;
+  }
+  return '';
 }
 
 // Default map center (Baku, Azerbaijan - Yarmarka location)

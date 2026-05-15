@@ -58,6 +58,47 @@ export const authenticateToken = async (
   }
 };
 
+// Like authenticateToken, but never rejects: used for public endpoints that
+// return richer data to logged-in vendor/admin accounts. If a valid token is
+// present, req.user is populated; otherwise the request proceeds anonymously.
+export const optionalAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    next();
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { userId: string };
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        firstName: true,
+        lastName: true,
+        isActive: true,
+      },
+    });
+
+    if (user && user.isActive) {
+      req.user = user;
+    }
+  } catch (error) {
+    // Invalid/expired token on a public endpoint: ignore and continue anonymously.
+  }
+
+  next();
+};
+
 export const requireAdmin = (
   req: Request,
   res: Response,

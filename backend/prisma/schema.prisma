@@ -113,7 +113,13 @@ model VendorHouse {
   houseNumber     String    @unique @map("house_number")
   areaSqm         Float?    @map("area_sqm")
   price           Float?
+  // Operational/internal note. Only exposed to vendor/admin (privileged) API
+  // responses, never to regular visitors on the public map.
   description     String?
+  // Public, visitor-facing blurb: what this place is about (what they sell,
+  // food vs crafts, the vibe). Shown to everyone on the map regardless of role.
+  // Admin-editable (houses are a shared pool, not vendor-owned).
+  visitorStory    String?   @map("visitor_story")
   latitude        Float
   longitude       Float
   panorama360Url  String?   @map("panorama_360_url")

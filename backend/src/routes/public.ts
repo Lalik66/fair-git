@@ -1,8 +1,16 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
 import { getColorCategory, getEmoji } from '../utils/mapHelpers';
+import { optionalAuth } from '../middleware/auth';
 
 const router = Router();
+
+// Vendor houses expose operational data (area, price, occupancy) only to
+// privileged accounts. Regular visitors (anonymous or role 'user') get the
+// public story: panorama, business identity, categories and the visitor blurb.
+function isPrivilegedViewer(req: Request): boolean {
+  return req.user?.role === 'vendor' || req.user?.role === 'admin';
+}
 
 // Get next upcoming fair for countdown
 router.get('/next-fair', async (req: Request, res: Response): Promise<void> => {
@@ -167,9 +175,10 @@ router.get('/past-events', async (req: Request, res: Response): Promise<void> =>
 });
 
 // Get vendor houses for map display with availability status and vendor info
-router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> => {
+router.get('/vendor-houses', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const { fairId } = req.query;
+    const privileged = isPrivilegedViewer(req);
 
     // Get all enabled vendor houses
     const houses = await prisma.vendorHouse.findMany({
@@ -182,6 +191,7 @@ router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> 
         areaSqm: true,
         price: true,
         description: true,
+        visitorStory: true,
         latitude: true,
         longitude: true,
         panorama360Url: true,
@@ -277,15 +287,26 @@ router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> 
       });
     }
 
-    // Transform houses to include availability and vendor info
+    // Transform houses. Visitors always get the public story (panorama,
+    // visitor blurb, business identity); only privileged accounts get the
+    // operational fields (area, price, occupancy, internal description).
     const housesWithAvailability = houses.map((house) => {
       const bookingInfo = bookingsMap.get(house.id);
       const isOccupied = !!bookingInfo;
       const vendorInfo = bookingInfo && typeof bookingInfo !== 'boolean' ? bookingInfo : null;
 
       return {
-        ...house,
-        isAvailable: fairId ? !isOccupied : null,
+        id: house.id,
+        houseNumber: house.houseNumber,
+        latitude: house.latitude,
+        longitude: house.longitude,
+        panorama360Url: house.panorama360Url,
+        visitorStory: house.visitorStory,
+        // Operational fields: privileged viewers only.
+        areaSqm: privileged ? house.areaSqm : null,
+        price: privileged ? house.price : null,
+        description: privileged ? house.description : null,
+        isAvailable: privileged ? (fairId ? !isOccupied : null) : null,
         // Include vendor info for occupied houses (public display)
         vendor: vendorInfo ? {
           companyName: vendorInfo.companyName,
@@ -384,9 +405,10 @@ router.get('/about-us', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Get unified map objects (vendor houses + facilities) with search and filtering
-router.get('/map-objects', async (req: Request, res: Response): Promise<void> => {
+router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const { search, types, fairId } = req.query;
+    const privileged = isPrivilegedViewer(req);
 
     const searchStr = typeof search === 'string' ? search.trim() : '';
     const typesArr = typeof types === 'string' && types.trim()
@@ -425,6 +447,13 @@ router.get('/map-objects', async (req: Request, res: Response): Promise<void> =>
     const includeFacilities = typesArr.length === 0 || facilityTypes.length > 0;
 
     // Build unified response array
+    interface VendorInfo {
+      companyName: string | null;
+      productCategory: string | null;
+      businessDescription: string | null;
+      logoUrl: string | null;
+      productImages: string[];
+    }
     interface MapObject {
       id: string;
       type: string;
@@ -439,6 +468,8 @@ router.get('/map-objects', async (req: Request, res: Response): Promise<void> =>
       areaSqm?: number | null;
       price?: number | null;
       panorama360Url?: string | null;
+      visitorStory?: string | null;
+      vendor?: VendorInfo | null;
       photoUrl?: string | null;
     }
 
@@ -452,6 +483,7 @@ router.get('/map-objects', async (req: Request, res: Response): Promise<void> =>
         houseWhere.OR = [
           { houseNumber: { contains: searchStr } },
           { description: { contains: searchStr } },
+          { visitorStory: { contains: searchStr } },
         ];
       }
 
@@ -463,6 +495,7 @@ router.get('/map-objects', async (req: Request, res: Response): Promise<void> =>
           areaSqm: true,
           price: true,
           description: true,
+          visitorStory: true,
           latitude: true,
           longitude: true,
           panorama360Url: true,
@@ -470,8 +503,10 @@ router.get('/map-objects', async (req: Request, res: Response): Promise<void> =>
         orderBy: { houseNumber: 'asc' },
       });
 
-      // Find occupied house IDs from bookings for the target fair
-      let occupiedHouseIds: Set<string> = new Set();
+      // Find occupied house IDs and the occupying vendor's public business
+      // identity (shown to everyone so visitors know what each stall is about).
+      const occupiedHouseIds: Set<string> = new Set();
+      const vendorByHouseId: Map<string, VendorInfo> = new Map();
 
       if (targetFairId) {
         const activeBookings = await prisma.booking.findMany({
@@ -480,26 +515,89 @@ router.get('/map-objects', async (req: Request, res: Response): Promise<void> =>
             bookingStatus: { in: ['pending', 'approved'] },
             isArchived: false,
           },
-          select: { vendorHouseId: true },
+          select: {
+            vendorHouseId: true,
+            vendorProfile: {
+              select: {
+                companyName: true,
+                productCategory: true,
+                businessDescription: true,
+                logoUrl: true,
+                productImages: {
+                  select: { imageUrl: true },
+                  orderBy: { orderIndex: 'asc' },
+                },
+              },
+            },
+          },
         });
-        occupiedHouseIds = new Set(activeBookings.map((b) => b.vendorHouseId));
+        for (const b of activeBookings) {
+          occupiedHouseIds.add(b.vendorHouseId);
+          vendorByHouseId.set(b.vendorHouseId, {
+            companyName: b.vendorProfile.companyName,
+            productCategory: b.vendorProfile.productCategory,
+            businessDescription: b.vendorProfile.businessDescription,
+            logoUrl: b.vendorProfile.logoUrl,
+            productImages: b.vendorProfile.productImages.map((img) => img.imageUrl),
+          });
+        }
+
+        // Pending/approved applications also mark a house occupied.
+        const applications = await prisma.application.findMany({
+          where: {
+            fairId: targetFairId,
+            status: { in: ['pending', 'approved'] },
+          },
+          select: {
+            vendorHouseId: true,
+            vendorProfile: {
+              select: {
+                companyName: true,
+                productCategory: true,
+                businessDescription: true,
+                logoUrl: true,
+                productImages: {
+                  select: { imageUrl: true },
+                  orderBy: { orderIndex: 'asc' },
+                },
+              },
+            },
+          },
+        });
+        for (const a of applications) {
+          occupiedHouseIds.add(a.vendorHouseId);
+          if (!vendorByHouseId.has(a.vendorHouseId)) {
+            vendorByHouseId.set(a.vendorHouseId, {
+              companyName: a.vendorProfile.companyName,
+              productCategory: a.vendorProfile.productCategory,
+              businessDescription: a.vendorProfile.businessDescription,
+              logoUrl: a.vendorProfile.logoUrl,
+              productImages: a.vendorProfile.productImages.map((img) => img.imageUrl),
+            });
+          }
+        }
       }
 
       for (const house of houses) {
+        const vendor = vendorByHouseId.get(house.id) || null;
         results.push({
           id: house.id,
           type: 'vendor_house',
           label: `House ${house.houseNumber}`,
-          description: house.description,
+          // Internal description is operational: privileged accounts only.
+          description: privileged ? house.description : null,
           latitude: house.latitude,
           longitude: house.longitude,
           color: getColorCategory('vendor_house'),
           emoji: getEmoji('vendor_house'),
-          isAvailable: targetFairId ? !occupiedHouseIds.has(house.id) : null,
+          // Occupancy is operational: hidden from regular visitors.
+          isAvailable: privileged ? (targetFairId ? !occupiedHouseIds.has(house.id) : null) : null,
           houseNumber: house.houseNumber,
-          areaSqm: house.areaSqm,
-          price: house.price,
+          areaSqm: privileged ? house.areaSqm : null,
+          price: privileged ? house.price : null,
           panorama360Url: house.panorama360Url,
+          visitorStory: house.visitorStory,
+          vendor,
         });
       }
     }

@@ -17,6 +17,7 @@ interface SidebarProps {
   onFairChange: (fairId: string | null) => void;
   isLoading?: boolean;
   className?: string;
+  isPrivileged?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -32,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onFairChange,
   isLoading = false,
   className = '',
+  isPrivileged = false,
 }) => {
   const { t, i18n } = useTranslation();
 
@@ -121,6 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         onObjectSelect={(id) => onObjectSelect(id)}
         isLoading={isLoading}
         className="sidebar-object-list"
+        isPrivileged={isPrivileged}
       />
     </div>
   );

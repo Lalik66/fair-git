@@ -15,6 +15,7 @@ interface VendorHouse {
   areaSqm: number | null;
   price: number | null;
   description: string | null;
+  visitorStory: string | null;
   panorama360Url: string | null;
   isEnabled: boolean;
   latitude?: number;
@@ -51,6 +52,7 @@ interface CreateHouseFormData {
   areaSqm: string;
   price: string;
   description: string;
+  visitorStory: string;
   latitude: string;
   longitude: string;
 }
@@ -60,6 +62,7 @@ interface EditFormData {
   areaSqm: string;
   price: string;
   description: string;
+  visitorStory: string;
   isEnabled: boolean;
 }
 
@@ -83,6 +86,7 @@ const MapManagement: React.FC = () => {
     areaSqm: '',
     price: '',
     description: '',
+    visitorStory: '',
     isEnabled: true,
   });
   const [saving, setSaving] = useState(false);
@@ -124,6 +128,7 @@ const MapManagement: React.FC = () => {
     areaSqm: '',
     price: '',
     description: '',
+    visitorStory: '',
     latitude: '40.4093',
     longitude: '49.8671',
   });
@@ -414,6 +419,7 @@ const MapManagement: React.FC = () => {
       areaSqm: house.areaSqm !== null ? String(house.areaSqm) : '',
       price: house.price !== null ? String(house.price) : '',
       description: house.description || '',
+      visitorStory: house.visitorStory || '',
       isEnabled: house.isEnabled,
     });
     setFormErrors({});
@@ -428,6 +434,7 @@ const MapManagement: React.FC = () => {
       areaSqm: '',
       price: '',
       description: '',
+      visitorStory: '',
       isEnabled: true,
     });
     setFormErrors({});
@@ -473,6 +480,7 @@ const MapManagement: React.FC = () => {
         areaSqm?: number | null;
         price?: number | null;
         description?: string | null;
+        visitorStory?: string | null;
         isEnabled?: boolean;
       } = {};
 
@@ -494,6 +502,11 @@ const MapManagement: React.FC = () => {
       const newDescription = editFormData.description.trim() || null;
       if (newDescription !== editingHouse.description) {
         updateData.description = newDescription;
+      }
+
+      const newVisitorStory = editFormData.visitorStory.trim() || null;
+      if (newVisitorStory !== editingHouse.visitorStory) {
+        updateData.visitorStory = newVisitorStory;
       }
 
       if (editFormData.isEnabled !== editingHouse.isEnabled) {
@@ -867,6 +880,7 @@ const MapManagement: React.FC = () => {
         areaSqm: createHouseFormData.areaSqm ? parseFloat(createHouseFormData.areaSqm) : null,
         price: createHouseFormData.price ? parseFloat(createHouseFormData.price) : null,
         description: createHouseFormData.description.trim() || null,
+        visitorStory: createHouseFormData.visitorStory.trim() || null,
         latitude: parseFloat(createHouseFormData.latitude),
         longitude: parseFloat(createHouseFormData.longitude),
       });
@@ -887,6 +901,7 @@ const MapManagement: React.FC = () => {
         areaSqm: '',
         price: '',
         description: '',
+        visitorStory: '',
         latitude: '40.4093',
         longitude: '49.8671',
       });
@@ -913,6 +928,7 @@ const MapManagement: React.FC = () => {
       areaSqm: '',
       price: '',
       description: '',
+      visitorStory: '',
       latitude: '40.4093',
       longitude: '49.8671',
     });
@@ -1131,6 +1147,18 @@ const MapManagement: React.FC = () => {
                 />
               </div>
 
+              <div className="form-group">
+                <label htmlFor="visitorStory">{t('mapManagement.visitorStory')}</label>
+                <textarea
+                  id="visitorStory"
+                  rows={3}
+                  value={editFormData.visitorStory}
+                  onChange={(e) => handleFormChange('visitorStory', e.target.value)}
+                  placeholder={t('mapManagement.visitorStoryPlaceholder')}
+                />
+                <span className="field-hint">{t('mapManagement.visitorStoryHint')}</span>
+              </div>
+
               <div className="form-group form-group-checkbox">
                 <label htmlFor="isEnabled" className="checkbox-label">
                   <input
@@ -1280,6 +1308,18 @@ const MapManagement: React.FC = () => {
                   onChange={(e) => handleCreateHouseFormChange('description', e.target.value)}
                   placeholder={t('mapManagement.descriptionPlaceholder')}
                 />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="newHouseVisitorStory">{t('mapManagement.visitorStory')}</label>
+                <textarea
+                  id="newHouseVisitorStory"
+                  rows={3}
+                  value={createHouseFormData.visitorStory}
+                  onChange={(e) => handleCreateHouseFormChange('visitorStory', e.target.value)}
+                  placeholder={t('mapManagement.visitorStoryPlaceholder')}
+                />
+                <span className="field-hint">{t('mapManagement.visitorStoryHint')}</span>
               </div>
 
               <div className="form-row">

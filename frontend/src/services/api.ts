@@ -254,6 +254,7 @@ export const adminApi = {
     areaSqm?: number | null;
     price?: number | null;
     description?: string | null;
+    visitorStory?: string | null;
     latitude: number;
     longitude: number;
   }) => {
@@ -276,6 +277,7 @@ export const adminApi = {
     areaSqm?: number | null;
     price?: number | null;
     description?: string | null;
+    visitorStory?: string | null;
     isEnabled?: boolean;
   }) => {
     const response = await api.put(`/admin/vendor-houses/${houseId}`, data);

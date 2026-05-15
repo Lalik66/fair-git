@@ -699,6 +699,57 @@
   background: #4F46E5;
 }
 
+/* Visitor popup: public business identity + story (no area/price/occupancy) */
+.marker-popup.visitor-popup {
+  max-width: 240px;
+}
+
+.marker-popup .popup-category {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: #EEF2FF;
+  color: #4338CA;
+  margin-bottom: 8px;
+}
+
+.marker-popup .popup-vendor-logo {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  margin: 4px 0 8px;
+}
+
+.marker-popup .popup-about {
+  font-size: 0.9rem;
+  color: #374151;
+  margin: 6px 0;
+}
+
+.marker-popup .popup-story {
+  font-size: 0.88rem;
+  color: #4B5563;
+  font-style: italic;
+  margin: 6px 0;
+}
+
+.marker-popup .popup-product-images {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.marker-popup .popup-product-img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .sidebar {

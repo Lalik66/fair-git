@@ -8,6 +8,7 @@ interface ObjectListProps {
   onObjectSelect: (id: string) => void;
   isLoading?: boolean;
   className?: string;
+  isPrivileged?: boolean;
 }
 
 const ObjectList: React.FC<ObjectListProps> = ({
@@ -16,6 +17,7 @@ const ObjectList: React.FC<ObjectListProps> = ({
   onObjectSelect,
   isLoading = false,
   className = '',
+  isPrivileged = false,
 }) => {
   const listRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -80,6 +82,7 @@ const ObjectList: React.FC<ObjectListProps> = ({
                   object={obj}
                   isSelected={selectedObjectId === obj.id}
                   onClick={() => onObjectSelect(obj.id)}
+                  isPrivileged={isPrivileged}
                 />
               </div>
             ))}
@@ -106,6 +109,7 @@ const ObjectList: React.FC<ObjectListProps> = ({
                   object={obj}
                   isSelected={selectedObjectId === obj.id}
                   onClick={() => onObjectSelect(obj.id)}
+                  isPrivileged={isPrivileged}
                 />
               </div>
             ))}
