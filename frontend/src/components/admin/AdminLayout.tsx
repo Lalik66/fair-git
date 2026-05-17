@@ -14,13 +14,26 @@ interface AdminLayoutProps {
 }
 
 // Navigation items configuration
-const NAV_ITEMS = [
+interface NavItem {
+  path: string;
+  label: string;
+  icon: string;
+  exact?: boolean;
+  badge?: string | null;
+}
+
+interface NavGroup {
+  group: string;
+  items: NavItem[];
+}
+
+const NAV_ITEMS: NavGroup[] = [
   {
     group: 'Operate',
     items: [
       { path: '/admin', label: 'Dashboard', icon: '\u25A6', exact: true },
-      { path: '/admin/users', label: 'Users', icon: '\u2399', badge: null },
-      { path: '/admin/applications', label: 'Applications', icon: '\u2605', badge: null },
+      { path: '/admin/users', label: 'Users', icon: '\u2399' },
+      { path: '/admin/applications', label: 'Applications', icon: '\u2605' },
       { path: '/admin/fairs', label: 'Fairs', icon: '\u229E' },
       { path: '/admin/map', label: 'Map editor', icon: '\u2295' },
     ],
