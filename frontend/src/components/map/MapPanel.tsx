@@ -37,6 +37,8 @@ interface MapPanelProps {
   onGetDirections?: (friendId: string) => void;
   /** Callback when user clicks "Send Reaction" on a friend popup */
   onSendReaction?: (friendId: string, friendName: string) => void;
+  /** Callback when user clicks "Yol göstər" on a vendor-house visitor popup */
+  onObjectDirections?: (lat: number, lng: number, name: string) => void;
   /** Callback when map is ready (for parent to get map instance) */
   onMapReady?: (map: mapboxgl.Map) => void;
   /**
@@ -63,6 +65,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   userLocation,
   onGetDirections,
   onSendReaction,
+  onObjectDirections,
   onMapReady,
   isPrivileged = false,
 }, ref) => {
@@ -222,6 +225,16 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         .join('');
       const imagesRow = images ? `<div class="popup-product-images">${images}</div>` : '';
 
+      const directionsLabel = escapeHtml(t('route.showDirection'));
+      const directionsBtn = `
+          <button class="btn btn-sm btn-directions" data-action="object-directions"
+            data-lat="${escapeHtml(String(obj.latitude))}"
+            data-lng="${escapeHtml(String(obj.longitude))}"
+            data-name="${escapeHtml(vendor?.companyName || obj.label)}"
+            aria-label="${directionsLabel}">
+            <span aria-hidden="true">📍</span> ${directionsLabel}
+          </button>`;
+
       return `
         <div class="marker-popup vendor-popup visitor-popup">
           <h3>${headEmoji} ${title}</h3>
@@ -230,6 +243,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
           ${about}
           ${story}
           ${imagesRow}
+          ${directionsBtn}
           ${panoramaBtn}
         </div>
       `;
@@ -243,7 +257,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         ${obj.photoUrl ? `<img src="${obj.photoUrl}" alt="${obj.label}" class="facility-photo" />` : ''}
       </div>
     `;
-  }, [isPrivileged]);
+  }, [isPrivileged, t]);
 
   // Update markers when objects change
   useEffect(() => {
@@ -450,6 +464,17 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     const handlePopupClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
+      // Handle "Yol göstər" on a vendor-house visitor popup. Distinct action
+      // from the friend "get-directions" so the two never collide.
+      const objectBtn = target.closest('[data-action="object-directions"]') as HTMLButtonElement | null;
+      if (objectBtn && !objectBtn.hasAttribute('disabled') && onObjectDirections) {
+        const lat = parseFloat(objectBtn.getAttribute('data-lat') || '');
+        const lng = parseFloat(objectBtn.getAttribute('data-lng') || '');
+        const name = objectBtn.getAttribute('data-name') || '';
+        if (!Number.isNaN(lat) && !Number.isNaN(lng)) onObjectDirections(lat, lng, name);
+        return;
+      }
+
       // Handle Get Directions
       const directionsBtn = target.closest('[data-action="get-directions"]') as HTMLButtonElement | null;
       if (directionsBtn && !directionsBtn.hasAttribute('disabled') && onGetDirections) {
@@ -469,7 +494,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
 
     container.addEventListener('click', handlePopupClick);
     return () => container.removeEventListener('click', handlePopupClick);
-  }, [onGetDirections, onSendReaction]);
+  }, [onGetDirections, onSendReaction, onObjectDirections]);
 
   // Handle selection changes - fly to object and open popup
   useEffect(() => {

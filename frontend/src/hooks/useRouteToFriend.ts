@@ -20,6 +20,7 @@ interface UseRouteToFriendReturn {
   isLoading: boolean;
   error: string | null;
   fetchRoute: (friend: FriendLocation) => Promise<void>;
+  fetchRouteToPoint: (target: { lat: number; lng: number; name: string }) => Promise<void>;
   clearRoute: () => void;
   reportError: (message: string) => void;
   formatDistance: (meters: number) => string;
@@ -37,8 +38,8 @@ export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps
   /**
    * Check if a valid cached route exists for the given friend
    */
-  const checkCache = useCallback((friendId: string, userLat: number, userLng: number): ActiveRoute | null => {
-    const cached = routeCache.current.get(friendId);
+  const checkCache = useCallback((cacheKey: string, userLat: number, userLng: number): ActiveRoute | null => {
+    const cached = routeCache.current.get(cacheKey);
     if (!cached) return null;
 
     const now = Date.now();
@@ -46,7 +47,7 @@ export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps
 
     // Cache invalid after 5 minutes
     if (cacheAge > 5 * 60 * 1000) {
-      routeCache.current.delete(friendId);
+      routeCache.current.delete(cacheKey);
       return null;
     }
 
@@ -57,7 +58,7 @@ export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps
     const distMeters = distance(from, to, { units: 'meters' });
 
     if (distMeters > 100) {
-      routeCache.current.delete(friendId);
+      routeCache.current.delete(cacheKey);
       return null;
     }
 
@@ -198,10 +199,18 @@ export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps
   }, [map]);
 
   /**
-   * Fetch route from user location to friend
+   * Fetch and draw a walking route from the user to an arbitrary destination.
+   * Shared by both friend routing and map-point routing.
    */
-  const fetchRoute = useCallback(async (friend: FriendLocation): Promise<void> => {
-    // Clear any existing route first
+  const runRoute = useCallback(async (opts: {
+    destLat: number;
+    destLng: number;
+    cacheKey: string;
+    destinationName: string;
+    friendId?: string;
+    friendName?: string;
+  }): Promise<void> => {
+    // Clear any existing route first (also aborts any in-flight request)
     clearRoute();
 
     // Check if user location is available
@@ -220,7 +229,7 @@ export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps
     const userLat = userLocation.latitude;
 
     // Check cache first
-    const cachedRoute = checkCache(friend.id, userLat, userLng);
+    const cachedRoute = checkCache(opts.cacheKey, userLat, userLng);
     if (cachedRoute) {
       // Use cached route
       displayRouteOnMap(cachedRoute.geometry);
@@ -238,10 +247,7 @@ export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps
     }, 10000); // 10 second timeout
 
     try {
-      const friendLng = friend.lastLongitude;
-      const friendLat = friend.lastLatitude;
-
-      const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${userLng},${userLat};${friendLng},${friendLat}?geometries=geojson&steps=true&access_token=${MAPBOX_TOKEN}`;
+      const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${userLng},${userLat};${opts.destLng},${opts.destLat}?geometries=geojson&steps=true&access_token=${MAPBOX_TOKEN}`;
 
       const response = await fetchWithRetry(url, abortControllerRef.current.signal, 1);
 
@@ -272,8 +278,9 @@ export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps
 
       // Create new route object
       const newRoute: ActiveRoute = {
-        friendId: friend.id,
-        friendName: friend.name,
+        destinationName: opts.destinationName,
+        friendId: opts.friendId,
+        friendName: opts.friendName,
         geometry: routeGeometry,
         steps,
         distance: route.distance,
@@ -281,7 +288,7 @@ export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps
       };
 
       // Store in cache
-      routeCache.current.set(friend.id, {
+      routeCache.current.set(opts.cacheKey, {
         route: newRoute,
         timestamp: Date.now(),
         userPosition: [userLocation.longitude, userLocation.latitude],
@@ -312,11 +319,39 @@ export function useRouteToFriend({ map, userLocation, t }: UseRouteToFriendProps
     }
   }, [map, userLocation, clearRoute, checkCache, fetchWithRetry, displayRouteOnMap]);
 
+  /**
+   * Fetch route from user location to a friend.
+   */
+  const fetchRoute = useCallback((friend: FriendLocation): Promise<void> => {
+    return runRoute({
+      destLat: friend.lastLatitude,
+      destLng: friend.lastLongitude,
+      cacheKey: friend.id,
+      destinationName: friend.name,
+      friendId: friend.id,
+      friendName: friend.name,
+    });
+  }, [runRoute]);
+
+  /**
+   * Fetch route from user location to an arbitrary map point (e.g. a vendor
+   * house). Cache key is derived from the rounded coordinates.
+   */
+  const fetchRouteToPoint = useCallback((target: { lat: number; lng: number; name: string }): Promise<void> => {
+    return runRoute({
+      destLat: target.lat,
+      destLng: target.lng,
+      cacheKey: `pt:${target.lat.toFixed(5)},${target.lng.toFixed(5)}`,
+      destinationName: target.name,
+    });
+  }, [runRoute]);
+
   return {
     activeRoute,
     isLoading,
     error,
     fetchRoute,
+    fetchRouteToPoint,
     clearRoute,
     reportError,
     formatDistance,

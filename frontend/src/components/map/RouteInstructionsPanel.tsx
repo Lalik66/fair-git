@@ -4,7 +4,7 @@ import type { RouteStep } from '../../types/route';
 import './RouteInstructionsPanel.css';
 
 interface RouteInstructionsPanelProps {
-  friendName: string;
+  destinationName: string;
   totalDistance: number; // meters
   totalDuration: number; // seconds
   steps: RouteStep[];
@@ -34,7 +34,7 @@ const getManeuverIcon = (type: string, modifier?: string): string => {
 };
 
 const RouteInstructionsPanel: React.FC<RouteInstructionsPanelProps> = ({
-  friendName,
+  destinationName,
   totalDistance,
   totalDuration,
   steps,
@@ -66,12 +66,15 @@ const RouteInstructionsPanel: React.FC<RouteInstructionsPanelProps> = ({
   };
 
   return (
-    <div className={`route-instructions-panel ${isMobile ? 'mobile' : 'desktop'}`}>
+    <div
+      className={`route-instructions-panel ${isMobile ? 'mobile' : 'desktop'}`}
+      aria-live="polite"
+    >
       {/* Header/Summary Section */}
       <div className="route-instructions-header">
         <h3 className="route-friend-name">
           <span>🚶</span>
-          <span>{t('route.directionsTo', { name: friendName })}</span>
+          <span>{t('route.directionsTo', { name: destinationName })}</span>
         </h3>
         <div className="route-summary">
           <div className="route-metric">
