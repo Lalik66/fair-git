@@ -31,6 +31,9 @@ const SplitViewMapLayout: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const mapRef = useRef<MapPanelRef>(null);
   const [geolocateControl, setGeolocateControl] = useState<GeolocateControl | null>(null);
+  // A vendor-house route requested before a location fix was available; fetched
+  // once the GeolocateControl reports a position.
+  const pendingRouteRef = useRef<{ lat: number; lng: number; name: string } | null>(null);
 
   // Friends panel state
   const [isFriendsPanelOpen, setIsFriendsPanelOpen] = useState(false);
@@ -60,6 +63,23 @@ const SplitViewMapLayout: React.FC = () => {
     },
   });
 
+  // Populate userLocation from the existing Mapbox GeolocateControl. This works
+  // for anonymous visitors too (useLocationTracking is auth-gated), and is what
+  // makes "Yol göstər" usable without a separate geolocation path.
+  useEffect(() => {
+    if (!geolocateControl) return;
+    const handleGeolocate = (e: GeolocationPosition) => {
+      const loc = { latitude: e.coords.latitude, longitude: e.coords.longitude };
+      // Only seed if not already known so a moving user doesn't trigger a
+      // re-render (and friend-marker rebuild) on every position update.
+      setUserLocation((prev) => prev ?? loc);
+    };
+    geolocateControl.on('geolocate', handleGeolocate);
+    return () => {
+      geolocateControl.off('geolocate', handleGeolocate);
+    };
+  }, [geolocateControl]);
+
   // Fetch friends count when user is authenticated
   useEffect(() => {
     if (user) {
@@ -88,6 +108,7 @@ const SplitViewMapLayout: React.FC = () => {
     isLoading: isLoadingRoute,
     error: routeError,
     fetchRoute,
+    fetchRouteToPoint,
     clearRoute,
     reportError,
     formatDistance,
@@ -191,6 +212,31 @@ const SplitViewMapLayout: React.FC = () => {
       reportError(t('route.error.friendNotFound'));
     }
   }, [friendLocations, fetchRoute, reportError, t]);
+
+  // Handle "Yol göstər" on a vendor-house visitor popup. If we don't have a
+  // location fix yet, trigger the existing GeolocateControl and remember the
+  // target; the flush effect below routes once a position arrives.
+  const handleObjectDirections = useCallback((lat: number, lng: number, name: string) => {
+    if (!userLocation) {
+      pendingRouteRef.current = { lat, lng, name };
+      if (geolocateControl) {
+        geolocateControl.trigger();
+      } else {
+        reportError(t('route.error.noLocation'));
+      }
+      return;
+    }
+    fetchRouteToPoint({ lat, lng, name });
+  }, [userLocation, geolocateControl, fetchRouteToPoint, reportError, t]);
+
+  // Once a location fix arrives, fulfil any route requested beforehand.
+  useEffect(() => {
+    if (userLocation && pendingRouteRef.current) {
+      const target = pendingRouteRef.current;
+      pendingRouteRef.current = null;
+      fetchRouteToPoint(target);
+    }
+  }, [userLocation, fetchRouteToPoint]);
 
   // Handle Send Reaction - opens the reaction picker
   const handleOpenReactionPicker = useCallback((friendId: string, friendName: string) => {
@@ -328,6 +374,7 @@ const SplitViewMapLayout: React.FC = () => {
           userLocation={userLocation}
           onGetDirections={handleGetDirections}
           onSendReaction={handleOpenReactionPicker}
+          onObjectDirections={handleObjectDirections}
           onMapReady={handleMapReady}
           isPrivileged={isPrivileged}
         />
@@ -367,7 +414,7 @@ const SplitViewMapLayout: React.FC = () => {
         {/* Route Instructions Panel */}
         {activeRoute && (
           <RouteInstructionsPanel
-            friendName={activeRoute.friendName}
+            destinationName={activeRoute.destinationName}
             totalDistance={activeRoute.distance}
             totalDuration={activeRoute.duration}
             steps={activeRoute.steps}
@@ -375,7 +422,7 @@ const SplitViewMapLayout: React.FC = () => {
             formatDistance={formatDistance}
             formatDuration={formatDuration}
             isMobile={isMobile}
-            friendLocationUpdatedAt={friendLocations.find(f => f.id === activeRoute.friendId)?.locationUpdatedAt}
+            friendLocationUpdatedAt={activeRoute.friendId ? friendLocations.find(f => f.id === activeRoute.friendId)?.locationUpdatedAt : undefined}
           />
         )}
       </div>

@@ -699,6 +699,24 @@
   background: #4F46E5;
 }
 
+.marker-popup .btn-directions {
+  display: block;
+  width: 100%;
+  margin-right: 0;
+  background: #06BEE1;
+  color: white;
+  font-weight: 600;
+}
+
+.marker-popup .btn-directions:hover {
+  background: #05A6C4;
+}
+
+.marker-popup .btn-directions:disabled {
+  background: #9CA3AF;
+  cursor: not-allowed;
+}
+
 /* Visitor popup: public business identity + story (no area/price/occupancy) */
 .marker-popup.visitor-popup {
   max-width: 240px;

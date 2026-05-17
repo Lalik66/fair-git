@@ -517,6 +517,8 @@ const resources = {
       // Route to Friend
       route: {
         getDirections: 'Get Directions',
+        showDirection: 'Show direction',
+        loadingRoute: 'Loading…',
         enableLocationForDirections: 'Enable location to get directions',
         clearRoute: 'Clear Route',
         directionsTo: 'Directions to {{name}}',
@@ -1149,6 +1151,8 @@ const resources = {
       // Route to Friend
       route: {
         getDirections: 'İstiqamət al',
+        showDirection: 'Yol göstər',
+        loadingRoute: 'Yüklənir…',
         enableLocationForDirections: 'İstiqamət almaq üçün məkanı aktivləşdirin',
         clearRoute: 'Marşrutu təmizlə',
         directionsTo: '{{name}} üçün istiqamət',

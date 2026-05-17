@@ -17,11 +17,14 @@ export interface RouteStep {
 }
 
 /**
- * Active route being displayed on the map
+ * Active route being displayed on the map. Destinations can be a friend or an
+ * arbitrary map point (e.g. a vendor house), so friend fields are optional and
+ * destinationName is always set.
  */
 export interface ActiveRoute {
-  friendId: string;
-  friendName: string;
+  destinationName: string;
+  friendId?: string;
+  friendName?: string;
   geometry: GeoJSON.LineString;
   steps: RouteStep[];
   distance: number;
