@@ -43,6 +43,9 @@ const VendorApplicationForm: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  // Return to the applications tab of whichever portal the user belongs to.
+  const appsPath =
+    user?.role === 'vendor' ? '/vendor/applications' : '/profile/applications';
 
   const [values, setValues] = useState<ApplicationFormData>({
     firstName: '',
@@ -143,7 +146,7 @@ const VendorApplicationForm: React.FC = () => {
         city: values.city.trim(),
         companyName: values.companyName.trim(),
       });
-      navigate('/applications', {
+      navigate(appsPath, {
         state: { justSubmitted: true },
       });
     } catch (err: any) {
@@ -433,7 +436,7 @@ const VendorApplicationForm: React.FC = () => {
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => navigate('/applications')}
+              onClick={() => navigate(appsPath)}
             >
               {t('common.cancel', 'Cancel')}
             </button>

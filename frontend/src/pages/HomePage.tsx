@@ -127,7 +127,15 @@ const HomePage: React.FC = () => {
             🗺️ {t('welcome.cta.browseMap', 'Browse Map')}
           </Link>
           <Link
-            to={user ? '/applications' : '/login'}
+            to={
+              !user
+                ? '/login'
+                : user.role === 'admin'
+                  ? '/admin'
+                  : user.role === 'vendor'
+                    ? '/vendor/applications'
+                    : '/profile/applications'
+            }
             className="btn btn-secondary btn-lg"
           >
             📝 {t('welcome.cta.applyVendor', 'Apply as Vendor')}

@@ -82,16 +82,7 @@ const ApplicantApplications: React.FC = () => {
   return (
     <div className="vendor-applications">
       <div className="page-header">
-        <div>
-          <button
-            onClick={() => navigate('/profile')}
-            className="btn-link-back"
-            style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', padding: 0, marginBottom: '0.5rem' }}
-          >
-            ← {t('nav.profile', 'Profile')}
-          </button>
-          <h1>{t('vendor.myApplications', 'My Applications')}</h1>
-        </div>
+        <h1>{t('vendor.myApplications', 'My Applications')}</h1>
         <div className="page-header-actions">
           <button onClick={() => navigate('/applications/new')} className="btn btn-primary">
             {t('vendor.newApplication', 'New Application')}

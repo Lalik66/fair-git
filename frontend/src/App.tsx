@@ -100,7 +100,7 @@ const Navigation: React.FC = () => {
   const getProfileUrl = () => {
     if (user?.role === 'admin') return '/admin'; // Admin can update profile in dashboard
     if (user?.role === 'vendor') return '/vendor/profile';
-    return '/profile'; // Regular users go to profile page
+    return '/profile/account'; // Regular users: profile tab of their dashboard
   };
 
   const getUserInitials = () => {
@@ -175,16 +175,6 @@ const Navigation: React.FC = () => {
                   <span className="user-menu-icon">👤</span>
                   {t('nav.profile', 'Profile')}
                 </Link>
-                {user.role === 'user' && (
-                  <Link
-                    to="/applications"
-                    className="user-menu-item"
-                    onClick={handleNavLinkClick}
-                  >
-                    <span className="user-menu-icon">📋</span>
-                    {t('vendor.myApplications', 'My Applications')}
-                  </Link>
-                )}
                 <button
                   onClick={() => { logout(); handleNavLinkClick(); }}
                   className="user-menu-item user-menu-logout"
@@ -291,6 +281,85 @@ const VendorDashboard: React.FC = () => {
   );
 };
 
+// Regular-user portal. Mirrors VendorDashboard so an applicant gets the
+// same left-sidebar layout: Dashboard / My Applications / Profile. The top
+// nav dropdown stays a flat 3 items (Dashboard, Profile, Logout) — the
+// applications view lives only as a sidebar tab here, never in the dropdown.
+const UserDashboard: React.FC = () => {
+  const { t } = useTranslation();
+  const { user, logout } = useAuth();
+  const location = useLocation();
+
+  return (
+    <div className="vendor-layout">
+      <aside className="vendor-sidebar">
+        <div className="vendor-sidebar-header">
+          <h2>{t('nav.dashboard', 'Dashboard')}</h2>
+          <Link to="/" className="back-link">← {t('nav.home', 'Home')}</Link>
+        </div>
+        <nav className="vendor-nav">
+          <Link
+            to="/profile"
+            className={`vendor-nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
+          >
+            {t('nav.dashboard', 'Dashboard')}
+          </Link>
+          <Link
+            to="/profile/applications"
+            className={`vendor-nav-link ${location.pathname.includes('/profile/applications') ? 'active' : ''}`}
+          >
+            {t('vendor.myApplications', 'My Applications')}
+          </Link>
+          <Link
+            to="/profile/account"
+            className={`vendor-nav-link ${location.pathname.includes('/profile/account') ? 'active' : ''}`}
+          >
+            {t('nav.profile', 'Profile')}
+          </Link>
+        </nav>
+        <div className="vendor-sidebar-footer">
+          <div className="vendor-user-info">
+            <div className="vendor-user-name">{user?.firstName} {user?.lastName}</div>
+            <div className="vendor-user-email">{user?.email}</div>
+          </div>
+          <button onClick={() => logout()} className="btn btn-secondary btn-logout">
+            {t('auth.logout')}
+          </button>
+        </div>
+      </aside>
+      <main className="vendor-main">
+        <Routes>
+          <Route
+            index
+            element={
+              <div className="vendor-dashboard-home">
+                <h1>{t('nav.dashboard', 'Dashboard')}</h1>
+                <p>Welcome back, {user?.firstName || user?.email}!</p>
+                <div className="dashboard-cards">
+                  <Link to="/applications/new" className="dashboard-card dashboard-card-primary">
+                    <h3>{t('vendor.newApplication', 'New Application')}</h3>
+                    <p>{t('vendor.applyHint', 'Fill in the application form to apply for a vendor house')}</p>
+                  </Link>
+                  <Link to="/profile/applications" className="dashboard-card">
+                    <h3>{t('vendor.myApplications', 'My Applications')}</h3>
+                    <p>{t('application.trackStatus', 'Track your application status')}</p>
+                  </Link>
+                  <Link to="/profile/account" className="dashboard-card">
+                    <h3>{t('nav.profile', 'Profile')}</h3>
+                    <p>{t('user.accountInfo', 'Account Information')}</p>
+                  </Link>
+                </div>
+              </div>
+            }
+          />
+          <Route path="applications" element={<ApplicantApplications />} />
+          <Route path="account" element={<UserProfile />} />
+        </Routes>
+      </main>
+    </div>
+  );
+};
+
 const NotFoundPage: React.FC = () => {
   const { t } = useTranslation();
   return (
@@ -341,27 +410,20 @@ const AppContent: React.FC = () => {
             }
           />
 
-          {/* User Profile Route - Protected for regular users */}
+          {/* Regular-user portal (sidebar layout, mirrors /vendor/*).
+              /profile = dashboard home, /profile/applications = My
+              Applications tab, /profile/account = Profile tab.
+              requiredRole="user" admits user/vendor/admin. */}
           <Route
-            path="/profile"
+            path="/profile/*"
             element={
               <ProtectedRoute requiredRole="user">
-                <UserProfile />
+                <UserDashboard />
               </ProtectedRoute>
             }
           />
 
-          {/* Vendor application flow - open to any authenticated account.
-              A regular `user` applies here; approval promotes them to
-              `vendor`. requiredRole="user" admits user/vendor/admin. */}
-          <Route
-            path="/applications"
-            element={
-              <ProtectedRoute requiredRole="user">
-                <ApplicantApplications />
-              </ProtectedRoute>
-            }
-          />
+          {/* Shared full-page application form (used by both portals). */}
           <Route
             path="/applications/new"
             element={

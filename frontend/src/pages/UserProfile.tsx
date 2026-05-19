@@ -13,7 +13,7 @@ const UserProfile: React.FC = () => {
   // fills in the application form, and only becomes a `vendor` once an admin
   // approves it. Send them straight to their Applications tab.
   const handleBecomeVendor = () => {
-    navigate('/applications');
+    navigate('/profile/applications');
   };
 
   if (!user) {
@@ -89,13 +89,6 @@ const UserProfile: React.FC = () => {
             onClick={handleBecomeVendor}
           >
             {t('vendor.apply', 'Become a vendor')}
-          </button>
-          <button
-            className="btn btn-secondary"
-            style={{ marginTop: '0.75rem' }}
-            onClick={() => navigate('/applications')}
-          >
-            {t('vendor.myApplications', 'My Applications')}
           </button>
         </div>
       </div>
