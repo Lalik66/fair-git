@@ -435,6 +435,8 @@ const resources = {
           changeHouse: 'Change',
           country: 'Country',
           city: 'City',
+          companyName: 'Company name',
+          productCategory: 'Category',
           rulesAccepted: 'I have read the rules',
           rulesLink: 'rules',
           paymentAccepted: 'I agree to payment terms',
@@ -1117,6 +1119,8 @@ const resources = {
           changeHouse: 'Dəyiş',
           country: 'Ölkə',
           city: 'Şəhər',
+          companyName: 'Şirkət adı',
+          productCategory: 'Kateqoriya',
           rulesAccepted: 'Qaydalarla tanış oldum',
           rulesLink: 'qaydalar',
           paymentAccepted: 'Ödənişlə razıyam',
@@ -1326,8 +1330,8 @@ const resources = {
 
       // AI Chat
       aiChat: {
-        title: 'AI Köməkçi',
-        welcome: 'Salam! Mən Fair Marketplace köməkçisiyəm. Yarmarkalar və xəritə haqqında sual verin!',
+        title: 'Foxi Köməkçi',
+        welcome: 'Salam! Mən Foxi köməkçisiyəm. Yarmarkalar və xəritə haqqında sual verin!',
         placeholder: 'Yarmarkalar, satıcılar haqqında soruşun...',
         send: 'Göndər',
         open: 'AI çatı aç',
