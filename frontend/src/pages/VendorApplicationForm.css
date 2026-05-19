@@ -1,0 +1,142 @@
+.vendor-application-form-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.vaf-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 28px;
+}
+
+.vaf-card h1 {
+  margin: 0 0 20px;
+  font-size: 1.5rem;
+}
+
+.vaf-server-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.vaf-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.vaf-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.vaf-field-house {
+  grid-column: 1 / -1;
+}
+
+.vaf-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.vaf-field input,
+.vaf-field select {
+  padding: 9px 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.vaf-field input:focus,
+.vaf-field select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.field-error {
+  color: #dc2626;
+  font-size: 0.78rem;
+  margin-top: 4px;
+}
+
+.vaf-phone {
+  display: flex;
+  gap: 8px;
+}
+
+.vaf-phone select {
+  flex: 0 0 90px;
+}
+
+.vaf-phone input {
+  flex: 1;
+}
+
+.vaf-house-row {
+  display: flex;
+  gap: 8px;
+}
+
+.vaf-house-row input {
+  flex: 1;
+}
+
+.vaf-house-selected {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.vaf-link {
+  background: none;
+  border: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.vaf-checkboxes {
+  margin: 22px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vaf-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.vaf-checkbox input {
+  margin-top: 3px;
+}
+
+.vaf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .vaf-grid {
+    grid-template-columns: 1fr;
+  }
+}

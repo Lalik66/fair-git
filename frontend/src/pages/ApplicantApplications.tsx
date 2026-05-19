@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { vendorApi } from '../services/api';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { applicationApi } from '../services/api';
 import './VendorApplications.css';
 
-interface Application {
+interface MyApplication {
   id: string;
-  submittedAt: string;
   status: 'pending' | 'approved' | 'rejected';
-  rejectionReason?: string;
-  reviewedAt?: string;
+  submittedAt: string;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
   fairId: string;
   fairName: string;
   fairStartDate: string;
@@ -17,85 +17,67 @@ interface Application {
   fairStatus: string;
   houseId: string;
   houseNumber: string;
-  houseArea: number;
-  housePrice: number;
 }
 
-const VendorApplications: React.FC = () => {
+// The applicant-facing "Applications" tab. Works for a regular `user`
+// (unlike VendorApplications which is gated to existing vendors).
+const ApplicantApplications: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [applications, setApplications] = useState<Application[]>([]);
+  const location = useLocation();
+  const [applications, setApplications] = useState<MyApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(
+    Boolean((location.state as { justSubmitted?: boolean } | null)?.justSubmitted)
+  );
 
   useEffect(() => {
     fetchApplications();
   }, []);
 
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => setShowSuccess(false), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess]);
+
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      const response = await vendorApi.getApplications();
+      const response = await applicationApi.getMine();
       setApplications(response.applications);
+      setError(null);
     } catch (err: any) {
       console.error('Failed to fetch applications:', err);
-      setError(err.response?.data?.error || 'Failed to load applications');
+      setError(err.response?.data?.error || t('vendor.form.loadError', 'Failed to load applications'));
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
+  const formatDateTime = (dateString: string) =>
+    new Date(dateString).toLocaleString(undefined, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <span className="status-badge status-pending">{t('application.status.pending', 'Pending')}</span>;
+        return <span className="status-badge status-pending">{t('vendor.status.pending', 'Pending')}</span>;
       case 'approved':
-        return <span className="status-badge status-approved">{t('application.status.approved', 'Approved')}</span>;
+        return <span className="status-badge status-approved">{t('vendor.status.approved', 'Approved')}</span>;
       case 'rejected':
-        return <span className="status-badge status-rejected">{t('application.status.rejected', 'Rejected')}</span>;
+        return <span className="status-badge status-rejected">{t('vendor.status.rejected', 'Rejected')}</span>;
       default:
         return <span className="status-badge">{status}</span>;
     }
   };
-
-  if (loading) {
-    return (
-      <div className="vendor-applications">
-        <h1>{t('vendor.myApplications', 'My Applications')}</h1>
-        <div className="loading-spinner">{t('common.loading', 'Loading...')}</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="vendor-applications">
-        <h1>{t('vendor.myApplications', 'My Applications')}</h1>
-        <div className="error-message">{error}</div>
-        <button onClick={fetchApplications} className="btn btn-primary">
-          Try Again
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="vendor-applications">
@@ -103,7 +85,7 @@ const VendorApplications: React.FC = () => {
         <h1>{t('vendor.myApplications', 'My Applications')}</h1>
         <div className="page-header-actions">
           <button onClick={() => navigate('/applications/new')} className="btn btn-primary">
-            {t('vendor.newApplication', '+ New Application')}
+            {t('vendor.newApplication', 'New Application')}
           </button>
           <button onClick={fetchApplications} className="btn btn-secondary btn-refresh">
             {t('common.refresh', 'Refresh')}
@@ -111,12 +93,27 @@ const VendorApplications: React.FC = () => {
         </div>
       </div>
 
-      {applications.length === 0 ? (
+      {showSuccess && (
+        <div className="success-message">
+          {t('vendor.success', 'Your application has been received')}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="loading-spinner">{t('common.loading', 'Loading...')}</div>
+      ) : error ? (
+        <>
+          <div className="error-message">{error}</div>
+          <button onClick={fetchApplications} className="btn btn-primary">
+            {t('common.refresh', 'Try Again')}
+          </button>
+        </>
+      ) : applications.length === 0 ? (
         <div className="empty-state">
           <p>{t('vendor.noApplications', 'You have not submitted any applications yet.')}</p>
-          <p className="empty-hint">
-            {t('vendor.applyHint', 'Fill in the application form to apply for a vendor house')}
-          </p>
+          <button onClick={() => navigate('/applications/new')} className="btn btn-primary">
+            {t('vendor.newApplication', 'New Application')}
+          </button>
         </div>
       ) : (
         <div className="applications-grid">
@@ -133,22 +130,8 @@ const VendorApplications: React.FC = () => {
                   <span className="detail-value">{formatDateTime(app.submittedAt)}</span>
                 </div>
                 <div className="detail-row">
-                  <span className="detail-label">{t('application.house', 'House')}:</span>
+                  <span className="detail-label">{t('vendor.form.houseNumber', 'House number')}:</span>
                   <span className="detail-value">{app.houseNumber}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">{t('application.area', 'Area')}:</span>
-                  <span className="detail-value">{app.houseArea?.toFixed(1)} m²</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">{t('application.price', 'Price')}:</span>
-                  <span className="detail-value">${app.housePrice?.toFixed(2)}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">{t('application.fairDates', 'Fair Dates')}:</span>
-                  <span className="detail-value">
-                    {formatDate(app.fairStartDate)} - {formatDate(app.fairEndDate)}
-                  </span>
                 </div>
               </div>
 
@@ -164,7 +147,8 @@ const VendorApplications: React.FC = () => {
                   <span className="review-label">
                     {app.status === 'approved'
                       ? t('application.approvedOn', 'Approved on')
-                      : t('application.rejectedOn', 'Rejected on')}:
+                      : t('application.rejectedOn', 'Rejected on')}
+                    :
                   </span>
                   <span>{formatDateTime(app.reviewedAt)}</span>
                 </div>
@@ -177,4 +161,4 @@ const VendorApplications: React.FC = () => {
   );
 };
 
-export default VendorApplications;
+export default ApplicantApplications;

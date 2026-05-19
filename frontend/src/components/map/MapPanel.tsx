@@ -47,6 +47,13 @@ interface MapPanelProps {
    * story: panorama, business identity, category-colored markers.
    */
   isPrivileged?: boolean;
+  /**
+   * House-picker mode for the vendor application form. Vendor-house popups
+   * show a "Seç" button on free houses and an "occupied" label otherwise.
+   */
+  selectionMode?: boolean;
+  /** Called when a free house is picked in selectionMode. */
+  onHouseSelect?: (houseId: string, houseNumber: string) => void;
 }
 
 export interface MapPanelRef {
@@ -68,6 +75,8 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   onObjectDirections,
   onMapReady,
   isPrivileged = false,
+  selectionMode = false,
+  onHouseSelect,
 }, ref) => {
   const { t } = useTranslation();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -178,6 +187,48 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
             360° Bax${!obj.panorama360Url ? ' (Demo)' : ''}
           </button>`;
 
+      // House-picker mode (application form modal). Free houses get a "Seç"
+      // button; occupied ones show why they can't be picked. The "Yol göstər"
+      // directions button stays so the user can scout the walk first.
+      if (selectionMode) {
+        const houseLabel = escapeHtml(obj.houseNumber || obj.label);
+        const free = obj.isAvailable !== false;
+        const story = obj.visitorStory
+          ? `<p class="popup-story">${escapeHtml(obj.visitorStory)}</p>`
+          : '';
+        const occupiedLabel = !free
+          ? `<p class="house-occupied-label">${escapeHtml(t('vendor.error.houseOccupied'))}</p>`
+          : '';
+        const selectBtn = free
+          ? `<button class="btn btn-sm btn-primary btn-select-house" data-action="select-house"
+               data-house-id="${escapeHtml(obj.id)}"
+               data-house-number="${escapeHtml(obj.houseNumber || obj.label)}">
+               ${escapeHtml(t('vendor.map.selectHouse'))}
+             </button>`
+          : '';
+        const directionsLabel = escapeHtml(t('route.showDirection'));
+        const directionsBtn = `
+          <button class="btn btn-sm btn-directions" data-action="object-directions"
+            data-lat="${escapeHtml(String(obj.latitude))}"
+            data-lng="${escapeHtml(String(obj.longitude))}"
+            data-name="${houseLabel}"
+            aria-label="${directionsLabel}">
+            <span aria-hidden="true">📍</span> ${directionsLabel}
+          </button>`;
+        return `
+        <div class="marker-popup vendor-popup selection-popup">
+          <h3>🏠 ${houseLabel}</h3>
+          ${obj.areaSqm ? `<p><strong>Sahe:</strong> ${obj.areaSqm.toFixed(1)} m²</p>` : ''}
+          ${obj.price ? `<p><strong>Qiymət:</strong> ${obj.price.toFixed(2)} AZN</p>` : ''}
+          ${story}
+          ${occupiedLabel}
+          ${selectBtn}
+          ${directionsBtn}
+          ${panoramaBtn}
+        </div>
+      `;
+      }
+
       // Vendor/admin: operational popup (area, price, occupancy, internal note).
       if (isPrivileged) {
         const availabilityText = obj.isAvailable === null || obj.isAvailable === undefined
@@ -257,7 +308,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         ${obj.photoUrl ? `<img src="${obj.photoUrl}" alt="${obj.label}" class="facility-photo" />` : ''}
       </div>
     `;
-  }, [isPrivileged, t]);
+  }, [isPrivileged, selectionMode, t]);
 
   // Update markers when objects change
   useEffect(() => {
@@ -475,6 +526,15 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         return;
       }
 
+      // Handle "Seç" (select house) in the application form picker modal.
+      const selectBtn = target.closest('[data-action="select-house"]') as HTMLButtonElement | null;
+      if (selectBtn && onHouseSelect) {
+        const houseId = selectBtn.getAttribute('data-house-id') || '';
+        const houseNumber = selectBtn.getAttribute('data-house-number') || '';
+        if (houseId && houseNumber) onHouseSelect(houseId, houseNumber);
+        return;
+      }
+
       // Handle Get Directions
       const directionsBtn = target.closest('[data-action="get-directions"]') as HTMLButtonElement | null;
       if (directionsBtn && !directionsBtn.hasAttribute('disabled') && onGetDirections) {
@@ -494,7 +554,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
 
     container.addEventListener('click', handlePopupClick);
     return () => container.removeEventListener('click', handlePopupClick);
-  }, [onGetDirections, onSendReaction, onObjectDirections]);
+  }, [onGetDirections, onSendReaction, onObjectDirections, onHouseSelect]);
 
   // Handle selection changes - fly to object and open popup
   useEffect(() => {

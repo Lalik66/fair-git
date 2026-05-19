@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { adminApi } from '../services/api';
 import UserManagement from './UserManagement';
 import AdminLogs from './AdminLogs';
 import FairManagement from './FairManagement';
@@ -36,6 +37,14 @@ const NAV_ITEMS = [
 const AdminHome: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    adminApi
+      .getApplicationStats()
+      .then((s) => setPendingCount(s.pending))
+      .catch(() => setPendingCount(null));
+  }, []);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -67,7 +76,7 @@ const AdminHome: React.FC = () => {
         </div>
         <div className="stat-fk">
           <div className="k">Pending</div>
-          <div className="v">6</div>
+          <div className="v">{pendingCount ?? '—'}</div>
           <div className="d">Applications</div>
         </div>
         <div className="stat-fk">

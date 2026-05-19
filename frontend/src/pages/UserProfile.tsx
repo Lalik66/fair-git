@@ -1,47 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { authApi } from '../services/api';
 import './UserProfile.css';
 
 const UserProfile: React.FC = () => {
   const { t } = useTranslation();
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [upgrading, setUpgrading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  // The CTA no longer instantly upgrades the role. The user stays a `user`,
+  // fills in the application form, and only becomes a `vendor` once an admin
+  // approves it. Send them straight to their Applications tab.
   const handleBecomeVendor = () => {
-    setShowConfirmDialog(true);
-  };
-
-  const confirmUpgrade = async () => {
-    setShowConfirmDialog(false);
-    setUpgrading(true);
-    setError(null);
-
-    try {
-      const response = await authApi.upgradeToVendor();
-
-      // Update user in context and localStorage
-      const updatedUser = response.user;
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-
-      // Navigate to vendor dashboard
-      navigate('/vendor');
-    } catch (err: any) {
-      console.error('Error upgrading to vendor:', err);
-      setError(err.response?.data?.error || t('user.upgradeError', 'Failed to upgrade to vendor. Please try again.'));
-    } finally {
-      setUpgrading(false);
-    }
-  };
-
-  const cancelUpgrade = () => {
-    setShowConfirmDialog(false);
+    navigate('/applications');
   };
 
   if (!user) {
@@ -66,12 +38,6 @@ const UserProfile: React.FC = () => {
             <span className="user-role-badge">{t('auth.roleVisitor', 'Visitor')}</span>
           </div>
         </div>
-
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
 
         <div className="user-profile-section">
           <h2>{t('user.accountInfo', 'Account Information')}</h2>
@@ -121,38 +87,11 @@ const UserProfile: React.FC = () => {
           <button
             className="btn btn-primary btn-become-vendor"
             onClick={handleBecomeVendor}
-            disabled={upgrading}
           >
-            {upgrading ? t('common.loading') : t('user.becomeVendorButton', 'Become a Vendor')}
+            {t('vendor.apply', 'Become a vendor')}
           </button>
         </div>
       </div>
-
-      {/* Confirmation Dialog */}
-      {showConfirmDialog && (
-        <div className="dialog-overlay">
-          <div className="dialog-content">
-            <h3>{t('user.confirmUpgrade', 'Confirm Account Upgrade')}</h3>
-            <p>
-              {t('user.confirmUpgradeMessage', 'Are you sure you want to upgrade your account to a vendor account? This will give you access to the vendor dashboard where you can manage your business and apply for fair spaces.')}
-            </p>
-            <div className="dialog-actions">
-              <button
-                className="btn btn-secondary"
-                onClick={cancelUpgrade}
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={confirmUpgrade}
-              >
-                {t('common.confirm')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

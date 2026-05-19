@@ -5,6 +5,10 @@ import path from 'path';
 import fs from 'fs';
 import { prisma } from '../index';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
+import {
+  sendApplicationApprovedEmail,
+  sendApplicationRejectedEmail,
+} from '../utils/notifications';
 import { deleteFromCloud } from '../utils/upload';
 import { panoramaUpload, getUploadedFileUrl, isCloudinaryConfigured } from '../middleware/upload';
 
@@ -437,6 +441,17 @@ router.put('/applications/:applicationId/approve', async (req: Request, res: Res
       },
     });
 
+    // Promote the applicant to vendor. The new application flow lets a
+    // regular `user` apply; approval is the moment they actually become a
+    // vendor (and gain the vendor dashboard on next sign-in). Never touch
+    // an admin's role.
+    if (application.vendorProfile.user.role === 'user') {
+      await prisma.user.update({
+        where: { id: application.vendorProfile.userId },
+        data: { role: 'vendor' },
+      });
+    }
+
     // Log the action
     await prisma.adminLog.create({
       data: {
@@ -447,49 +462,18 @@ router.put('/applications/:applicationId/approve', async (req: Request, res: Res
       },
     });
 
-    // Log email (in production this would send an actual email)
-    // Use user's preferred language for email content
-    const userLang = application.vendorProfile.user.preferredLanguage || 'az';
-    const vendorName = application.vendorProfile.user.firstName || 'Vendor';
-    const fairName = application.fair.name;
-    const houseNumber = application.vendorHouse.houseNumber;
-    const startDate = application.fair.startDate.toISOString().split('T')[0];
-    const endDate = application.fair.endDate.toISOString().split('T')[0];
-
-    console.log('='.repeat(60));
-    console.log(`EMAIL NOTIFICATION (Development Mode) - Language: ${userLang.toUpperCase()}`);
-    console.log('='.repeat(60));
-    console.log(`To: ${application.vendorProfile.user.email}`);
-
-    if (userLang === 'en') {
-      console.log(`Subject: Your Application Has Been Approved!`);
-      console.log('');
-      console.log(`Dear ${vendorName},`);
-      console.log('');
-      console.log(`Congratulations! Your application for ${fairName} has been approved.`);
-      console.log('');
-      console.log(`Details:`);
-      console.log(`  - Fair: ${fairName}`);
-      console.log(`  - House Number: ${houseNumber}`);
-      console.log(`  - Fair Dates: ${startDate} to ${endDate}`);
-      console.log('');
-      console.log('Thank you for participating in our fair!');
-    } else {
-      // Azerbaijani
-      console.log(`Mövzu: Müraciətiniz Təsdiqləndi!`);
-      console.log('');
-      console.log(`Hörmətli ${vendorName},`);
-      console.log('');
-      console.log(`Təbrik edirik! ${fairName} üçün müraciətiniz təsdiqləndi.`);
-      console.log('');
-      console.log(`Təfərrüatlar:`);
-      console.log(`  - Yarmarka: ${fairName}`);
-      console.log(`  - Ev Nömrəsi: ${houseNumber}`);
-      console.log(`  - Yarmarka Tarixləri: ${startDate} - ${endDate}`);
-      console.log('');
-      console.log('Yarmarkamızda iştirak etdiyiniz üçün təşəkkür edirik!');
-    }
-    console.log('='.repeat(60));
+    // Notify the applicant. New applications carry their own contact fields;
+    // legacy ones fall back to the linked user/profile.
+    const approvedName =
+      `${application.firstName || application.vendorProfile.user.firstName || ''} ${application.lastName || application.vendorProfile.user.lastName || ''}`.trim() ||
+      'Vendor';
+    sendApplicationApprovedEmail({
+      applicantName: approvedName,
+      applicantEmail: application.applicantEmail || application.vendorProfile.user.email,
+      houseNumber: application.vendorHouse.houseNumber,
+      fairName: application.fair.name,
+      lang: application.vendorProfile.user.preferredLanguage,
+    });
 
     res.json({
       message: 'Application approved successfully',
@@ -563,49 +547,19 @@ router.put('/applications/:applicationId/reject', async (req: Request, res: Resp
       },
     });
 
-    // Log email (in production this would send an actual email)
-    // Use user's preferred language for email content
-    const userLang = application.vendorProfile.user.preferredLanguage || 'az';
-    const vendorName = application.vendorProfile.user.firstName || 'Vendor';
-    const fairName = application.fair.name;
-    const houseNumber = application.vendorHouse.houseNumber;
-
-    console.log('='.repeat(60));
-    console.log(`EMAIL NOTIFICATION (Development Mode) - Language: ${userLang.toUpperCase()}`);
-    console.log('='.repeat(60));
-    console.log(`To: ${application.vendorProfile.user.email}`);
-
-    if (userLang === 'en') {
-      console.log(`Subject: Your Application Status Update`);
-      console.log('');
-      console.log(`Dear ${vendorName},`);
-      console.log('');
-      console.log(`We regret to inform you that your application for ${fairName} has been rejected.`);
-      console.log('');
-      console.log(`Reason: ${rejectionReason}`);
-      console.log('');
-      console.log(`Details:`);
-      console.log(`  - Fair: ${fairName}`);
-      console.log(`  - House Number: ${houseNumber}`);
-      console.log('');
-      console.log('If you have any questions, please contact our support team.');
-    } else {
-      // Azerbaijani
-      console.log(`Mövzu: Müraciət Statusu Yeniləndi`);
-      console.log('');
-      console.log(`Hörmətli ${vendorName},`);
-      console.log('');
-      console.log(`Təəssüflə bildiririk ki, ${fairName} üçün müraciətiniz rədd edildi.`);
-      console.log('');
-      console.log(`Səbəb: ${rejectionReason}`);
-      console.log('');
-      console.log(`Təfərrüatlar:`);
-      console.log(`  - Yarmarka: ${fairName}`);
-      console.log(`  - Ev Nömrəsi: ${houseNumber}`);
-      console.log('');
-      console.log('Suallarınız varsa, dəstək komandamızla əlaqə saxlayın.');
-    }
-    console.log('='.repeat(60));
+    // Notify the applicant. New applications carry their own contact fields;
+    // legacy ones fall back to the linked user/profile.
+    const rejectedName =
+      `${application.firstName || application.vendorProfile.user.firstName || ''} ${application.lastName || application.vendorProfile.user.lastName || ''}`.trim() ||
+      'Vendor';
+    sendApplicationRejectedEmail({
+      applicantName: rejectedName,
+      applicantEmail: application.applicantEmail || application.vendorProfile.user.email,
+      houseNumber: application.vendorHouse.houseNumber,
+      fairName: application.fair.name,
+      reason: rejectionReason.trim(),
+      lang: application.vendorProfile.user.preferredLanguage,
+    });
 
     res.json({
       message: 'Application rejected successfully',
@@ -628,6 +582,16 @@ router.delete('/applications/:applicationId', async (req: Request, res: Response
 
     if (!application) {
       res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    // Only rejected applications may be deleted. Deleting a pending one would
+    // silently free the house mid-review; deleting an approved one would
+    // orphan the vendor-house booking link.
+    if (application.status !== 'rejected') {
+      res.status(400).json({
+        error: 'Only rejected applications can be deleted',
+      });
       return;
     }
 
@@ -780,6 +744,21 @@ router.get('/applications/:applicationId', async (req: Request, res: Response): 
       contactName: `${application.vendorProfile.user.firstName || ''} ${application.vendorProfile.user.lastName || ''}`.trim(),
       contactEmail: application.vendorProfile.user.email,
       contactPhone: application.vendorProfile.user.phone,
+      // Applicant personal data (collected by the new application form;
+      // null for the legacy map-only applications).
+      applicantFirstName: application.firstName,
+      applicantLastName: application.lastName,
+      patronymic: application.patronymic,
+      applicantEmail: application.applicantEmail,
+      applicantPhone: application.applicantPhone,
+      idSeries: application.idSeries,
+      idNumber: application.idNumber,
+      financialId: application.financialId,
+      dateOfBirth: application.dateOfBirth,
+      country: application.country,
+      city: application.city,
+      rulesAccepted: application.rulesAccepted,
+      paymentAccepted: application.paymentAccepted,
       // Fair info
       fairId: application.fair.id,
       fairName: application.fair.name,

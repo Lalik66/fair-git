@@ -413,6 +413,76 @@ export const vendorApi = {
   },
 };
 
+// Vendor application API. Open to any authenticated account (a regular
+// `user` applies; approval promotes them to `vendor`). Distinct from
+// vendorApi which is gated to existing vendors.
+export interface ApplicationFormData {
+  firstName: string;
+  lastName: string;
+  patronymic: string;
+  email: string;
+  code: string;
+  codeConfirmation: string;
+  phone: string;
+  idSeries: string;
+  idNumber: string;
+  financialId: string;
+  dateOfBirth: string;
+  houseNumber: string;
+  country: string;
+  city: string;
+  rulesAccepted: boolean;
+  paymentAccepted: boolean;
+}
+
+export interface AvailableHouse {
+  id: string;
+  houseNumber: string;
+  areaSqm: number | null;
+  price: number | null;
+  description: string | null;
+  visitorStory: string | null;
+  latitude: number;
+  longitude: number;
+  panorama360Url: string | null;
+  availability: 'free' | 'occupied';
+}
+
+export const applicationApi = {
+  getMine: async () => {
+    const response = await api.get('/applications/mine');
+    return response.data as {
+      applications: Array<{
+        id: string;
+        status: 'pending' | 'approved' | 'rejected';
+        submittedAt: string;
+        reviewedAt: string | null;
+        rejectionReason: string | null;
+        fairId: string;
+        fairName: string;
+        fairStartDate: string;
+        fairEndDate: string;
+        fairStatus: string;
+        houseId: string;
+        houseNumber: string;
+      }>;
+    };
+  },
+
+  getAvailableHouses: async () => {
+    const response = await api.get('/applications/available-houses');
+    return response.data as {
+      fair: { id: string; name: string } | null;
+      houses: AvailableHouse[];
+    };
+  },
+
+  submit: async (data: ApplicationFormData) => {
+    const response = await api.post('/applications', data);
+    return response.data;
+  },
+};
+
 // Public API (no authentication required)
 export const publicApi = {
   getNextFair: async () => {

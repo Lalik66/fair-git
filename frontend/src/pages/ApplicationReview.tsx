@@ -58,6 +58,20 @@ interface ApplicationDetails {
   reviewedBy: string | null;
   logoUrl: string | null;
   productImages: ProductImage[];
+  // Applicant personal data from the new form (null for legacy applications).
+  applicantFirstName: string | null;
+  applicantLastName: string | null;
+  patronymic: string | null;
+  applicantEmail: string | null;
+  applicantPhone: string | null;
+  idSeries: string | null;
+  idNumber: string | null;
+  financialId: string | null;
+  dateOfBirth: string | null;
+  country: string | null;
+  city: string | null;
+  rulesAccepted: boolean;
+  paymentAccepted: boolean;
 }
 
 interface Stats {
@@ -957,14 +971,16 @@ const ApplicationReview: React.FC = () => {
                         </button>
                       </>
                     )}
-                    <button
-                      className="btn btn-danger btn-sm"
-                      title={t('common.delete')}
-                      onClick={() => { setApplicationToDelete(app.id); setDeleteModalOpen(true); }}
-                      disabled={deleting || approving || rejecting}
-                    >
-                      {t('common.delete')}
-                    </button>
+                    {app.status === 'rejected' && (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        title={t('common.delete')}
+                        onClick={() => { setApplicationToDelete(app.id); setDeleteModalOpen(true); }}
+                        disabled={deleting || approving || rejecting}
+                      >
+                        {t('common.delete')}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -1113,6 +1129,74 @@ const ApplicationReview: React.FC = () => {
                         loading="lazy"
                       />
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Applicant personal data (new application form). Hidden for
+                  legacy map-only applications that never collected it. */}
+              {(applicationDetails.applicantFirstName ||
+                applicationDetails.idNumber ||
+                applicationDetails.financialId) && (
+                <div className="detail-section">
+                  <h3>{t('applicationReview.personalInformation', 'Personal Information')}</h3>
+                  <div className="detail-grid">
+                    <div className="detail-item">
+                      <label>{t('vendor.form.firstName', 'First name')}</label>
+                      <span>{applicationDetails.applicantFirstName || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.lastName', 'Last name')}</label>
+                      <span>{applicationDetails.applicantLastName || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.patronymic', 'Patronymic')}</label>
+                      <span>{applicationDetails.patronymic || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.email', 'Email')}</label>
+                      <span>{applicationDetails.applicantEmail || applicationDetails.contactEmail}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.phone', 'Phone')}</label>
+                      <span>{applicationDetails.applicantPhone || applicationDetails.contactPhone || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.idSeries', 'ID series')}</label>
+                      <span>{applicationDetails.idSeries || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.idNumber', 'ID number')}</label>
+                      <span>{applicationDetails.idNumber || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.financialId', 'Financial ID')}</label>
+                      <span>{applicationDetails.financialId || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.dateOfBirth', 'Date of birth')}</label>
+                      <span>
+                        {applicationDetails.dateOfBirth
+                          ? new Date(applicationDetails.dateOfBirth).toLocaleDateString()
+                          : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.country', 'Country')}</label>
+                      <span>{applicationDetails.country || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.city', 'City')}</label>
+                      <span>{applicationDetails.city || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.rulesAccepted', 'I have read the rules')}</label>
+                      <span>{applicationDetails.rulesAccepted ? '✅' : '❌'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <label>{t('vendor.form.paymentAccepted', 'I agree to payment terms')}</label>
+                      <span>{applicationDetails.paymentAccepted ? '✅' : '❌'}</span>
+                    </div>
                   </div>
                 </div>
               )}

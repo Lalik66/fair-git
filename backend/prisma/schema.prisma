@@ -165,6 +165,22 @@ model Application {
   submittedAt     DateTime  @default(now()) @map("submitted_at")
   reviewedAt      DateTime? @map("reviewed_at")
   reviewedById    String?   @map("reviewed_by")
+  // Applicant personal data collected by the public vendor application form.
+  // Nullable so the pre-existing applications (created by the old map-only
+  // flow, which never collected these) keep displaying without a backfill.
+  firstName       String?   @map("first_name")
+  lastName        String?   @map("last_name")
+  patronymic      String?
+  applicantEmail  String?   @map("applicant_email")
+  applicantPhone  String?   @map("applicant_phone")
+  idSeries        String?   @map("id_series")
+  idNumber        String?   @map("id_number")
+  financialId     String?   @map("financial_id")
+  dateOfBirth     DateTime? @map("date_of_birth")
+  country         String?
+  city            String?
+  rulesAccepted   Boolean   @default(false) @map("rules_accepted")
+  paymentAccepted Boolean   @default(false) @map("payment_accepted")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 

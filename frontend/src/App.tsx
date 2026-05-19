@@ -11,6 +11,8 @@ import ChangePassword from './pages/ChangePassword';
 import VendorBookings from './pages/VendorBookings';
 import VendorProfile from './pages/VendorProfile';
 import VendorApplications from './pages/VendorApplications';
+import ApplicantApplications from './pages/ApplicantApplications';
+import VendorApplicationForm from './pages/VendorApplicationForm';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import InvitePage from './pages/InvitePage';
@@ -250,9 +252,9 @@ const VendorDashboard: React.FC = () => {
                 <h1>{t('vendor.dashboard', 'Vendor Dashboard')}</h1>
                 <p>Welcome back, {user?.firstName || user?.email}!</p>
                 <div className="dashboard-cards">
-                  <Link to="/map" className="dashboard-card dashboard-card-primary">
-                    <h3>New Application</h3>
-                    <p>Browse the map and apply for a vendor house</p>
+                  <Link to="/applications/new" className="dashboard-card dashboard-card-primary">
+                    <h3>{t('vendor.newApplication', 'New Application')}</h3>
+                    <p>{t('vendor.applyHint', 'Fill in the application form to apply for a vendor house')}</p>
                   </Link>
                   <Link to="/vendor/bookings" className="dashboard-card">
                     <h3>My Bookings</h3>
@@ -335,6 +337,26 @@ const AppContent: React.FC = () => {
             element={
               <ProtectedRoute requiredRole="user">
                 <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Vendor application flow - open to any authenticated account.
+              A regular `user` applies here; approval promotes them to
+              `vendor`. requiredRole="user" admits user/vendor/admin. */}
+          <Route
+            path="/applications"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <ApplicantApplications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/applications/new"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <VendorApplicationForm />
               </ProtectedRoute>
             }
           />

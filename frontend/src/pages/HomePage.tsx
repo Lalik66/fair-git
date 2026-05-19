@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
 import { publicApi } from '../services/api';
 import FoxMascot from '../components/FoxMascot';
 import AIChatPanel from '../components/AIChatPanel';
@@ -25,6 +26,7 @@ interface TimeRemaining {
 }
 
 const HomePage: React.FC = () => {
+  const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const [nextFair, setNextFair] = useState<Fair | null>(null);
   const [upcomingFairs, setUpcomingFairs] = useState<Fair[]>([]);
@@ -124,7 +126,10 @@ const HomePage: React.FC = () => {
           <Link to="/map" className="btn btn-primary btn-lg">
             🗺️ {t('welcome.cta.browseMap', 'Browse Map')}
           </Link>
-          <Link to="/login" className="btn btn-secondary btn-lg">
+          <Link
+            to={user ? '/applications' : '/login'}
+            className="btn btn-secondary btn-lg"
+          >
             📝 {t('welcome.cta.applyVendor', 'Apply as Vendor')}
           </Link>
         </div>
