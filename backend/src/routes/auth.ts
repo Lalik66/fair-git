@@ -201,6 +201,10 @@ router.get('/google', (req: Request, res: Response, next: NextFunction): void =>
   passport.authenticate('google', {
     scope: ['profile', 'email'],
     session: false,
+    // Always show Google's account chooser. Without this, a browser with an
+    // existing Google session is silently re-authenticated as that same
+    // account, so a different user can never be selected.
+    prompt: 'select_account',
   })(req, res, next);
 });
 
