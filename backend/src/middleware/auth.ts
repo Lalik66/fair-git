@@ -12,9 +12,12 @@ export interface AuthUser {
 
 declare global {
   namespace Express {
-    interface Request {
-      user?: AuthUser;
-    }
+    // Merge into the User interface that @types/passport already attaches to
+    // Request.user. Redeclaring `Request.user` as AuthUser instead conflicts
+    // with passport's own declaration (TS2717), making TS fall back to an
+    // empty User type and breaking req.user.* across the whole backend.
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface User extends AuthUser {}
   }
 }
 

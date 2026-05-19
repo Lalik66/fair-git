@@ -60,7 +60,7 @@ function isValidEmail(email: string): boolean {
 // Houses with availability for the in-form map modal. Unlike the public
 // vendor-houses endpoint (which hides availability from non-privileged
 // viewers), an applicant must see which houses are free to apply for.
-router.get('/available-houses', async (req: Request, res: Response): Promise<void> => {
+router.get('/available-houses', async (_req: Request, res: Response): Promise<void> => {
   try {
     const fair = await resolveOpenFair();
     if (!fair) {
