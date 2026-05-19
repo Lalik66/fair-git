@@ -192,13 +192,20 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       // directions button stays so the user can scout the walk first.
       if (selectionMode) {
         const houseLabel = escapeHtml(obj.houseNumber || obj.label);
-        const free = obj.isAvailable !== false;
+        // Prefer the tri-state; fall back to the boolean for safety.
+        const state =
+          obj.houseAvailability ??
+          (obj.isAvailable === false ? 'occupied' : 'free');
+        const free = state === 'free';
         const story = obj.visitorStory
           ? `<p class="popup-story">${escapeHtml(obj.visitorStory)}</p>`
           : '';
-        const occupiedLabel = !free
-          ? `<p class="house-occupied-label">${escapeHtml(t('vendor.error.houseOccupied'))}</p>`
-          : '';
+        const occupiedLabel =
+          state === 'occupied'
+            ? `<p class="house-occupied-label">${escapeHtml(t('vendor.error.houseOccupied'))}</p>`
+            : state === 'pending'
+              ? `<p class="house-occupied-label">${escapeHtml(t('vendor.error.housePending'))}</p>`
+              : '';
         const selectBtn = free
           ? `<button class="btn btn-sm btn-primary btn-select-house" data-action="select-house"
                data-house-id="${escapeHtml(obj.id)}"
@@ -231,11 +238,23 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
 
       // Vendor/admin: operational popup (area, price, occupancy, internal note).
       if (isPrivileged) {
-        const availabilityText = obj.isAvailable === null || obj.isAvailable === undefined
-          ? ''
-          : obj.isAvailable
+        // Prefer tri-state so a pending application reads "Müraciət var"
+        // instead of the misleading "Tutulub".
+        const availState =
+          obj.houseAvailability ??
+          (obj.isAvailable === null || obj.isAvailable === undefined
+            ? null
+            : obj.isAvailable
+              ? 'free'
+              : 'occupied');
+        const availabilityText =
+          availState === 'free'
             ? '<span class="status available">Bos</span>'
-            : '<span class="status occupied">Tutulub</span>';
+            : availState === 'pending'
+              ? '<span class="status pending">Müraciət var</span>'
+              : availState === 'occupied'
+                ? '<span class="status occupied">Tutulub</span>'
+                : '';
 
         return `
         <div class="marker-popup vendor-popup">
@@ -328,12 +347,23 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
 
       if (isVendorHouse) {
         if (isPrivileged) {
-          // Vendor/admin: occupancy status (operational signal).
-          markerColor = obj.isAvailable === null || obj.isAvailable === undefined
-            ? '#3B82F6' // Blue if no fair selected
-            : obj.isAvailable
-              ? '#10B981' // Green for available
-              : '#EF4444'; // Red for occupied
+          // Vendor/admin: occupancy status (operational signal). Amber marks
+          // a pending application so it reads distinctly from a real booking.
+          const st =
+            obj.houseAvailability ??
+            (obj.isAvailable === null || obj.isAvailable === undefined
+              ? null
+              : obj.isAvailable
+                ? 'free'
+                : 'occupied');
+          markerColor =
+            st === null
+              ? '#3B82F6' // Blue if no fair selected
+              : st === 'free'
+                ? '#10B981' // Green for available
+                : st === 'pending'
+                  ? '#F59E0B' // Amber for pending application
+                  : '#EF4444'; // Red for occupied/rented
         } else {
           // Regular visitor: color by what the stall sells, not occupancy.
           markerColor = getCategoryColor(obj.vendor?.productCategory);

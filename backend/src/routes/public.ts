@@ -464,6 +464,7 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
       color: string;
       emoji: string;
       isAvailable?: boolean | null;
+      houseAvailability?: 'free' | 'pending' | 'occupied' | null;
       houseNumber?: string;
       areaSqm?: number | null;
       price?: number | null;
@@ -506,6 +507,13 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
       // Find occupied house IDs and the occupying vendor's public business
       // identity (shown to everyone so visitors know what each stall is about).
       const occupiedHouseIds: Set<string> = new Set();
+      // 'rented' = approved (truly taken). 'pending' = open application.
+      // The map must label these differently ("tutulub" vs "müraciət var").
+      const houseStateById: Map<string, 'rented' | 'pending'> = new Map();
+      const markState = (id: string, state: 'rented' | 'pending') => {
+        if (houseStateById.get(id) === 'rented') return;
+        houseStateById.set(id, state);
+      };
       const vendorByHouseId: Map<string, VendorInfo> = new Map();
 
       if (targetFairId) {
@@ -517,6 +525,7 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
           },
           select: {
             vendorHouseId: true,
+            bookingStatus: true,
             vendorProfile: {
               select: {
                 companyName: true,
@@ -533,6 +542,7 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
         });
         for (const b of activeBookings) {
           occupiedHouseIds.add(b.vendorHouseId);
+          markState(b.vendorHouseId, b.bookingStatus === 'approved' ? 'rented' : 'pending');
           vendorByHouseId.set(b.vendorHouseId, {
             companyName: b.vendorProfile.companyName,
             productCategory: b.vendorProfile.productCategory,
@@ -550,6 +560,7 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
           },
           select: {
             vendorHouseId: true,
+            status: true,
             vendorProfile: {
               select: {
                 companyName: true,
@@ -566,6 +577,7 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
         });
         for (const a of applications) {
           occupiedHouseIds.add(a.vendorHouseId);
+          markState(a.vendorHouseId, a.status === 'approved' ? 'rented' : 'pending');
           if (!vendorByHouseId.has(a.vendorHouseId)) {
             vendorByHouseId.set(a.vendorHouseId, {
               companyName: a.vendorProfile.companyName,
@@ -592,6 +604,16 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
           emoji: getEmoji('vendor_house'),
           // Occupancy is operational: hidden from regular visitors.
           isAvailable: privileged ? (targetFairId ? !occupiedHouseIds.has(house.id) : null) : null,
+          // Tri-state so the UI can distinguish a real booking ("tutulub")
+          // from a not-yet-approved application ("müraciət var").
+          houseAvailability:
+            privileged && targetFairId
+              ? houseStateById.get(house.id) === 'rented'
+                ? 'occupied'
+                : houseStateById.get(house.id) === 'pending'
+                  ? 'pending'
+                  : 'free'
+              : null,
           houseNumber: house.houseNumber,
           areaSqm: privileged ? house.areaSqm : null,
           price: privileged ? house.price : null,

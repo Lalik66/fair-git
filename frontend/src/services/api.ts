@@ -431,6 +431,8 @@ export interface ApplicationFormData {
   houseNumber: string;
   country: string;
   city: string;
+  companyName: string;
+  productCategory: string;
   rulesAccepted: boolean;
   paymentAccepted: boolean;
 }
@@ -445,7 +447,7 @@ export interface AvailableHouse {
   latitude: number;
   longitude: number;
   panorama360Url: string | null;
-  availability: 'free' | 'occupied';
+  availability: 'free' | 'pending' | 'occupied';
 }
 
 export const applicationApi = {

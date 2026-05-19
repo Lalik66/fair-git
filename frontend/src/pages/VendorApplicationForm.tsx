@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { applicationApi, ApplicationFormData } from '../services/api';
 import MapSelectionModal from '../components/map/MapSelectionModal';
+import { CATEGORY_META } from '../types/map';
 import './VendorApplicationForm.css';
 
 // Minimal static country/city dataset — the codebase has no geo source and
@@ -32,10 +33,14 @@ const TEXT_FIELDS: Field[] = [
   'houseNumber',
   'country',
   'city',
+  'companyName',
+  'productCategory',
 ];
 
+const CATEGORY_KEYS = Object.keys(CATEGORY_META);
+
 const VendorApplicationForm: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -54,6 +59,8 @@ const VendorApplicationForm: React.FC = () => {
     houseNumber: '',
     country: '',
     city: '',
+    companyName: '',
+    productCategory: '',
     rulesAccepted: false,
     paymentAccepted: false,
   });
@@ -134,6 +141,7 @@ const VendorApplicationForm: React.FC = () => {
         houseNumber: values.houseNumber.trim(),
         country: values.country.trim(),
         city: values.city.trim(),
+        companyName: values.companyName.trim(),
       });
       navigate('/applications', {
         state: { justSubmitted: true },
@@ -360,6 +368,36 @@ const VendorApplicationForm: React.FC = () => {
                 ))}
               </select>
               {showError('city')}
+            </div>
+
+            <div className="vaf-field">
+              <label>{t('vendor.form.companyName', 'Company name')}</label>
+              <input
+                type="text"
+                value={values.companyName}
+                onChange={(e) => set('companyName', e.target.value)}
+                onBlur={() => blur('companyName')}
+              />
+              {showError('companyName')}
+            </div>
+
+            <div className="vaf-field">
+              <label>{t('vendor.form.productCategory', 'Category')}</label>
+              <select
+                value={values.productCategory}
+                onChange={(e) => set('productCategory', e.target.value)}
+                onBlur={() => blur('productCategory')}
+              >
+                <option value="">—</option>
+                {CATEGORY_KEYS.map((key) => (
+                  <option key={key} value={key}>
+                    {i18n.language === 'en'
+                      ? CATEGORY_META[key].labelEn
+                      : CATEGORY_META[key].labelAz}
+                  </option>
+                ))}
+              </select>
+              {showError('productCategory')}
             </div>
           </div>
 

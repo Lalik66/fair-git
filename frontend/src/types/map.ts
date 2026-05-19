@@ -36,6 +36,9 @@ export interface MapObject {
   // Operational fields: present only for privileged viewers (vendor/admin).
   // The backend omits them (sends null) for regular visitors.
   isAvailable?: boolean | null;
+  // Tri-state occupancy (privileged + fair selected). Distinguishes a real
+  // booking ("tutulub") from a not-yet-approved application ("müraciət var").
+  houseAvailability?: 'free' | 'pending' | 'occupied' | null;
   houseNumber?: string;
   areaSqm?: number | null;
   price?: number | null;

@@ -62,8 +62,9 @@ const MapSelectionModal: React.FC<MapSelectionModalProps> = ({ onClose, onSelect
         longitude: h.longitude,
         color: getColorForType('vendor_house'),
         emoji: getEmojiForType('vendor_house'),
-        // Drives marker color (green free / red occupied) and the Seç button.
+        // Tri-state drives marker color + popup label + Seç gating.
         isAvailable: h.availability === 'free',
+        houseAvailability: h.availability,
         houseNumber: h.houseNumber,
         areaSqm: h.areaSqm,
         price: h.price,

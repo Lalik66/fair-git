@@ -36,21 +36,35 @@ async function resolveOpenFair() {
 // A house is unavailable for a fair if it has a pending/approved booking OR
 // a pending/approved application. Mirrors the availability logic in
 // public.ts so the form modal and the public map agree.
-async function occupiedHouseIds(fairId: string): Promise<Set<string>> {
+type HouseState = 'rented' | 'pending';
+
+// Per-house occupancy for a fair. 'rented' = an approved booking/application
+// (the house is taken). 'pending' = a submitted-but-not-yet-approved
+// application. Both block a new application, but the UI must label them
+// differently ("tutulub" vs "müraciət var"). 'rented' wins over 'pending'.
+async function houseStateMap(fairId: string): Promise<Map<string, HouseState>> {
   const [bookings, applications] = await Promise.all([
     prisma.booking.findMany({
       where: { fairId, bookingStatus: { in: ['pending', 'approved'] } },
-      select: { vendorHouseId: true },
+      select: { vendorHouseId: true, bookingStatus: true },
     }),
     prisma.application.findMany({
       where: { fairId, status: { in: ['pending', 'approved'] } },
-      select: { vendorHouseId: true },
+      select: { vendorHouseId: true, status: true },
     }),
   ]);
-  const set = new Set<string>();
-  bookings.forEach((b) => set.add(b.vendorHouseId));
-  applications.forEach((a) => set.add(a.vendorHouseId));
-  return set;
+  const map = new Map<string, HouseState>();
+  const mark = (id: string, state: HouseState) => {
+    if (map.get(id) === 'rented') return; // rented is sticky
+    map.set(id, state);
+  };
+  bookings.forEach((b) =>
+    mark(b.vendorHouseId, b.bookingStatus === 'approved' ? 'rented' : 'pending')
+  );
+  applications.forEach((a) =>
+    mark(a.vendorHouseId, a.status === 'approved' ? 'rented' : 'pending')
+  );
+  return map;
 }
 
 function isValidEmail(email: string): boolean {
@@ -84,15 +98,20 @@ router.get('/available-houses', async (_req: Request, res: Response): Promise<vo
       orderBy: { houseNumber: 'asc' },
     });
 
-    const occupied = await occupiedHouseIds(fair.id);
+    const states = await houseStateMap(fair.id);
 
     res.json({
       fair: { id: fair.id, name: fair.name },
-      houses: houses.map((h) => ({
-        ...h,
-        // 'free' = selectable; 'occupied' = rented/approved or pending app.
-        availability: occupied.has(h.id) ? 'occupied' : 'free',
-      })),
+      houses: houses.map((h) => {
+        const state = states.get(h.id);
+        return {
+          ...h,
+          // 'free' selectable; 'pending' has an open application;
+          // 'occupied' is rented/approved. Only 'free' is selectable.
+          availability:
+            state === 'rented' ? 'occupied' : state === 'pending' ? 'pending' : 'free',
+        };
+      }),
     });
   } catch (error) {
     console.error('Get available houses error:', error);
@@ -162,6 +181,8 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       houseNumber,
       country,
       city,
+      companyName,
+      productCategory,
       rulesAccepted,
       paymentAccepted,
     } = req.body;
@@ -179,6 +200,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       houseNumber: typeof houseNumber === 'string' ? houseNumber.trim() : '',
       country: typeof country === 'string' ? country.trim() : '',
       city: typeof city === 'string' ? city.trim() : '',
+      companyName: typeof companyName === 'string' ? companyName.trim() : '',
     };
 
     const missing = Object.entries(trimmed)
@@ -186,6 +208,18 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       .map(([k]) => k);
     if (missing.length > 0) {
       res.status(400).json({ error: 'All fields are required', missing });
+      return;
+    }
+
+    const ALLOWED_CATEGORIES = [
+      'food_beverages',
+      'handicrafts',
+      'clothing',
+      'accessories',
+      'other',
+    ];
+    if (!ALLOWED_CATEGORIES.includes(productCategory)) {
+      res.status(400).json({ error: 'A valid product category is required', missing: ['productCategory'] });
       return;
     }
 
@@ -229,11 +263,18 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ error: 'This house is not available', code: 'HOUSE_OCCUPIED' });
       return;
     }
-    const occupied = await occupiedHouseIds(fair.id);
-    if (occupied.has(house.id)) {
+    const houseState = (await houseStateMap(fair.id)).get(house.id);
+    if (houseState === 'rented') {
       res.status(400).json({
-        error: 'This house is already occupied or has a pending application',
+        error: 'This house is already occupied',
         code: 'HOUSE_OCCUPIED',
+      });
+      return;
+    }
+    if (houseState === 'pending') {
+      res.status(400).json({
+        error: 'This house already has a pending application',
+        code: 'HOUSE_PENDING',
       });
       return;
     }
@@ -255,12 +296,23 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       }
     }
 
-    // --- Auto-create a minimal VendorProfile so the FK + admin panel hold ---
+    // --- VendorProfile carries the company identity the admin panel reads
+    // (table + detail + public map). Create it, or refresh it with this
+    // application's company/category so it never shows stale "N/A". ---
     if (!vendorProfile) {
       vendorProfile = await prisma.vendorProfile.create({
         data: {
           userId: req.user!.id,
-          companyName: `${trimmed.firstName} ${trimmed.lastName}`.trim(),
+          companyName: trimmed.companyName,
+          productCategory,
+        },
+      });
+    } else {
+      vendorProfile = await prisma.vendorProfile.update({
+        where: { id: vendorProfile.id },
+        data: {
+          companyName: trimmed.companyName,
+          productCategory,
         },
       });
     }
