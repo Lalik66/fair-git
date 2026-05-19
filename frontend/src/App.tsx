@@ -175,6 +175,16 @@ const Navigation: React.FC = () => {
                   <span className="user-menu-icon">👤</span>
                   {t('nav.profile', 'Profile')}
                 </Link>
+                {user.role === 'user' && (
+                  <Link
+                    to="/applications"
+                    className="user-menu-item"
+                    onClick={handleNavLinkClick}
+                  >
+                    <span className="user-menu-icon">📋</span>
+                    {t('vendor.myApplications', 'My Applications')}
+                  </Link>
+                )}
                 <button
                   onClick={() => { logout(); handleNavLinkClick(); }}
                   className="user-menu-item user-menu-logout"

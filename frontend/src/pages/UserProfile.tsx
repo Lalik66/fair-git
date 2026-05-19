@@ -90,6 +90,13 @@ const UserProfile: React.FC = () => {
           >
             {t('vendor.apply', 'Become a vendor')}
           </button>
+          <button
+            className="btn btn-secondary"
+            style={{ marginTop: '0.75rem' }}
+            onClick={() => navigate('/applications')}
+          >
+            {t('vendor.myApplications', 'My Applications')}
+          </button>
         </div>
       </div>
     </div>
