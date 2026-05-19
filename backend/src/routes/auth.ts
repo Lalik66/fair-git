@@ -181,7 +181,7 @@ router.put('/language', authenticateToken, async (req: Request, res: Response): 
  * GET /api/auth/oauth-status
  * Check if OAuth providers are configured (for frontend to conditionally show buttons)
  */
-router.get('/oauth-status', (req: Request, res: Response): void => {
+router.get('/oauth-status', (_req: Request, res: Response): void => {
   res.json({
     googleEnabled: isGoogleOAuthConfigured(),
   });

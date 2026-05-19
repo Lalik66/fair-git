@@ -22,7 +22,7 @@ router.use(authenticateToken);
 router.use(requireAdmin);
 
 // Get all users
-router.get('/users', async (req: Request, res: Response): Promise<void> => {
+router.get('/users', async (_req: Request, res: Response): Promise<void> => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -350,7 +350,7 @@ router.get('/applications', async (req: Request, res: Response): Promise<void> =
 });
 
 // Get application statistics
-router.get('/applications/stats', async (req: Request, res: Response): Promise<void> => {
+router.get('/applications/stats', async (_req: Request, res: Response): Promise<void> => {
   try {
     const [total, pending, approved, rejected] = await Promise.all([
       prisma.application.count(),
@@ -787,7 +787,7 @@ router.get('/applications/:applicationId', async (req: Request, res: Response): 
 // ==================== FAIR MANAGEMENT ====================
 
 // Get archived/past fairs - MUST be before /fairs/:fairId to avoid route conflict
-router.get('/fairs/past', async (req: Request, res: Response): Promise<void> => {
+router.get('/fairs/past', async (_req: Request, res: Response): Promise<void> => {
   try {
     const pastFairs = await prisma.fair.findMany({
       where: {
@@ -1013,7 +1013,7 @@ router.get('/bookings', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Get all fairs
-router.get('/fairs', async (req: Request, res: Response): Promise<void> => {
+router.get('/fairs', async (_req: Request, res: Response): Promise<void> => {
   try {
     const fairs = await prisma.fair.findMany({
       orderBy: { startDate: 'desc' },
@@ -1728,7 +1728,7 @@ router.post('/test-applications', async (req: Request, res: Response): Promise<v
 });
 
 // Delete test applications
-router.delete('/test-applications', async (req: Request, res: Response): Promise<void> => {
+router.delete('/test-applications', async (_req: Request, res: Response): Promise<void> => {
   try {
     // Find all test vendor users
     const testUsers = await prisma.user.findMany({
@@ -1759,7 +1759,7 @@ router.delete('/test-applications', async (req: Request, res: Response): Promise
 });
 
 // Create test vendor with password (for testing purposes)
-router.post('/test-vendor', async (req: Request, res: Response): Promise<void> => {
+router.post('/test-vendor', async (_req: Request, res: Response): Promise<void> => {
   try {
     const testEmail = `test-vendor-${Date.now()}@test.com`;
     const testPassword = 'VendorPass123!';
@@ -1907,7 +1907,7 @@ router.post('/test-vendor-with-panorama', async (req: Request, res: Response): P
 // ============================================
 
 // Get all About Us content for editing
-router.get('/about-us', async (req: Request, res: Response): Promise<void> => {
+router.get('/about-us', async (_req: Request, res: Response): Promise<void> => {
   try {
     const content = await prisma.aboutUsContent.findMany({
       include: {
@@ -1967,7 +1967,7 @@ router.put('/about-us/:sectionKey', async (req: Request, res: Response): Promise
 });
 
 // Get site contact info for editing
-router.get('/contact-info', async (req: Request, res: Response): Promise<void> => {
+router.get('/contact-info', async (_req: Request, res: Response): Promise<void> => {
   try {
     const info = await prisma.siteContactInfo.findFirst({
       select: {
@@ -2213,20 +2213,20 @@ router.post('/vendor-houses', async (req: Request, res: Response): Promise<void>
       },
     });
 
-    // Log activity
-    const adminUser = (req as Record<string, unknown>).user as { userId?: string } | undefined;
-    if (adminUser?.userId) {
-      try {
-        await prisma.activityLog.create({
-          data: {
-            userId: adminUser.userId,
-            action: 'CREATE_VENDOR_HOUSE',
-            details: `Created vendor house ${vendorHouse.houseNumber}`,
-          },
-        });
-      } catch (logError) {
-        console.error('Failed to log activity:', logError);
-      }
+    // Log activity. (Previously used a broken `(req as ...).user.userId`
+    // cast against a non-existent `prisma.activityLog`, so creation was
+    // never actually audited — fixed to the standard AdminLog pattern.)
+    try {
+      await prisma.adminLog.create({
+        data: {
+          adminId: req.user!.id,
+          action: 'create_vendor_house',
+          details: `Created vendor house ${vendorHouse.houseNumber}`,
+          ipAddress: req.ip || req.socket.remoteAddress,
+        },
+      });
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
     }
 
     res.status(201).json({
@@ -2251,7 +2251,7 @@ router.post('/vendor-houses', async (req: Request, res: Response): Promise<void>
 });
 
 // Get all vendor houses
-router.get('/vendor-houses', async (req: Request, res: Response): Promise<void> => {
+router.get('/vendor-houses', async (_req: Request, res: Response): Promise<void> => {
   try {
     const houses = await prisma.vendorHouse.findMany({
       orderBy: { houseNumber: 'asc' },
@@ -2377,7 +2377,7 @@ router.get('/vendor-houses/:houseId', async (req: Request, res: Response): Promi
         bookings: {
           select: {
             id: true,
-            status: true,
+            bookingStatus: true,
             fair: {
               select: {
                 id: true,
@@ -2468,7 +2468,7 @@ router.delete('/vendor-houses/:houseId', async (req: Request, res: Response): Pr
 // ============================================
 
 // Get all facilities
-router.get('/facilities', async (req: Request, res: Response): Promise<void> => {
+router.get('/facilities', async (_req: Request, res: Response): Promise<void> => {
   try {
     const facilities = await prisma.facility.findMany({
       orderBy: { name: 'asc' },

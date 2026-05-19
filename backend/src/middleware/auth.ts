@@ -66,7 +66,7 @@ export const authenticateToken = async (
 // present, req.user is populated; otherwise the request proceeds anonymously.
 export const optionalAuth = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): Promise<void> => {
   const authHeader = req.headers['authorization'];

@@ -13,7 +13,7 @@ function isPrivilegedViewer(req: Request): boolean {
 }
 
 // Get next upcoming fair for countdown
-router.get('/next-fair', async (req: Request, res: Response): Promise<void> => {
+router.get('/next-fair', async (_req: Request, res: Response): Promise<void> => {
   try {
     // Find the next upcoming fair (status = 'upcoming' or 'active', start date >= today)
     // Prioritize active fairs, then upcoming fairs ordered by start date
@@ -75,7 +75,7 @@ router.get('/next-fair', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Get all active/upcoming fairs (public info only)
-router.get('/fairs', async (req: Request, res: Response): Promise<void> => {
+router.get('/fairs', async (_req: Request, res: Response): Promise<void> => {
   try {
     const fairs = await prisma.fair.findMany({
       where: {
@@ -105,7 +105,7 @@ router.get('/fairs', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Get past events (archived/completed fairs) with vendor participation
-router.get('/past-events', async (req: Request, res: Response): Promise<void> => {
+router.get('/past-events', async (_req: Request, res: Response): Promise<void> => {
   try {
     const pastFairs = await prisma.fair.findMany({
       where: {
@@ -327,7 +327,7 @@ router.get('/vendor-houses', optionalAuth, async (req: Request, res: Response): 
 });
 
 // Get facilities for map display
-router.get('/facilities', async (req: Request, res: Response): Promise<void> => {
+router.get('/facilities', async (_req: Request, res: Response): Promise<void> => {
   try {
     const facilities = await prisma.facility.findMany({
       select: {
@@ -352,7 +352,7 @@ router.get('/facilities', async (req: Request, res: Response): Promise<void> => 
 });
 
 // Get site contact info (phone, email, social links)
-router.get('/contact-info', async (req: Request, res: Response): Promise<void> => {
+router.get('/contact-info', async (_req: Request, res: Response): Promise<void> => {
   try {
     const info = await prisma.siteContactInfo.findFirst({
       select: {
@@ -376,7 +376,7 @@ router.get('/contact-info', async (req: Request, res: Response): Promise<void> =
 });
 
 // Get About Us content
-router.get('/about-us', async (req: Request, res: Response): Promise<void> => {
+router.get('/about-us', async (_req: Request, res: Response): Promise<void> => {
   try {
     const content = await prisma.aboutUsContent.findMany({
       select: {
