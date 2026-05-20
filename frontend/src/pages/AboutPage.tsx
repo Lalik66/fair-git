@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { publicApi } from '../services/api';
 import FoxMascot from '../components/FoxMascot';
@@ -238,13 +239,31 @@ const AboutPage: React.FC = () => {
     return i18n.language === 'en' ? fair.descriptionEn : fair.descriptionAz;
   };
 
-  const formatDate = (dateString: string) => {
+  // "Dec 19 '24" — short month + day + apostrophe-2-digit year, to match the editorial design.
+  const formatShortDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'az-AZ', {
-      year: 'numeric',
+    const md = date.toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'az-AZ', {
       month: 'short',
       day: 'numeric',
     });
+    const yr = date.getFullYear().toString().slice(-2);
+    return `${md} '${yr}`;
+  };
+
+  // For upcoming-fair status pills: "Live · ends in 7d" or "Upcoming · Apr 4".
+  const getStatusPillText = (fair: UpcomingFair) => {
+    const now = new Date();
+    if (fair.status === 'active') {
+      const end = new Date(fair.endDate);
+      const days = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+      return `${t('about.status.live', 'Live')} · ${t('about.status.endsIn', 'ends in')} ${days}${t('about.status.daysShort', 'd')}`;
+    }
+    const start = new Date(fair.startDate);
+    const startStr = start.toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'az-AZ', {
+      month: 'short',
+      day: 'numeric',
+    });
+    return `${t('about.status.upcoming', 'Upcoming')} · ${startStr}`;
   };
 
   const toggleEventExpansion = (eventId: string) => {
@@ -545,6 +564,13 @@ const AboutPage: React.FC = () => {
               </div>
               <div className="sec-right">
                 {upcomingFairs.length} {upcomingFairs.length === 1 ? t('about.fair', 'fair') : t('about.fairs', 'fairs')}
+                {(() => {
+                  const minYr = upcomingFairs.reduce<number | null>((acc, f) => {
+                    const y = new Date(f.startDate).getFullYear();
+                    return acc === null || y < acc ? y : acc;
+                  }, null);
+                  return minYr ? <> · {minYr} →</> : null;
+                })()}
               </div>
             </div>
 
@@ -557,9 +583,7 @@ const AboutPage: React.FC = () => {
                   >
                     <span className={`pill ${fair.status === 'active' ? 'live' : 'warn'} fair-badge`}>
                       <span className="dot" />
-                      {fair.status === 'active'
-                        ? t('about.status.live', 'Live Now')
-                        : t('about.status.upcoming', 'Coming Soon')}
+                      {getStatusPillText(fair)}
                     </span>
                     {fair.locationAddress && (
                       <div className="fair-city">{fair.locationAddress}</div>
@@ -568,18 +592,21 @@ const AboutPage: React.FC = () => {
                   <div className="fair-body">
                     <h3 className="fair-h3">{fair.name}</h3>
                     <div className="fair-when">
-                      {formatDate(fair.startDate)} → {formatDate(fair.endDate)}
+                      {formatShortDate(fair.startDate)} → {formatShortDate(fair.endDate)}
                     </div>
                     {getDescription(fair) && (
                       <p className="fair-desc">{getDescription(fair)}</p>
                     )}
-                    {fair.locationAddress && (
-                      <div className="fair-foot">
+                    <div className="fair-foot">
+                      {fair.locationAddress ? (
                         <span className="fair-where">
                           <PinIcon /> {fair.locationAddress}
                         </span>
-                      </div>
-                    )}
+                      ) : <span />}
+                      <Link to={`/map?fairId=${fair.id}`} className="fair-cta">
+                        {t('about.upcomingDesign.viewMap', 'View on map')} →
+                      </Link>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -600,7 +627,13 @@ const AboutPage: React.FC = () => {
                 </h2>
               </div>
               <div className="sec-right">
-                {pastEvents.length} {t('about.pastDesign.archived', 'archived')}
+                {(() => {
+                  const years = pastEvents.map((e) => new Date(e.startDate).getFullYear());
+                  const minYr = Math.min(...years);
+                  const maxYr = Math.max(...years);
+                  const range = minYr === maxYr ? `${minYr}` : `${minYr} → ${maxYr}`;
+                  return <>{pastEvents.length} {t('about.pastDesign.archived', 'archived')} · {range}</>;
+                })()}
               </div>
             </div>
 
@@ -621,9 +654,9 @@ const AboutPage: React.FC = () => {
                       <div className="past-info">
                         <h3 className="past-h3">{event.name}</h3>
                         <div className="past-meta">
-                          <span>{formatDate(event.startDate)} → {formatDate(event.endDate)}</span>
+                          <span><span className="past-meta-emoji" aria-hidden="true">📅</span> {formatShortDate(event.startDate)} → {formatShortDate(event.endDate)}</span>
                           {event.locationAddress && (
-                            <span><PinIcon /> {event.locationAddress}</span>
+                            <span><span className="past-meta-emoji" aria-hidden="true">📍</span> {event.locationAddress}</span>
                           )}
                         </div>
                       </div>

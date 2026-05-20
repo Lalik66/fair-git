@@ -840,6 +840,33 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fair-cta {
+  font-family: var(--about-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--about-ink);
+  text-decoration: none;
+  border: 1px solid var(--about-rule);
+  border-radius: 8px;
+  padding: 7px 12px;
+  background: transparent;
+  white-space: nowrap;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+.fair-cta:hover {
+  background: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px -8px rgba(20, 18, 14, 0.3);
+}
+
+.past-meta-emoji {
+  font-size: 13px;
+  line-height: 1;
 }
 
 /* ---------- PAST ---------- */

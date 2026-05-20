@@ -506,9 +506,11 @@ const resources = {
         anonymousVendor: 'Vendor',
         noVendorsRecorded: 'No vendor records available for this event.',
         status: {
-          live: 'Live now',
-          upcoming: 'Coming soon',
+          live: 'Live',
+          upcoming: 'Upcoming',
           completed: 'Completed',
+          endsIn: 'ends in',
+          daysShort: 'd',
         },
         expand: 'Expand',
         collapse: 'Collapse',
@@ -594,6 +596,7 @@ const resources = {
           headlineA: "What's ",
           headlineEm: 'next',
           headlineB: ' on the calendar.',
+          viewMap: 'View on map',
         },
         pastDesign: {
           label: 'Archive',
@@ -1287,6 +1290,8 @@ const resources = {
           live: 'Canlı',
           upcoming: 'Tezliklə',
           completed: 'Bitmiş',
+          endsIn: 'bitir',
+          daysShort: 'g',
         },
         expand: 'Genişlət',
         collapse: 'Bağla',
@@ -1372,6 +1377,7 @@ const resources = {
           headlineA: 'Təqvimdə ',
           headlineEm: 'növbəti',
           headlineB: ' nə var.',
+          viewMap: 'Xəritədə bax',
         },
         pastDesign: {
           label: 'Arxiv',
