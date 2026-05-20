@@ -300,6 +300,11 @@ const AboutPage: React.FC = () => {
             <div><b>{t('about.hero.stampSince', 'EST. 2020')}</b> · {t('about.hero.stampCity', 'Baku, AZ')}</div>
             <div>{t('about.hero.stampBilingual', 'Bilingual · EN · AZ')}</div>
           </div>
+          <h1 className="about-page-title">
+            <span className="about-page-title-rule" aria-hidden="true" />
+            <em>{t('about.title', 'About Us')}</em>
+            <span className="about-page-title-rule" aria-hidden="true" />
+          </h1>
           <div className="hero-in">
             <div>
               <div className="eyebrow-row">
@@ -310,11 +315,11 @@ const AboutPage: React.FC = () => {
                     : t('about.hero.fairUpcoming', 'Next fair · coming soon')}
                 </span>
               </div>
-              <h1 className="hero-h1">
+              <p className="hero-h1">
                 {t('about.hero.headlineA', 'A marketplace')}<br />
                 {t('about.hero.headlineB', 'that ')}<em>{t('about.hero.headlineEm', 'travels')}</em><br />
                 {t('about.hero.headlineC', 'with the seasons.')}
-              </h1>
+              </p>
               <p className="hero-deck">
                 {t('about.hero.deck', "Family-friendly fairs across Azerbaijan — temporary villages of wooden houses, vendor stands, kids' workshops and warm food. We've been doing this since 2020.")}
               </p>

@@ -111,9 +111,47 @@
 /* ---------- HERO ---------- */
 .about-hero-section {
   position: relative;
-  padding: 74px 0 56px;
+  padding: 56px 0 56px;
   overflow: hidden;
 }
+
+.about-page-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  margin: 0 0 36px;
+  font-family: var(--about-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(40px, 5.5vw, 72px);
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--about-accent);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.about-page-title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--about-accent);
+}
+.about-page-title-rule {
+  flex: 1 1 0;
+  max-width: 140px;
+  height: 1px;
+  background: var(--about-accent);
+  opacity: 0.45;
+}
+@media (max-width: 680px) {
+  .about-page-title {
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .about-page-title-rule { max-width: 60px; }
+}
+
 .about-hero-section .hero-in {
   display: grid;
   grid-template-columns: 1fr 0.85fr;
