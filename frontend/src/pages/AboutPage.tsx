@@ -59,7 +59,6 @@ interface ContactInfo {
   instagramUrl: string | null;
 }
 
-// Simple inline SVG icons
 const PhoneIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
@@ -73,16 +72,104 @@ const EmailIcon = () => (
 );
 
 const FacebookIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
   </svg>
 );
 
 const InstagramIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.766 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
   </svg>
 );
+
+const PinIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+  </svg>
+);
+
+// Hero illustration: winter scene with snowman, city silhouette, snowflakes
+const HeroArt: React.FC = () => (
+  <div className="hero-art" aria-hidden="true">
+    <div className="sky-bg" />
+    <svg className="snowflakes" viewBox="0 0 600 380" preserveAspectRatio="none">
+      <g stroke="#161513" strokeWidth="1" fill="none">
+        <g transform="translate(60 50)"><line x1="-8" y1="0" x2="8" y2="0" /><line x1="0" y1="-8" x2="0" y2="8" /><line x1="-6" y1="-6" x2="6" y2="6" /><line x1="-6" y1="6" x2="6" y2="-6" /></g>
+        <g transform="translate(160 110)"><line x1="-6" y1="0" x2="6" y2="0" /><line x1="0" y1="-6" x2="0" y2="6" /><line x1="-4" y1="-4" x2="4" y2="4" /><line x1="-4" y1="4" x2="4" y2="-4" /></g>
+        <g transform="translate(260 70)"><line x1="-7" y1="0" x2="7" y2="0" /><line x1="0" y1="-7" x2="0" y2="7" /></g>
+        <g transform="translate(410 40)"><line x1="-8" y1="0" x2="8" y2="0" /><line x1="0" y1="-8" x2="0" y2="8" /><line x1="-6" y1="-6" x2="6" y2="6" /><line x1="-6" y1="6" x2="6" y2="-6" /></g>
+        <g transform="translate(510 100)"><line x1="-5" y1="0" x2="5" y2="0" /><line x1="0" y1="-5" x2="0" y2="5" /></g>
+        <g transform="translate(110 180)"><line x1="-7" y1="0" x2="7" y2="0" /><line x1="0" y1="-7" x2="0" y2="7" /></g>
+        <g transform="translate(350 170)"><line x1="-6" y1="0" x2="6" y2="0" /><line x1="0" y1="-6" x2="0" y2="6" /></g>
+      </g>
+    </svg>
+    <svg className="city" viewBox="0 0 600 200" preserveAspectRatio="none">
+      <g fill="#161513">
+        <rect x="40" y="80" width="40" height="100" />
+        <polygon points="40,80 60,60 80,80" />
+        <rect x="100" y="40" width="50" height="140" />
+        <polygon points="100,40 125,10 150,40" />
+        <rect x="170" y="70" width="40" height="110" />
+        <rect x="230" y="20" width="60" height="160" />
+        <polygon points="230,20 260,-10 290,20" />
+        <rect x="310" y="60" width="40" height="120" />
+        <rect x="370" y="30" width="50" height="150" />
+        <polygon points="370,30 395,0 420,30" />
+        <rect x="440" y="70" width="40" height="110" />
+        <rect x="500" y="40" width="60" height="140" />
+        <polygon points="500,40 530,10 560,40" />
+      </g>
+    </svg>
+    <div className="ground" />
+    <svg className="snowman" viewBox="0 0 240 260">
+      <g stroke="#161513" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round">
+        <ellipse cx="120" cy="248" rx="90" ry="7" fill="#161513" opacity="0.14" stroke="none" />
+        <circle cx="120" cy="200" r="58" fill="#fffaf0" />
+        <circle cx="120" cy="178" r="3.5" fill="#161513" stroke="none" />
+        <circle cx="120" cy="200" r="3.5" fill="#161513" stroke="none" />
+        <circle cx="120" cy="222" r="3.5" fill="#161513" stroke="none" />
+        <circle cx="120" cy="138" r="44" fill="#fffaf0" />
+        <path d="M76 138 C 56 132, 42 116, 38 96 M 38 96 L 32 92 M 38 96 L 38 88 M 50 108 L 44 102" fill="none" />
+        <path d="M164 138 C 184 132, 198 116, 202 96 M 202 96 L 208 92 M 202 96 L 202 88 M 190 108 L 196 102" fill="none" />
+        <path d="M82 96 C 100 108, 140 108, 158 96 L 158 112 C 140 122, 100 122, 82 112 Z" fill="#c4423a" />
+        <path d="M152 116 L 174 124 L 168 144 L 148 132 Z" fill="#c4423a" />
+        <circle cx="120" cy="74" r="34" fill="#fffaf0" />
+        <path d="M120 76 L 152 82 L 120 84 Z" fill="#e8702a" />
+        <path d="M104 64 C 108 60, 114 60, 116 64" fill="none" />
+        <path d="M124 64 C 126 60, 132 60, 136 64" fill="none" />
+        <circle cx="108" cy="92" r="2" fill="#161513" stroke="none" />
+        <circle cx="116" cy="94" r="2" fill="#161513" stroke="none" />
+        <circle cx="124" cy="94" r="2" fill="#161513" stroke="none" />
+        <circle cx="132" cy="92" r="2" fill="#161513" stroke="none" />
+        <path d="M86 46 L 154 46 L 154 50 L 86 50 Z" fill="#1f4f44" />
+        <path d="M96 14 L 144 14 L 148 46 L 92 46 Z" fill="#1f4f44" />
+        <path d="M93 38 L 147 38" stroke="#caa14b" strokeWidth="4" />
+        <circle cx="138" cy="36" r="3" fill="#c4423a" stroke="none" />
+        <circle cx="143" cy="34" r="3" fill="#c4423a" stroke="none" />
+      </g>
+    </svg>
+  </div>
+);
+
+// Hardcoded design content (no API source yet — see TODO in CSS file)
+const TIMELINE = [
+  { yr: '2020', color: '', titleKey: 'about.timeline.t1.title', bodyKey: 'about.timeline.t1.body' },
+  { yr: '2022', color: 'gold', titleKey: 'about.timeline.t2.title', bodyKey: 'about.timeline.t2.body' },
+  { yr: '2023', color: 'green', titleKey: 'about.timeline.t3.title', bodyKey: 'about.timeline.t3.body' },
+  { yr: '2024', color: '', titleKey: 'about.timeline.t4.title', bodyKey: 'about.timeline.t4.body' },
+  { yr: '2026', color: 'ink', titleKey: 'about.timeline.t5.title', bodyKey: 'about.timeline.t5.body' },
+];
+
+const ROSTER = [
+  { initial: 'A', color: '', nameKey: 'about.roster.r1.name', roleKey: 'about.roster.r1.role', city: 'Baku', since: '2020' },
+  { initial: 'N', color: 'green', nameKey: 'about.roster.r2.name', roleKey: 'about.roster.r2.role', city: 'Baku', since: '2021' },
+  { initial: 'R', color: 'gold', nameKey: 'about.roster.r3.name', roleKey: 'about.roster.r3.role', city: 'Ganja', since: '2022' },
+  { initial: 'İ', color: 'sky', nameKey: 'about.roster.r4.name', roleKey: 'about.roster.r4.role', city: 'Şəki', since: '2024' },
+  { initial: 'L', color: '', nameKey: 'about.roster.r5.name', roleKey: 'about.roster.r5.role', city: 'Baku', since: '2023' },
+];
+
+const MISSION_TAGS = ['about.tags.hospitality', 'about.tags.craft', 'about.tags.small', 'about.tags.seasonal'];
 
 const AboutPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -147,7 +234,7 @@ const AboutPage: React.FC = () => {
     }
   };
 
-  const getDescription = (fair: UpcomingFair) => {
+  const getDescription = (fair: UpcomingFair | PastEvent) => {
     return i18n.language === 'en' ? fair.descriptionEn : fair.descriptionAz;
   };
 
@@ -155,7 +242,7 @@ const AboutPage: React.FC = () => {
     const date = new Date(dateString);
     return date.toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'az-AZ', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
     });
   };
@@ -174,252 +261,427 @@ const AboutPage: React.FC = () => {
     return i18n.language === 'en' ? (section.contentEn || '') : (section.contentAz || '');
   };
 
-  const renderSection = (sectionKey: string, title: string, icon: string) => {
-    const sectionContent = getLocalizedContent(content[sectionKey]);
-    if (!sectionContent && !loading) return null;
+  const isFairLive = upcomingFairs.some((f) => f.status === 'active');
+  const missionText = getLocalizedContent(content.mission);
+  const historyText = getLocalizedContent(content.history);
+  const teamText = getLocalizedContent(content.team);
+  const contactText = getLocalizedContent(content.contact);
 
-    return (
-      <section className="about-section" key={sectionKey}>
-        <h2>
-          <span className="section-icon">{icon}</span>
-          {title}
-        </h2>
-        {loading ? (
-          <div className="loading-placeholder">{t('common.loading')}</div>
-        ) : (
-          <div className="section-content">
-            {sectionContent.split('\n').map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-          </div>
-        )}
-      </section>
-    );
-  };
+  const missionParagraphs = missionText.split('\n').map((p) => p.trim()).filter(Boolean);
+  const historyParagraphs = historyText.split('\n').map((p) => p.trim()).filter(Boolean);
+  const teamParagraphs = teamText.split('\n').map((p) => p.trim()).filter(Boolean);
 
   return (
     <div className="about-page">
-      <div className="about-hero">
-        <h1>{t('about.title', 'About Us')}</h1>
-        <p className="about-subtitle">{t('about.subtitle', 'Learn more about Fair Marketplace')}</p>
+      {/* ============== HERO ============== */}
+      <section className="about-hero-section">
+        <div className="about-wrap">
+          <div className="hero-stamp">
+            <div>{t('about.hero.stampTop', 'About · FestivKids')}</div>
+            <div><b>{t('about.hero.stampSince', 'EST. 2020')}</b> · {t('about.hero.stampCity', 'Baku, AZ')}</div>
+            <div>{t('about.hero.stampBilingual', 'Bilingual · EN · AZ')}</div>
+          </div>
+          <div className="hero-in">
+            <div>
+              <div className="eyebrow-row">
+                <span className={`pill ${isFairLive ? 'live' : ''}`}>
+                  <span className="dot" />
+                  {isFairLive
+                    ? t('about.hero.fairLive', 'Fair · live now')
+                    : t('about.hero.fairUpcoming', 'Next fair · coming soon')}
+                </span>
+              </div>
+              <h1 className="hero-h1">
+                {t('about.hero.headlineA', 'A marketplace')}<br />
+                {t('about.hero.headlineB', 'that ')}<em>{t('about.hero.headlineEm', 'travels')}</em><br />
+                {t('about.hero.headlineC', 'with the seasons.')}
+              </h1>
+              <p className="hero-deck">
+                {t('about.hero.deck', "Family-friendly fairs across Azerbaijan — temporary villages of wooden houses, vendor stands, kids' workshops and warm food. We've been doing this since 2020.")}
+              </p>
+              <div className="hero-meta">
+                <span className="since">{t('about.hero.metaSince', 'Since 2020')}</span>
+                <span className="metadot" />
+                <span className="since">{t('about.hero.metaCities', '3 cities · Baku · Ganja · Şəki')}</span>
+              </div>
+            </div>
+            <HeroArt />
+          </div>
+        </div>
+      </section>
+
+      {/* ============== TICKER ============== */}
+      <div className="breadcrumb-bar">
+        <div className="about-wrap">
+          <div className="breadcrumb-in">
+            <span>FestivKids <b>/ {t('about.title', 'About Us')}</b></span>
+            <span className="sep" />
+            <span><b>4</b> {t('about.ticker.seasons', 'seasons')}</span>
+            <span className="sep" />
+            <span><b>5</b> {t('about.ticker.winters', 'winters')}</span>
+            <span className="sep" />
+            <span><b>38,000+</b> {t('about.ticker.visitors', 'visitors')}</span>
+            <span className="sep" />
+            <span><b>218</b> {t('about.ticker.vendors', 'vendors')}</span>
+            <span className="sep" />
+            <span><b>3</b> {t('about.ticker.cities', 'cities')}</span>
+          </div>
+        </div>
       </div>
 
-      <div className="about-content">
-        {renderSection('mission', t('about.mission', 'Our Mission'), '🎯')}
-        {renderSection('history', t('about.history', 'Our History'), '📜')}
-        {renderSection('team', t('about.team', 'Our Team'), '👥')}
-        {renderSection('contact', t('about.contact', 'Contact Us'), '📧')}
+      {/* ============== 01 · MISSION ============== */}
+      <section className="mission-section">
+        <div className="about-wrap">
+          <div className="mission-grid">
+            <div>
+              <div className="marker"><span className="marker-n">01</span>{t('about.mission', 'Our Mission')}</div>
+              <h2 className="mission-h2">
+                {t('about.missionDesign.headlineA', 'Bring sellers')}<br />
+                {t('about.missionDesign.headlineB', 'and visitors')}<br />
+                {t('about.missionDesign.headlineC', 'into one ')}<em>{t('about.missionDesign.headlineEm', 'lively')}</em><br />
+                {t('about.missionDesign.headlineD', 'room.')}
+              </h2>
+              <div className="mission-tags">
+                {MISSION_TAGS.map((k) => (
+                  <span className="tag" key={k}>{t(k, k.split('.').pop()!)}</span>
+                ))}
+              </div>
+            </div>
+            <div className="mission-body">
+              {loading ? (
+                <p className="loading-text">{t('common.loading')}</p>
+              ) : missionParagraphs.length > 0 ? (
+                missionParagraphs.map((p, i) => <p key={i}>{p}</p>)
+              ) : (
+                <p className="placeholder-text">{t('about.noContent', 'Content coming soon. Please check back later!')}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
-        {/* Contact Info & Social Media Section */}
-        {(contactInfo?.phone || contactInfo?.email || contactInfo?.facebookUrl || contactInfo?.instagramUrl) && (
-          <section className="about-section about-contact-social-section">
-            <h2>
-              <span className="section-icon">📞</span>
-              {t('about.contactInfo', 'Contact information')}
-            </h2>
-            <div className="contact-social-layout">
-              <div className="contact-social-main">
-                <div className="contact-info-rows">
+      {/* ============== 02 · HISTORY ============== */}
+      <section className="history-section">
+        <div className="about-wrap">
+          <div className="history-head">
+            <div>
+              <div className="marker"><span className="marker-n">02</span>{t('about.history', 'Our History')}</div>
+              <h2 className="history-h2">
+                {t('about.historyDesign.headlineA', 'Five winters in.')}<br />
+                {t('about.historyDesign.headlineB', "And we're ")}<em>{t('about.historyDesign.headlineEm', 'just')}</em>{t('about.historyDesign.headlineC', ' getting')}<br />
+                {t('about.historyDesign.headlineD', 'started.')}
+              </h2>
+            </div>
+            <div className="history-aside">
+              {loading ? (
+                <p className="loading-text">{t('common.loading')}</p>
+              ) : historyParagraphs.length > 0 ? (
+                historyParagraphs.slice(0, 2).map((p, i) => <p className="lede" key={i}>{p}</p>)
+              ) : (
+                <p className="lede">{t('about.historyDesign.lede', 'FestivKids started in 2020 with one fair in Baku and twelve vendors. Here is how we got here.')}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="timeline">
+            <div className="timeline-row">
+              {TIMELINE.map((tl) => (
+                <div className={`tl ${tl.color}`} key={tl.yr}>
+                  <span className="tl-node" />
+                  <div className="tl-yr">{tl.yr}</div>
+                  <div className="tl-title">{t(tl.titleKey, tl.titleKey)}</div>
+                  <div className="tl-body">{t(tl.bodyKey, tl.bodyKey)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============== 03 · TEAM ============== */}
+      <section className="team-section">
+        <div className="about-wrap">
+          <div className="team-grid">
+            <div>
+              <div className="marker"><span className="marker-n">03</span>{t('about.team', 'Our Team')}</div>
+              <h2 className="team-h2">
+                {t('about.teamDesign.headlineA', 'A small team,')}<br />
+                {t('about.teamDesign.headlineB', 'a ')}<em>{t('about.teamDesign.headlineEm', 'big')}</em>{t('about.teamDesign.headlineC', ' rolodex of')}<br />
+                {t('about.teamDesign.headlineD', 'makers.')}
+              </h2>
+              <div className="team-body">
+                {loading ? (
+                  <p className="loading-text">{t('common.loading')}</p>
+                ) : teamParagraphs.length > 0 ? (
+                  teamParagraphs.map((p, i) => <p key={i}>{p}</p>)
+                ) : (
+                  <p className="placeholder-text">{t('about.teamDesign.fallback', 'A small full-time team year-round; hundreds of vendors, workshop leaders and volunteers build each season.')}</p>
+                )}
+              </div>
+              <div className="team-stats">
+                <div className="team-stat">
+                  <div className="team-stat-v">8</div>
+                  <div className="team-stat-l">{t('about.teamDesign.statFull', 'Full-time')}</div>
+                </div>
+                <div className="team-stat">
+                  <div className="team-stat-v">42</div>
+                  <div className="team-stat-l">{t('about.teamDesign.statSeasonal', 'Seasonal')}</div>
+                </div>
+                <div className="team-stat">
+                  <div className="team-stat-v">160+</div>
+                  <div className="team-stat-l">{t('about.teamDesign.statVolunteers', 'Volunteers')}</div>
+                </div>
+              </div>
+            </div>
+            <div className="roster">
+              {ROSTER.map((r) => (
+                <div className={`roster-row ${r.color}`} key={r.nameKey}>
+                  <div className="roster-av">{r.initial}</div>
+                  <div className="roster-info">
+                    <b>{t(r.nameKey, r.nameKey)}</b>
+                    <span>{t(r.roleKey, r.roleKey)}</span>
+                  </div>
+                  <div className="roster-meta">{r.city}<br />{r.since} →</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============== 04 · CONTACT (dark, with Donatello) ============== */}
+      <section className="contact-section">
+        <div className="about-wrap">
+          <div className="contact-in">
+            <div>
+              <div className="marker marker-on-dark">
+                <span className="marker-n marker-n-light">04</span>
+                {t('about.contact', 'Contact Us')}
+              </div>
+              <h2 className="contact-h2">
+                {t('about.contactDesign.headlineA', 'Say ')}<em>{t('about.contactDesign.headlineEm', 'hello')}</em>.<br />
+                {t('about.contactDesign.headlineB', 'We read every line.')}
+              </h2>
+              {contactText ? (
+                <p className="contact-lede">{contactText}</p>
+              ) : (
+                <p className="contact-lede">
+                  {t('about.contactDesign.lede', 'Vendors, partners, parents with workshop ideas, journalists — all welcome. We answer in Azerbaijani or English, usually within two working days.')}
+                </p>
+              )}
+
+              {(contactInfo?.phone || contactInfo?.email) && (
+                <div className="contact-rows">
                   {contactInfo?.phone && (
-                    <a href={`tel:${contactInfo.phone}`} className="contact-info-item">
-                      <span className="contact-icon-box">
-                        <PhoneIcon />
-                      </span>
-                      <span className="contact-info-text">{contactInfo.phone}</span>
+                    <a className="contact-row" href={`tel:${contactInfo.phone}`}>
+                      <span className="icob"><PhoneIcon /></span>
+                      <div>
+                        <span className="contact-row-l">{t('about.contactDesign.phone', 'Phone')}</span>
+                        <span className="contact-row-v">{contactInfo.phone}</span>
+                      </div>
+                      <span className="arrow">↗</span>
                     </a>
                   )}
                   {contactInfo?.email && (
-                    <a href={`mailto:${contactInfo.email}`} className="contact-info-item">
-                      <span className="contact-icon-box">
-                        <EmailIcon />
-                      </span>
-                      <span className="contact-info-text">{contactInfo.email}</span>
+                    <a className="contact-row" href={`mailto:${contactInfo.email}`}>
+                      <span className="icob"><EmailIcon /></span>
+                      <div>
+                        <span className="contact-row-l">{t('about.contactDesign.email', 'Email')}</span>
+                        <span className="contact-row-v">{contactInfo.email}</span>
+                      </div>
+                      <span className="arrow">↗</span>
                     </a>
                   )}
                 </div>
-                {(contactInfo?.facebookUrl || contactInfo?.instagramUrl) && (
-                  <>
-                    <h3 className="social-heading">{t('about.socialMedia', 'Social media')}</h3>
-                    <div className="social-icons-row">
-                      {contactInfo?.facebookUrl && (
-                        <a
-                          href={contactInfo.facebookUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="social-icon-link"
-                          aria-label="Facebook"
-                        >
-                          <FacebookIcon />
-                        </a>
-                      )}
-                      {contactInfo?.instagramUrl && (
-                        <a
-                          href={contactInfo.instagramUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="social-icon-link"
-                          aria-label="Instagram"
-                        >
-                          <InstagramIcon />
-                        </a>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="contact-social-mascot" aria-hidden="true">
+              )}
+
+              {(contactInfo?.facebookUrl || contactInfo?.instagramUrl) && (
+                <div className="social-row">
+                  <span className="social-l">{t('about.socialMedia', 'Social media')}</span>
+                  {contactInfo?.facebookUrl && (
+                    <a href={contactInfo.facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                      <FacebookIcon />
+                    </a>
+                  )}
+                  {contactInfo?.instagramUrl && (
+                    <a href={contactInfo.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                      <InstagramIcon />
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Donatello plate */}
+            <div className="donatello-plate" aria-hidden="true">
+              <span className="donatello-tag">
+                {t('about.contactDesign.mascotLabel', 'Mascot')} · <b>Donatello</b>
+              </span>
+              <div className="donatello-img">
                 <img
                   src="/tmnt-donatello.gif"
                   alt=""
-                  width={260}
-                  height={260}
+                  width={400}
+                  height={400}
                   decoding="async"
                   loading="lazy"
-                  className="contact-mascot-gif"
                 />
               </div>
             </div>
-          </section>
-        )}
-
-        {!loading && Object.keys(content).length === 0 && (
-          <div className="about-placeholder">
-            <p>{t('about.noContent', 'Content coming soon. Please check back later!')}</p>
           </div>
-        )}
+        </div>
+      </section>
 
-        {/* Upcoming Events Section */}
-        {!upcomingLoading && upcomingFairs.length > 0 && (
-          <section className="about-section upcoming-events-section">
-            <h2>
-              <span className="section-icon">🎪</span>
-              {t('about.upcomingEvents', 'Upcoming Events')}
-            </h2>
-            <div className="upcoming-events-list">
+      {/* ============== 05 · UPCOMING ============== */}
+      {!upcomingLoading && upcomingFairs.length > 0 && (
+        <section className="upcoming-section">
+          <div className="about-wrap">
+            <div className="sec-head">
+              <div>
+                <div className="marker"><span className="marker-n">05</span>{t('about.upcomingEvents', 'Upcoming Events')}</div>
+                <h2 className="sec-h2">
+                  {t('about.upcomingDesign.headlineA', "What's ")}<em>{t('about.upcomingDesign.headlineEm', 'next')}</em>{t('about.upcomingDesign.headlineB', ' on the calendar.')}
+                </h2>
+              </div>
+              <div className="sec-right">
+                {upcomingFairs.length} {upcomingFairs.length === 1 ? t('about.fair', 'fair') : t('about.fairs', 'fairs')}
+              </div>
+            </div>
+
+            <div className="fairs-grid">
               {upcomingFairs.map((fair) => (
-                <div key={fair.id} className="upcoming-event-card">
-                  {fair.bannerImageUrl && (
-                    <div className="upcoming-event-banner">
-                      <img
-                        src={fair.bannerImageUrl}
-                        alt={fair.name}
-                        className="banner-image"
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
-                  <div className="upcoming-event-content">
-                    <div className="upcoming-event-status">
-                      <span className={`status-badge ${fair.status}`}>
-                        {fair.status === 'active'
-                          ? t('about.status.live', 'Live Now')
-                          : t('about.status.upcoming', 'Coming Soon')}
-                      </span>
-                    </div>
-                    <h3 className="upcoming-event-name">{fair.name}</h3>
-                    <div className="upcoming-event-dates">
-                      <span className="date-icon">📅</span>
-                      {formatDate(fair.startDate)} - {formatDate(fair.endDate)}
-                    </div>
-                    {fair.locationAddress && (
-                      <div className="upcoming-event-location">
-                        <span className="location-icon">📍</span> {fair.locationAddress}
-                      </div>
-                    )}
-                    {getDescription(fair) && (
-                      <p className="upcoming-event-description">{getDescription(fair)}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Past Events Section */}
-        {!eventsLoading && pastEvents.length > 0 && (
-          <section className="about-section past-events-section">
-            <h2>
-              <span className="section-icon">📅</span>
-              {t('about.pastEvents', 'Past Events')}
-            </h2>
-            <div className="past-events-list">
-              {pastEvents.map((event) => (
-                <div key={event.id} className="past-event-card">
+                <article className="fair-card" key={fair.id}>
                   <div
-                    className="past-event-header"
-                    onClick={() => toggleEventExpansion(event.id)}
+                    className="fair-cover"
+                    style={fair.bannerImageUrl ? { backgroundImage: `url(${fair.bannerImageUrl})` } : undefined}
                   >
-                    <div className="past-event-info">
-                      <h3 className="past-event-name">{event.name}</h3>
-                      <div className="past-event-dates">
-                        {formatDate(event.startDate)} - {formatDate(event.endDate)}
-                      </div>
-                      {event.locationAddress && (
-                        <div className="past-event-location">
-                          <span className="location-icon">📍</span> {event.locationAddress}
-                        </div>
-                      )}
-                    </div>
-                    <div className="past-event-stats">
-                      <span className="vendor-count">
-                        <span className="vendor-icon">🏪</span>
-                        {event.vendorCount} {event.vendorCount === 1
-                          ? t('about.vendor', 'vendor')
-                          : t('about.vendors', 'vendors')}
-                      </span>
-                      <button
-                        className={`expand-btn ${expandedEventId === event.id ? 'expanded' : ''}`}
-                        aria-label={expandedEventId === event.id ? t('about.collapse', 'Collapse') : t('about.expand', 'Expand')}
-                      >
-                        {expandedEventId === event.id ? '▲' : '▼'}
-                      </button>
-                    </div>
+                    <span className={`pill ${fair.status === 'active' ? 'live' : 'warn'} fair-badge`}>
+                      <span className="dot" />
+                      {fair.status === 'active'
+                        ? t('about.status.live', 'Live Now')
+                        : t('about.status.upcoming', 'Coming Soon')}
+                    </span>
+                    {fair.locationAddress && (
+                      <div className="fair-city">{fair.locationAddress}</div>
+                    )}
                   </div>
-
-                  {expandedEventId === event.id && event.vendors.length > 0 && (
-                    <div className="past-event-vendors">
-                      <h4>{t('about.participatingVendors', 'Participating Vendors')}</h4>
-                      <div className="vendors-grid">
-                        {event.vendors.map((vendor) => (
-                          <div key={vendor.id} className="vendor-card">
-                            {vendor.logoUrl ? (
-                              <img
-                                src={vendor.logoUrl}
-                                alt={vendor.companyName || 'Vendor'}
-                                className="vendor-logo"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="vendor-logo-placeholder">🏪</div>
-                            )}
-                            <div className="vendor-info">
-                              <span className="vendor-name">
-                                {vendor.companyName || vendor.ownerName || t('about.anonymousVendor', 'Vendor')}
-                              </span>
-                              <span className="vendor-category">
-                                {getCategoryLabel(vendor.productCategory)}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                  <div className="fair-body">
+                    <h3 className="fair-h3">{fair.name}</h3>
+                    <div className="fair-when">
+                      {formatDate(fair.startDate)} → {formatDate(fair.endDate)}
+                    </div>
+                    {getDescription(fair) && (
+                      <p className="fair-desc">{getDescription(fair)}</p>
+                    )}
+                    {fair.locationAddress && (
+                      <div className="fair-foot">
+                        <span className="fair-where">
+                          <PinIcon /> {fair.locationAddress}
+                        </span>
                       </div>
-                    </div>
-                  )}
-
-                  {expandedEventId === event.id && event.vendors.length === 0 && (
-                    <div className="past-event-vendors">
-                      <p className="no-vendors">{t('about.noVendorsRecorded', 'No vendor records available for this event.')}</p>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                </article>
               ))}
             </div>
-          </section>
-        )}
-      </div>
+          </div>
+        </section>
+      )}
 
-      <FoxMascot isFairActive={upcomingFairs.some(f => f.status === 'active')} />
+      {/* ============== 06 · PAST ============== */}
+      {!eventsLoading && pastEvents.length > 0 && (
+        <section className="past-section">
+          <div className="about-wrap">
+            <div className="sec-head">
+              <div>
+                <div className="marker"><span className="marker-n">06</span>{t('about.pastDesign.label', 'Archive')}</div>
+                <h2 className="sec-h2">
+                  {t('about.pastDesign.headlineA', 'Past ')}<em>{t('about.pastDesign.headlineEm', 'fairs')}</em>{t('about.pastDesign.headlineB', '. And the makers who showed up.')}
+                </h2>
+              </div>
+              <div className="sec-right">
+                {pastEvents.length} {t('about.pastDesign.archived', 'archived')}
+              </div>
+            </div>
+
+            <div className="past-list">
+              {pastEvents.map((event) => {
+                const open = expandedEventId === event.id;
+                const yr = new Date(event.startDate).getFullYear().toString().slice(2);
+                return (
+                  <div className={`past-card ${open ? 'open' : ''}`} key={event.id}>
+                    <div
+                      className="past-head"
+                      onClick={() => toggleEventExpansion(event.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleEventExpansion(event.id); }}
+                    >
+                      <div className="past-yr">{`'${yr}`}</div>
+                      <div className="past-info">
+                        <h3 className="past-h3">{event.name}</h3>
+                        <div className="past-meta">
+                          <span>{formatDate(event.startDate)} → {formatDate(event.endDate)}</span>
+                          {event.locationAddress && (
+                            <span><PinIcon /> {event.locationAddress}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="past-actions">
+                        <div className="past-vc-wrap">
+                          <div className="past-vc">{event.vendorCount}</div>
+                          <span className="past-vc-l">
+                            {event.vendorCount === 1 ? t('about.vendor', 'vendor') : t('about.vendors', 'vendors')}
+                          </span>
+                        </div>
+                        <button
+                          className="past-expand"
+                          aria-label={open ? t('about.collapse', 'Collapse') : t('about.expand', 'Expand')}
+                          onClick={(e) => { e.stopPropagation(); toggleEventExpansion(event.id); }}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    </div>
+                    {open && (
+                      <div className="past-body">
+                        {event.vendors.length > 0 ? (
+                          <>
+                            <h4 className="past-body-h4">{t('about.participatingVendors', 'Participating Vendors')}</h4>
+                            <div className="vendors-grid-new">
+                              {event.vendors.map((vendor) => {
+                                const name = vendor.companyName || vendor.ownerName || t('about.anonymousVendor', 'Vendor');
+                                const initial = name.charAt(0).toUpperCase();
+                                return (
+                                  <div className="vendor-new" key={vendor.id}>
+                                    {vendor.logoUrl ? (
+                                      <img className="vendor-new-logo-img" src={vendor.logoUrl} alt="" loading="lazy" />
+                                    ) : (
+                                      <div className="vendor-new-logo">{initial}</div>
+                                    )}
+                                    <div>
+                                      <b>{name}</b>
+                                      <span>{getCategoryLabel(vendor.productCategory)}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </>
+                        ) : (
+                          <p className="no-vendors-new">{t('about.noVendorsRecorded', 'No vendor records available for this event.')}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <FoxMascot isFairActive={isFairLive} />
     </div>
   );
 };
