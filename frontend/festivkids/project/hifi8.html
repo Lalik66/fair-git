@@ -1,0 +1,1569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FestivKids — Hi-Fi 8 · Quick discovery (chosen direction)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f7f3ec; --bg-2:#efe7d7; --paper:#fffaf0;
+    --ink:#161513; --ink-2:#2a2622; --soft:#6c655b;
+    --rule:#d9d1bd;
+    --accent:#c4423a; --accent-soft:#f4d6d2;
+    --accent-2:#1f4f44; --accent-2-soft:#cce0d8;
+    --gold:#caa14b;
+    --sky:#b4d4e0;
+    /* category palette */
+    --cat-food:#c4423a;
+    --cat-toy:#caa14b;
+    --cat-craft:#1f4f44;
+    --cat-workshop:#7a3e8f;
+    --cat-fac:#6c655b;
+    --display:'Fraunces', ui-serif, Georgia, serif;
+    --body:'Inter Tight', system-ui, -apple-system, sans-serif;
+    --mono:'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --ease:cubic-bezier(0.2,0.8,0.2,1);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--body);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 24px 60px}
+  .shell{max-width:1480px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+
+  .head{display:flex;justify-content:space-between;align-items:end;gap:24px}
+  .head h1{font-family:var(--display);font-size:36px;font-weight:500;letter-spacing:-0.02em;margin:0;line-height:1}
+  .head .meta{font-family:var(--mono);font-size:11px;color:var(--soft);text-align:right;letter-spacing:1.5px;text-transform:uppercase}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--soft)}
+
+  /* role switcher rail */
+  .role-rail{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--paper);border:1px solid var(--rule);border-radius:14px;flex-wrap:wrap}
+  .role-rail .lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase;padding-right:6px}
+  .seg{display:inline-flex;gap:2px;background:#f4ede0;border:1px solid var(--rule);border-radius:10px;padding:3px}
+  .seg button{font:inherit;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+    border:0;background:transparent;color:var(--ink-2);padding:7px 12px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .seg button.on{background:var(--ink);color:var(--paper)}
+  .seg button svg{width:14px;height:14px}
+
+  /* variant toggle for visitor */
+  .variant-toggle{display:inline-flex;gap:0;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
+  .variant-toggle button{font:inherit;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--rule);background:#fff;color:var(--ink-2);padding:6px 10px;cursor:pointer;border-radius:0}
+  .variant-toggle button:first-child{border-top-left-radius:7px;border-bottom-left-radius:7px}
+  .variant-toggle button:last-child{border-top-right-radius:7px;border-bottom-right-radius:7px;border-left:0}
+  .variant-toggle button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  .lang-mini{display:inline-flex;border:1px solid var(--rule);border-radius:999px;padding:2px;font-family:var(--mono);font-size:10px;background:#fff;cursor:pointer}
+  .lang-mini span{padding:3px 9px;border-radius:999px;color:var(--soft);user-select:none}
+  .lang-mini span.on{background:var(--ink);color:var(--paper)}
+
+  /* APP frame */
+  .app{background:var(--paper);border:1px solid var(--rule);border-radius:18px;overflow:hidden;position:relative;
+    box-shadow:0 1px 0 #fff inset, 0 30px 60px -30px rgba(20,18,14,0.18), 0 8px 18px -10px rgba(20,18,14,0.10);
+    height:720px}
+  .nav{display:flex;align-items:center;gap:24px;padding:12px 20px;border-bottom:1px solid var(--rule);background:linear-gradient(180deg,rgba(255,255,255,0.6),transparent);position:relative;z-index:30}
+  .brand{font-family:var(--display);font-size:20px;font-weight:600;letter-spacing:-0.02em;color:var(--accent)}
+  .nav .links{display:flex;gap:4px;flex:1;margin-left:14px}
+  .nav .links a{color:var(--ink-2);text-decoration:none;font-size:13px;font-weight:500;padding:6px 10px;border-radius:8px}
+  .nav .links a.active{background:var(--ink);color:var(--paper)}
+  .nav .role-pill{display:inline-flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--rule);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600}
+  .nav .role-pill .who{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft)}
+  .nav .avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;color:var(--accent);font-size:12px}
+
+  /* MAP SURFACE — single shared canvas, sidebar varies per role */
+  .map-surface{position:absolute;inset:54px 0 0 0;display:grid;grid-template-columns:300px 1fr;z-index:5}
+  .sidebar{background:var(--paper);border-right:1px solid var(--rule);display:flex;flex-direction:column;overflow:hidden}
+  .sidebar .hdr{background:var(--ink);color:var(--paper);padding:11px 14px;display:flex;align-items:center;gap:10px}
+  .sidebar .hdr svg{flex:0 0 auto}
+  .sidebar .hdr b{font-family:var(--display);font-size:16px;font-weight:500;letter-spacing:-0.01em}
+  .sidebar .role-banner{padding:8px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--rule)}
+  .sidebar .role-banner.public{background:#fdfaf3;color:var(--accent-2)}
+  .sidebar .role-banner.vendor{background:#f4ede0;color:var(--ink-2)}
+  .sidebar .role-banner.admin{background:var(--ink);color:var(--gold)}
+  .sidebar .fair-pick{padding:10px 12px;border-bottom:1px solid var(--rule);background:#fff}
+  .sidebar .fair-pick select{width:100%;border:1px solid var(--rule);border-radius:10px;padding:7px 9px;font:inherit;background:#fff;font-size:12px}
+  .sidebar .search{padding:10px 12px;border-bottom:1px solid var(--rule)}
+  .sidebar .search input{width:100%;border:1px solid var(--rule);border-radius:10px;padding:7px 9px 7px 30px;font:inherit;font-size:12px;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236c655b' stroke-width='2'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.3-4.3'/></svg>") no-repeat 9px 50%;outline:none}
+  .sidebar .chips{padding:9px 12px;display:flex;flex-wrap:wrap;gap:5px;border-bottom:1px solid var(--rule)}
+  .chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--rule);border-radius:999px;padding:3px 9px;font-size:11px;color:var(--ink-2);cursor:pointer}
+  .chip .swatch{width:8px;height:8px;border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
+  .chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .chip.tour{background:#22201c;color:var(--gold);border-color:#22201c}
+  .chip.tour::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
+  .sidebar .results{padding:8px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase}
+  .sidebar .list{flex:1;overflow:auto;padding:0 8px 10px}
+  .sidebar .group-hd{padding:8px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;justify-content:space-between}
+  .house-li{display:grid;grid-template-columns:34px 1fr auto;gap:9px;padding:7px;border-radius:10px;align-items:center;cursor:pointer;border:1px solid transparent;font-size:12px}
+  .house-li:hover{background:#fdfaf3}
+  .house-li.sel{background:#fdfaf3;border-color:var(--accent)}
+  .house-li .ic{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
+  .house-li .ic > *{transform:rotate(45deg)}
+  .house-li h6{font-family:var(--display);font-size:14px;margin:0;font-weight:500;letter-spacing:-0.01em}
+  .house-li .meta{font-size:11px;color:var(--soft)}
+  .house-li .badge{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:5px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+  .house-li .badge.taken{background:var(--accent-soft);color:var(--accent)}
+  .house-li .badge.open{background:#e3eee5;color:var(--accent-2)}
+  .house-li .badge.tour{background:#22201c;color:var(--gold)}
+  .house-li .badge.mine{background:#fff4d6;color:#7a5413;border:1px solid #e6c97a}
+  .house-li .badge.pending{background:#faecc6;color:#7a5413}
+  .house-li .badge.draft{background:#eee;color:var(--soft)}
+
+  /* MAP CANVAS */
+  .map-canvas{position:relative;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(196,66,58,0.07), transparent 32%),
+      radial-gradient(circle at 70% 65%, rgba(31,79,68,0.07), transparent 36%),
+      repeating-linear-gradient(0deg, rgba(20,18,14,0.04) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, rgba(20,18,14,0.04) 0 1px, transparent 1px 28px),
+      linear-gradient(160deg, #efe7d6 0%, #e6dcc5 100%);overflow:hidden}
+  .map-canvas .streets{position:absolute;inset:0;width:100%;height:100%;opacity:0.55;pointer-events:none}
+
+  /* PIN base */
+  .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:5;transition:transform .22s var(--ease)}
+  .pin .head{width:34px;height:34px;border-radius:50% 50% 50% 0;background:var(--accent);border:1.5px solid var(--ink);
+    transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -6px rgba(20,18,14,0.4)}
+  .pin .head > *{transform:rotate(45deg)}
+  .pin .head svg{width:14px;height:14px;color:#fff}
+  /* category-colored heads (public) */
+  body[data-role="public"] .pin[data-cat="food"] .head{background:var(--cat-food)}
+  body[data-role="public"] .pin[data-cat="toy"] .head{background:var(--cat-toy)}
+  body[data-role="public"] .pin[data-cat="craft"] .head{background:var(--cat-craft)}
+  body[data-role="public"] .pin[data-cat="workshop"] .head{background:var(--cat-workshop)}
+  body[data-role="public"] .pin[data-cat="fac"] .head{background:#fff}
+  body[data-role="public"] .pin[data-cat="fac"] .head svg{color:var(--ink)}
+  /* availability-colored heads (vendor/admin) */
+  body[data-role="vendor"] .pin[data-status="taken"] .head,
+  body[data-role="admin"] .pin[data-status="taken"] .head{background:var(--accent)}
+  body[data-role="vendor"] .pin[data-status="open"] .head,
+  body[data-role="admin"] .pin[data-status="open"] .head{background:var(--accent-2)}
+  body[data-role="admin"] .pin[data-status="pending"] .head{background:var(--gold)}
+  body[data-role="admin"] .pin[data-status="draft"] .head{background:#9b9385}
+  body[data-role="vendor"] .pin[data-cat="fac"] .head,
+  body[data-role="admin"] .pin[data-cat="fac"] .head{background:#fff}
+  body[data-role="vendor"] .pin[data-cat="fac"] .head svg,
+  body[data-role="admin"] .pin[data-cat="fac"] .head svg{color:var(--ink)}
+  /* 360° gold ring on tour-enabled pins */
+  .pin.tour::after{content:"";position:absolute;left:50%;top:0;width:54px;height:54px;border-radius:50%;
+    border:2px solid var(--gold);transform:translate(-50%,-28%);animation:tourRing 2.2s ease-in-out infinite;pointer-events:none}
+  @keyframes tourRing{0%,100%{transform:translate(-50%,-28%) scale(1);opacity:0.55}50%{transform:translate(-50%,-28%) scale(1.22);opacity:0.1}}
+  .pin.tour::before{content:"360°";position:absolute;left:50%;top:-20px;transform:translateX(-50%);
+    font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:#fffaf0;background:#22201c;
+    padding:2px 6px;border-radius:4px;border:1px solid var(--ink);font-weight:600}
+  /* vendor's own house */
+  body[data-role="vendor"] .pin[data-mine="1"] .head{box-shadow:0 0 0 3px var(--gold), 0 6px 14px -6px rgba(20,18,14,0.4)}
+  body[data-role="vendor"] .pin[data-mine="1"]::before{content:"Mine";position:absolute;left:50%;top:-20px;transform:translateX(-50%);
+    font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--ink);background:var(--gold);
+    padding:2px 6px;border-radius:4px;font-weight:600;border:1px solid var(--ink);white-space:nowrap}
+  body[data-role="vendor"] .pin[data-mine="1"].tour::before{content:"Mine · 360°"}
+  body[data-role="vendor"] .pin[data-mine="1"].tour{margin-top:0}
+  body[data-role="vendor"] .pin[data-mine="1"].tour::before{top:-22px}
+
+  /* selected pin pulse */
+  .pin.sel .head{transform:rotate(-45deg) scale(1.1)}
+
+  /* POPUP base */
+  .popup{position:absolute;z-index:12;background:var(--paper);border-radius:14px;border:1px solid var(--rule);
+    box-shadow:0 22px 50px -18px rgba(20,18,14,0.4);width:300px;
+    transform:translate(-50%,-100%);margin-top:-26px;
+    opacity:0;pointer-events:none;transition:opacity .22s ease, transform .22s var(--ease);overflow:hidden}
+  .popup.show{opacity:1;pointer-events:auto;transform:translate(-50%,-104%)}
+  .popup::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%) rotate(45deg);
+    width:14px;height:14px;background:var(--paper);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);z-index:0}
+  /* flipped below pin */
+  .popup.flip{margin-top:14px;transform:translate(-50%, 0)}
+  .popup.flip.show{transform:translate(-50%, 4px)}
+  .popup.flip::after{bottom:auto;top:-7px;border-right:0;border-bottom:0;border-left:1px solid var(--rule);border-top:1px solid var(--rule)}
+  .popup .close{position:absolute;top:8px;right:8px;width:24px;height:24px;border:0;background:rgba(255,255,255,0.7);color:var(--ink-2);font-size:14px;cursor:pointer;border-radius:50%;z-index:5;backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center}
+  .popup .close:hover{background:#fff;color:var(--ink)}
+
+  /* ===================== VISITOR / PUBLIC POPUP — Variant A (Editorial) ===================== */
+  .pop-visitor-a .hero{position:relative;aspect-ratio:5/3;background:linear-gradient(135deg,#8b6433,#3a2614);overflow:hidden}
+  .pop-visitor-a .hero.food{background:#a35652 url('https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=600&q=70') center/cover}
+  .pop-visitor-a .hero.toy{background:#caa14b url('https://images.unsplash.com/photo-1558877385-8a93b4f8e6f3?auto=format&fit=crop&w=600&q=70') center/cover}
+  .pop-visitor-a .hero.craft{background:#1f4f44 url('https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&fit=crop&w=600&q=70') center/cover}
+  .pop-visitor-a .hero.workshop{background:#7a3e8f url('https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=600&q=70') center/cover}
+  .pop-visitor-a .hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,0.5))}
+  .pop-visitor-a .hero .tour-tag{position:absolute;left:10px;top:10px;background:#22201c;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;padding:4px 8px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .pop-visitor-a .hero .tour-tag .dot{width:5px;height:5px;border-radius:50%;background:var(--gold)}
+  .pop-visitor-a .hero .cat-tag{position:absolute;right:10px;top:10px;background:rgba(255,250,240,0.94);color:var(--ink);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;padding:3px 8px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .pop-visitor-a .hero .cat-tag .swatch{width:7px;height:7px;border-radius:2px}
+  .pop-visitor-a .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+  .pop-visitor-a .vendor-row{display:flex;align-items:center;gap:9px}
+  .pop-visitor-a .vendor-row .av{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;color:var(--accent);font-size:14px;flex:0 0 auto}
+  .pop-visitor-a .vendor-row .meta{display:flex;flex-direction:column;line-height:1.15;flex:1;min-width:0}
+  .pop-visitor-a .vendor-row .meta b{font-family:var(--display);font-size:17px;font-weight:500;letter-spacing:-0.01em}
+  .pop-visitor-a .vendor-row .meta span{font-family:var(--mono);font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--soft);margin-top:1px}
+  .pop-visitor-a .pull-quote{font-family:var(--display);font-size:16px;font-style:italic;color:var(--ink-2);font-weight:400;margin:0;line-height:1.35;letter-spacing:-0.01em;font-variation-settings:'opsz' 144}
+  .pop-visitor-a .signature{display:flex;flex-wrap:wrap;gap:6px}
+  .pop-visitor-a .signature .tag{font-size:11px;color:var(--ink-2);background:#fff;border:1px solid var(--rule);border-radius:999px;padding:3px 9px;display:inline-flex;align-items:center;gap:4px}
+  .pop-visitor-a .signature .tag::before{content:"·";color:var(--accent)}
+  .pop-visitor-a .ctas{display:grid;grid-template-columns:1fr 36px;gap:6px;margin-top:4px}
+
+  /* ===================== VISITOR / PUBLIC POPUP — Variant B (Quick Discovery) ===================== */
+  .pop-visitor-b{width:296px}
+  .pop-visitor-b .strip{height:6px;background:var(--accent)}
+  .pop-visitor-b .strip[data-cat="food"]{background:var(--cat-food)}
+  .pop-visitor-b .strip[data-cat="toy"]{background:var(--cat-toy)}
+  .pop-visitor-b .strip[data-cat="craft"]{background:var(--cat-craft)}
+  .pop-visitor-b .strip[data-cat="workshop"]{background:var(--cat-workshop)}
+  .pop-visitor-b .top{padding:14px 16px 10px;display:flex;align-items:center;gap:11px;background:linear-gradient(180deg,rgba(255,255,255,0.4),transparent)}
+  .pop-visitor-b .top .av{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;color:var(--accent);font-size:18px;flex:0 0 auto;position:relative;overflow:hidden}
+  .pop-visitor-b .top .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .pop-visitor-b .top .av .cat-dot{position:absolute;right:-3px;bottom:-3px;width:16px;height:16px;border-radius:50%;border:2px solid #fff;z-index:1}
+  .pop-visitor-b .top .meta{flex:1;min-width:0}
+  .pop-visitor-b .top h4{font-family:var(--display);font-size:19px;margin:0 0 2px;font-weight:500;letter-spacing:-0.01em;line-height:1.1}
+  .pop-visitor-b .top .sub{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--soft)}
+  .pop-visitor-b .top .sub b{color:var(--ink-2);font-weight:500}
+  .pop-visitor-b .desc{padding:0 16px 8px;font-size:13px;color:var(--ink-2);line-height:1.45}
+  .pop-visitor-b .pillrow{padding:0 16px 10px;display:flex;flex-wrap:wrap;gap:5px}
+  .pop-visitor-b .pillrow .pill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--rule);border-radius:999px;padding:3px 9px;font-size:11px;background:#fff;color:var(--ink-2);font-weight:500}
+  .pop-visitor-b .pillrow .pill.hours{background:#e3eee5;border-color:#bcd6c0;color:var(--accent-2)}
+  .pop-visitor-b .pillrow .pill.hours::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent-2)}
+  .pop-visitor-b .pillrow .pill.tour{background:#22201c;color:var(--gold);border-color:#22201c;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+  .pop-visitor-b .pillrow .pill.tour::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
+  .pop-visitor-b .thumbs{padding:0 16px 10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+  .pop-visitor-b .thumbs .th{aspect-ratio:1/1;border-radius:8px;border:1px solid var(--rule);background-size:cover;background-position:center;position:relative;overflow:hidden}
+  .pop-visitor-b .thumbs .th .more{position:absolute;inset:0;background:rgba(20,18,14,0.55);color:#fffaf0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:1px}
+  .pop-visitor-b .ctas{padding:0 14px 14px;display:grid;grid-template-columns:1fr 36px 36px;gap:6px}
+  .pop-visitor-b .ctas.no-tour{grid-template-columns:1fr 36px}
+  .pop-visitor-b .geo-warn{margin:0 14px 10px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#7a5413;background:#faecc6;border:1px solid #e6c97a;border-radius:8px;padding:6px 9px;display:flex;align-items:center;gap:6px}
+  .pop-visitor-b .geo-warn svg{width:12px;height:12px;flex:0 0 auto}
+
+  /* ===================== FRIEND MARKER + POPUP ===================== */
+  .friend-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:6;transition:transform .22s var(--ease)}
+  .friend-pin .avatar{width:38px;height:38px;border-radius:50%;border:2.5px solid #fff;
+    box-shadow:0 0 0 1.5px var(--ink), 0 8px 16px -8px rgba(20,18,14,0.5);
+    display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;font-size:15px;color:#fff;
+    animation:friendPulse 2.4s ease-in-out infinite}
+  .friend-pin .avatar::after{content:"";position:absolute;right:0;bottom:0;width:11px;height:11px;border-radius:50%;background:var(--accent-2);border:2px solid #fff}
+  .friend-pin .avatar.stale::after{background:var(--gold)}
+  @keyframes friendPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .pop-friend{width:280px}
+  .pop-friend .top{padding:14px 16px 10px;display:flex;align-items:center;gap:11px;background:#fdfaf3;border-bottom:1px solid var(--rule)}
+  .pop-friend .top .avatar{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;color:#fff;font-size:17px;flex:0 0 auto}
+  .pop-friend .top .meta b{font-family:var(--display);font-size:17px;font-weight:500;letter-spacing:-0.01em;display:block}
+  .pop-friend .top .meta span{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--soft);display:block;margin-top:2px}
+  .pop-friend .dist{padding:10px 16px;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px}
+  .pop-friend .dist .num{font-family:var(--display);font-size:22px;font-weight:500;letter-spacing:-0.01em;line-height:1}
+  .pop-friend .dist .num small{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--soft);font-weight:500;text-transform:uppercase}
+  .pop-friend .dist .stale{margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:1.2px;color:#7a5413;background:#faecc6;border:1px solid #e6c97a;border-radius:5px;padding:2px 7px;text-transform:uppercase}
+  .pop-friend .ctas{padding:10px 14px 14px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+
+  /* ===================== ROUTE INSTRUCTIONS PANEL ===================== */
+  .route-panel{position:absolute;top:60px;right:14px;width:280px;background:var(--paper);border:1px solid var(--rule);border-radius:14px;box-shadow:0 22px 50px -18px rgba(20,18,14,0.35);z-index:11;overflow:hidden;font-size:13px;
+    transform:translateY(-6px);opacity:0;pointer-events:none;transition:transform .22s var(--ease), opacity .22s ease}
+  .route-panel.show{transform:none;opacity:1;pointer-events:auto}
+  .route-panel .rp-top{padding:11px 14px;background:var(--ink);color:var(--paper);display:flex;align-items:center;gap:8px}
+  .route-panel .rp-top svg{width:16px;height:16px;flex:0 0 auto}
+  .route-panel .rp-top b{font-family:var(--display);font-size:14px;font-weight:500;letter-spacing:-0.01em;flex:1;line-height:1.2}
+  .route-panel .rp-top button{margin-left:auto;background:transparent;border:0;color:var(--paper);font-size:14px;cursor:pointer;opacity:0.7;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .route-panel .rp-top button:hover{opacity:1;background:rgba(255,250,240,0.1)}
+  .route-panel .rp-totals{padding:10px 14px;display:flex;gap:14px;border-bottom:1px solid var(--rule);background:#fdfaf3}
+  .route-panel .rp-totals .t b{font-family:var(--display);font-size:18px;font-weight:500;letter-spacing:-0.01em;line-height:1;display:block}
+  .route-panel .rp-totals .t span{font-family:var(--mono);font-size:9px;letter-spacing:1.2px;color:var(--soft);text-transform:uppercase;margin-top:2px;display:block}
+  .route-panel .rp-steps{padding:6px 0;max-height:230px;overflow-y:auto}
+  .route-panel .rp-step{display:grid;grid-template-columns:32px 1fr auto;gap:8px;padding:8px 14px;align-items:center;font-size:12px;color:var(--ink-2);line-height:1.35}
+  .route-panel .rp-step + .rp-step{border-top:1px solid var(--rule)}
+  .route-panel .rp-step .arrow{width:28px;height:28px;border-radius:50%;background:#f4ede0;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;color:var(--ink-2)}
+  .route-panel .rp-step .arrow svg{width:13px;height:13px}
+  .route-panel .rp-step .arrow.you{background:var(--accent);border-color:var(--accent);color:#fff}
+  .route-panel .rp-step .arrow.dst{background:var(--accent-2);border-color:var(--accent-2);color:#fff}
+  .route-panel .rp-step .meters{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--soft)}
+  .route-panel .rp-state{padding:14px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-2)}
+  .route-panel .rp-state .spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--rule);border-top-color:var(--ink);animation:rpspin 0.8s linear infinite}
+  @keyframes rpspin{to{transform:rotate(360deg)}}
+
+  /* ===================== ROUTE LINE on map ===================== */
+  .route-line{position:absolute;inset:0;pointer-events:none;z-index:4}
+
+  /* ===================== GEOLOCATE CONTROL ===================== */
+  .geo-control{position:absolute;top:60px;right:14px;display:flex;flex-direction:column;gap:6px;z-index:8;transition:right .22s var(--ease)}
+  body[data-route="1"] .geo-control{right:308px}
+  .geo-btn{width:38px;height:38px;border-radius:10px;background:var(--paper);border:1px solid var(--rule);box-shadow:0 8px 18px -10px rgba(20,18,14,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-2);position:relative}
+  .geo-btn svg{width:16px;height:16px}
+  .geo-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .geo-btn.loading::after{content:"";position:absolute;inset:-3px;border:2px solid var(--accent);border-top-color:transparent;border-radius:12px;animation:rpspin 0.8s linear infinite}
+  .geo-btn.denied{background:var(--accent-soft);color:var(--accent);border-color:#e2b8b2}
+  .geo-toast{background:var(--paper);border:1px solid var(--rule);border-radius:10px;box-shadow:0 8px 18px -10px rgba(20,18,14,0.2);padding:8px 11px;font-size:11px;color:var(--ink-2);max-width:220px;line-height:1.4;display:flex;align-items:center;gap:8px}
+  .geo-toast.warn{background:#faecc6;border-color:#e6c97a;color:#7a5413}
+  .geo-toast svg{width:14px;height:14px;flex:0 0 auto}
+
+  /* user location dot on map */
+  .you-dot{position:absolute;transform:translate(-50%,-50%);z-index:5;pointer-events:none}
+  .you-dot::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--accent);opacity:0.18;animation:youPulse 2s ease-in-out infinite}
+  .you-dot .core{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2.5px solid #fff;box-shadow:0 0 0 1.5px var(--ink), 0 4px 8px rgba(20,18,14,0.3);position:relative;z-index:1}
+  @keyframes youPulse{0%,100%{transform:translate(-50%,-50%) scale(0.7);opacity:0.5}50%{transform:translate(-50%,-50%) scale(1);opacity:0.05}}
+
+  /* toast */
+  .toast{position:absolute;top:14px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:7px 12px;border-radius:8px;opacity:0;pointer-events:none;z-index:30;transition:opacity .22s, transform .22s var(--ease)}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+  /* friends counter pill */
+  .friends-tab{position:absolute;top:60px;left:14px;background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:7px 11px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 18px -10px rgba(20,18,14,0.2);z-index:6;cursor:pointer;font-size:12px;font-weight:500}
+  .friends-tab .ic{width:22px;height:22px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+  .friends-tab.on .ic{background:var(--accent)}
+  .friends-tab .count{background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:4px}
+
+  /* ===================== VENDOR POPUP ===================== */
+  .pop-vendor{width:300px}
+  .pop-vendor .top{padding:12px 14px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--rule);background:#fdfaf3}
+  .pop-vendor .top .num{font-family:var(--display);font-size:24px;font-weight:500;letter-spacing:-0.02em;line-height:1;color:var(--ink);display:flex;flex-direction:column}
+  .pop-vendor .top .num small{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase;font-weight:500;margin-top:2px}
+  .pop-vendor .top .ttl{flex:1;min-width:0}
+  .pop-vendor .top h4{font-family:var(--display);font-size:17px;margin:0;font-weight:500;letter-spacing:-0.01em}
+  .pop-vendor .top .sub{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--soft);margin-top:2px}
+  .pop-vendor .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .pop-vendor .stat-grid .s{padding:10px 14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  .pop-vendor .stat-grid .s:nth-child(2){border-right:0}
+  .pop-vendor .stat-grid .s b{font-family:var(--display);font-size:18px;font-weight:500;letter-spacing:-0.01em;display:block;line-height:1.1}
+  .pop-vendor .stat-grid .s span{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);margin-top:2px;display:block}
+  .pop-vendor .status-row{padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--rule)}
+  .pop-vendor .status-row .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:3px 9px;font-size:11px;background:#fff;color:var(--ink-2);font-weight:500}
+  .pop-vendor .status-row .pill.taken{background:var(--accent-soft);border-color:#e2b8b2;color:var(--accent)}
+  .pop-vendor .status-row .pill.taken::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .pop-vendor .status-row .pill.open{background:#e3eee5;border-color:#bcd6c0;color:var(--accent-2)}
+  .pop-vendor .status-row .pill.open::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent-2)}
+  .pop-vendor .status-row .pill.tour{background:#22201c;color:var(--gold);border-color:#22201c;font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase}
+  .pop-vendor .status-row .pill.tour::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
+  .pop-vendor .status-row .pill.mine{background:#fff4d6;border-color:#e6c97a;color:#7a5413;font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase}
+  .pop-vendor .desc{padding:10px 14px;font-size:12px;color:var(--ink-2);line-height:1.4;border-bottom:1px solid var(--rule)}
+  .pop-vendor .ctas{padding:10px 14px 14px;display:grid;grid-template-columns:1fr 1fr 36px;gap:6px}
+  .pop-vendor .ctas.mine{grid-template-columns:1fr 1fr 36px}
+  .pop-vendor .ctas .full{grid-column:1/-1}
+
+  /* ===================== ADMIN POPUP ===================== */
+  .pop-admin{width:340px}
+  .pop-admin .top{padding:11px 14px 10px;display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper)}
+  .pop-admin .top .num{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;font-weight:600}
+  .pop-admin .top h4{font-family:var(--display);font-size:17px;margin:0;font-weight:500;letter-spacing:-0.01em;flex:1}
+  .pop-admin .top .status-tag{font-family:var(--mono);font-size:9px;letter-spacing:1.2px;text-transform:uppercase;padding:3px 7px;border-radius:5px;font-weight:600}
+  .pop-admin .top .status-tag.taken{background:var(--accent);color:#fff}
+  .pop-admin .top .status-tag.open{background:var(--accent-2);color:#fff}
+  .pop-admin .top .status-tag.pending{background:var(--gold);color:var(--ink)}
+  .pop-admin .top .status-tag.draft{background:#9b9385;color:var(--ink)}
+  .pop-admin .row-data{display:grid;grid-template-columns:auto 1fr auto;gap:8px 10px;padding:11px 14px;border-bottom:1px solid var(--rule);font-size:12px;align-items:center}
+  .pop-admin .row-data dt{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);margin:0;grid-column:1}
+  .pop-admin .row-data dd{margin:0;font-weight:500;color:var(--ink-2);grid-column:2/4}
+  .pop-admin .row-data .edit{grid-column:3;color:var(--accent);font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;background:transparent;border:0;padding:0;justify-self:end}
+  .pop-admin .tenant{padding:10px 14px;display:flex;align-items:center;gap:9px;background:#fdfaf3;border-bottom:1px solid var(--rule)}
+  .pop-admin .tenant .av{width:30px;height:30px;border-radius:50%;background:var(--accent-soft);border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;color:var(--accent);font-size:12px}
+  .pop-admin .tenant .meta{flex:1;min-width:0;line-height:1.15}
+  .pop-admin .tenant .meta b{font-size:13px;font-weight:600}
+  .pop-admin .tenant .meta span{font-family:var(--mono);font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--soft);display:block;margin-top:1px}
+  .pop-admin .alerts{padding:10px 14px;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:6px}
+  .pop-admin .alert{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:7px 10px;font-size:12px}
+  .pop-admin .alert.warn{background:#faecc6;border-color:#e6c97a;color:#7a5413}
+  .pop-admin .alert .badge{margin-left:auto;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:4px;font-weight:600}
+  .pop-admin .toggle-row{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--rule);font-size:12px}
+  .pop-admin .toggle-row label{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2)}
+  .pop-admin .swit{width:36px;height:20px;background:var(--ink);border-radius:999px;position:relative;cursor:pointer}
+  .pop-admin .swit::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .15s var(--ease)}
+  .pop-admin .swit.off{background:#d9d1bd}
+  .pop-admin .swit.off::after{left:18px;left:2px}
+  .pop-admin .swit.on::after{left:18px}
+  .pop-admin .ctas{padding:10px 14px 12px;display:grid;grid-template-columns:1fr 1fr 36px;gap:6px}
+  .pop-admin .ctas.full{grid-template-columns:1fr 1fr}
+
+  /* shared button */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:9px;padding:8px 12px;
+    font:inherit;font-weight:600;font-size:12px;border:1px solid var(--ink);background:#fff;color:var(--ink);
+    cursor:pointer;text-decoration:none;line-height:1;white-space:nowrap;width:100%}
+  .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.gold{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+  .btn.ghost{background:transparent;border-color:var(--rule);color:var(--ink-2)}
+  .btn.icon{padding:8px;width:36px;height:36px;justify-content:center}
+  .btn[disabled]{opacity:0.5;pointer-events:none}
+
+  /* map top bar */
+  .map-top{position:absolute;top:14px;left:14px;right:14px;display:flex;gap:10px;z-index:4}
+  .map-top .panel{background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:7px 11px;box-shadow:0 8px 18px -10px rgba(20,18,14,0.2);display:flex;align-items:center;gap:8px;flex:1;font-size:12px;color:var(--soft)}
+  .map-top .panel input{border:0;background:transparent;outline:none;flex:1;font:inherit;color:var(--ink);font-size:12px}
+
+  /* legend */
+  .legend{position:absolute;bottom:14px;left:14px;z-index:4;background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:8px 12px;box-shadow:0 8px 18px -10px rgba(20,18,14,0.2);display:flex;gap:14px;align-items:center;font-size:11px}
+  .legend .item{display:inline-flex;align-items:center;gap:6px}
+  .legend .item .sw{width:10px;height:10px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:1.5px solid var(--ink)}
+  .legend .lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);padding-right:6px}
+
+  /* footnote rule cards */
+  .rules{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .rules .card{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:16px 18px}
+  .rules .card .role{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-weight:600}
+  .rules .card .role .pip{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .rules .card.vendor .role{color:var(--accent-2)}
+  .rules .card.vendor .role .pip{background:var(--accent-2)}
+  .rules .card.admin .role{color:var(--ink)}
+  .rules .card.admin .role .pip{background:var(--gold)}
+  .rules .card h4{font-family:var(--display);font-size:20px;margin:0 0 8px;font-weight:500;letter-spacing:-0.01em}
+  .rules .card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+  .rules .card li{font-size:13px;color:var(--ink-2);display:grid;grid-template-columns:18px 1fr;gap:8px;line-height:1.4}
+  .rules .card li svg{width:16px;height:16px;margin-top:2px;flex:0 0 auto}
+  .rules .card li.no svg{color:var(--accent)}
+  .rules .card li.yes svg{color:var(--accent-2)}
+
+  /* small chrome */
+  .pin-indicator{position:absolute;top:6px;left:6px;z-index:3;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft)}
+
+  /* hide elements per role */
+  body:not([data-role="public"]) .public-only,
+  body:not([data-role="vendor"]) .vendor-only,
+  body:not([data-role="admin"]) .admin-only{display:none !important}
+  /* friend layer only for authenticated states (vendor, admin, or public+user) */
+  body[data-role="public"][data-auth="anon"] .auth-only{display:none !important}
+
+  /* tooltip */
+  .tip{position:absolute;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border-radius:5px;pointer-events:none;z-index:30;white-space:nowrap;opacity:0;transition:opacity .12s}
+  .tip.show{opacity:1}
+</style>
+</head>
+<body data-role="public" data-auth="anon" data-screen-label="01 Quick discovery map">
+
+<div class="shell">
+
+  <header class="head">
+    <div>
+      <div class="eyebrow" style="margin-bottom:8px">FestivKids · Hi-Fi · Round 8 · chosen direction</div>
+      <h1>The interactive map, in full — Quick discovery edition</h1>
+      <p style="max-width:760px;font-size:14px;color:var(--soft);margin:8px 0 0;line-height:1.5">Visitor popup locked to <b style="color:var(--ink-2)">Variant B · Quick discovery</b>. Vendor and Admin views show their own operational popups. Friends layer, route instructions, and geolocate states are wired in.</p>
+    </div>
+    <div class="meta">
+      Visitor / Vendor / Admin<br/>
+      Friends · Route panel · Geolocate
+    </div>
+  </header>
+
+  <!-- role + variant rail -->
+  <div class="role-rail">
+    <span class="lbl">Role</span>
+    <div class="seg" id="roleSeg">
+      <button data-role="public" class="on">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+        Visitor
+      </button>
+      <button data-role="vendor">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18l-2 11H5z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+        Vendor
+      </button>
+      <button data-role="admin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 4v5c0 5-3 8-9 9-6-1-9-4-9-9V7z"/></svg>
+        Admin
+      </button>
+    </div>
+
+    <span class="lbl public-only" style="margin-left:14px">Auth</span>
+    <div class="seg public-only" id="authSeg" style="margin-right:6px">
+      <button data-auth="anon" class="on">Anonymous</button>
+      <button data-auth="user">Logged in · user</button>
+    </div>
+
+    <span class="lbl" style="margin-left:6px">Map states</span>
+    <div class="seg" id="stateSeg">
+      <button data-state="friends" class="">Friends layer</button>
+      <button data-state="route" class="">Route panel</button>
+      <button data-state="geo" class="">Locate · loading</button>
+    </div>
+
+    <span class="lbl" style="margin-left:auto">Lang</span>
+    <div class="lang-mini" id="langMini">
+      <span data-l="en" class="on">EN</span>
+      <span data-l="az">AZ</span>
+    </div>
+  </div>
+
+  <!-- THE APP -->
+  <div class="app" id="app">
+    <div class="nav">
+      <div class="brand">FestivKids</div>
+      <div class="links">
+        <a href="#" data-i18n="nav.home">Home</a>
+        <a href="#" class="active" data-i18n="nav.map">Map</a>
+        <a href="#" data-i18n="nav.about">About</a>
+        <a href="#" class="vendor-only" data-i18n="nav.applications">My applications</a>
+        <a href="#" class="admin-only" data-i18n="nav.admin">Admin</a>
+      </div>
+      <div class="role-pill">
+        <span class="who" id="roleLabel">Visitor</span>
+        <span style="color:var(--soft)">·</span>
+        <span id="userName">Aysu</span>
+        <div class="avatar" id="userAv">A</div>
+      </div>
+    </div>
+
+    <div class="map-surface" id="mapSurface">
+      <aside class="sidebar">
+        <div class="hdr">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-6-3V5l6 3m0 12 6-3m-6 3V8m6 9 6 3V8l-6-3m0 15V5m0 0L9 8"/></svg>
+          <b data-i18n="map.title">Fair map</b>
+        </div>
+        <div class="role-banner public public-only" data-i18n="banner.public">Public view · discovery first</div>
+        <div class="role-banner vendor vendor-only" data-i18n="banner.vendor">Vendor view · browse &amp; apply</div>
+        <div class="role-banner admin admin-only" data-i18n="banner.admin">Admin view · full data &amp; controls</div>
+
+        <div class="fair-pick">
+          <select>
+            <option data-i18n="fair.spring">Spring Festival 2026</option>
+          </select>
+        </div>
+
+        <div class="search"><input placeholder="Search…" data-i18n-ph="search.placeholder" /></div>
+
+        <!-- public chips: categories -->
+        <div class="chips public-only" id="chipsPublic">
+          <span class="chip on" data-i18n="chip.all">All</span>
+          <span class="chip"><span class="swatch" style="background:var(--cat-food)"></span><span data-i18n="chip.food">Food</span></span>
+          <span class="chip"><span class="swatch" style="background:var(--cat-toy)"></span><span data-i18n="chip.toys">Toys</span></span>
+          <span class="chip"><span class="swatch" style="background:var(--cat-craft)"></span><span data-i18n="chip.crafts">Crafts</span></span>
+          <span class="chip"><span class="swatch" style="background:var(--cat-workshop)"></span><span data-i18n="chip.workshops">Workshops</span></span>
+          <span class="chip tour"><span data-i18n="chip.tours">360° tours · 4</span></span>
+        </div>
+
+        <!-- vendor chips: availability -->
+        <div class="chips vendor-only">
+          <span class="chip on" data-i18n="chip.all">All</span>
+          <span class="chip"><span class="swatch" style="background:var(--accent-2)"></span><span data-i18n="chip.available">Available</span></span>
+          <span class="chip"><span class="swatch" style="background:var(--accent)"></span><span data-i18n="chip.taken">Taken</span></span>
+          <span class="chip tour"><span data-i18n="chip.tours">360° tours</span></span>
+          <span class="chip" data-i18n="chip.mine">My houses</span>
+        </div>
+
+        <!-- admin chips: status -->
+        <div class="chips admin-only">
+          <span class="chip on" data-i18n="chip.all">All states</span>
+          <span class="chip"><span class="swatch" style="background:var(--accent-2)"></span><span data-i18n="chip.available">Open</span></span>
+          <span class="chip"><span class="swatch" style="background:var(--accent)"></span><span data-i18n="chip.taken">Taken</span></span>
+          <span class="chip"><span class="swatch" style="background:var(--gold)"></span><span data-i18n="chip.pending">Pending</span></span>
+          <span class="chip"><span class="swatch" style="background:#9b9385"></span><span data-i18n="chip.draft">Draft</span></span>
+          <span class="chip" data-i18n="chip.flagged">Flagged · 2</span>
+        </div>
+
+        <div class="results"><span id="resCount">14</span> <span data-i18n="map.results">results</span></div>
+        <div class="list" id="houseList">
+          <!-- rendered by JS -->
+        </div>
+      </aside>
+
+      <div class="map-canvas" id="mapCanvas">
+        <svg class="streets" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+          <g stroke="#161513" stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round">
+            <path d="M 0 220 C 200 200, 400 260, 1000 240"/>
+            <path d="M 0 420 C 280 400, 520 460, 1000 430"/>
+            <path d="M 200 0 C 220 200, 180 400, 240 700"/>
+            <path d="M 600 0 C 580 200, 640 380, 600 700"/>
+            <path d="M 820 0 C 800 220, 860 460, 820 700"/>
+          </g>
+          <path d="M 320 280 L 720 280 L 720 480 L 320 480 Z" fill="#dde8d2" stroke="#1f4f44" stroke-opacity="0.4" stroke-width="2"/>
+          <text x="520" y="390" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1f4f44" letter-spacing="2" opacity="0.5">YASAMAL PARK</text>
+        </svg>
+
+        <div class="map-top">
+          <div class="panel">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input placeholder="Search address or place…" data-i18n-ph="map.searchPlace" />
+          </div>
+        </div>
+
+        <!-- pins rendered by JS -->
+        <div id="pinLayer" style="position:absolute;inset:0"></div>
+
+        <!-- popup mounts here -->
+        <div id="popupMount" style="position:absolute;inset:0;pointer-events:none"></div>
+
+        <!-- LEGEND (varies per role) -->
+        <div class="legend">
+          <span class="lbl" id="legendLbl">By category</span>
+          <div id="legendItems" style="display:flex;gap:14px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISIBILITY RULES CARDS -->
+  <div class="rules">
+    <div class="card">
+      <div class="role"><span class="pip"></span><span data-i18n="rules.visitor">Visitor / Anonymous</span></div>
+      <h4 data-i18n="rules.visitor.title">Discovery + business identity + 360°</h4>
+      <ul>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Business name, category, vendor identity</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Hero photo &amp; visitor story / pull-quote</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Open hours · location label (Hall B · #3)</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>360° Bax / Route here · Share</li>
+        <li class="no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6 18 18M18 6 6 18"/></svg>Area (m²) · Price (AZN)</li>
+        <li class="no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6 18 18M18 6 6 18"/></svg>Rented/Tutulub status · vacancy data</li>
+        <li class="no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6 18 18M18 6 6 18"/></svg>Marker by availability — use category instead</li>
+      </ul>
+    </div>
+
+    <div class="card vendor">
+      <div class="role"><span class="pip"></span><span data-i18n="rules.vendor">Vendor</span></div>
+      <h4 data-i18n="rules.vendor.title">All public + commercial data</h4>
+      <ul>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Everything visitors see</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Area · Price · Open/Taken status</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Apply / Reserve CTA on available houses</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>"Mine" gold ring on vendor's own house</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Markers colored by availability</li>
+        <li class="no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6 18 18M18 6 6 18"/></svg>Other vendors' tenant identity (admin-only)</li>
+      </ul>
+    </div>
+
+    <div class="card admin">
+      <div class="role"><span class="pip"></span><span data-i18n="rules.admin">Admin / Organizer</span></div>
+      <h4 data-i18n="rules.admin.title">Everything · plus governance</h4>
+      <ul>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>All vendor fields + tenant identity</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Pending applications count · alerts</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Publish toggle · 360° calibration link</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Edit any field inline · move pin</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Draft / pending pins visible on map</li>
+        <li class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Flag tools · internal notes</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tip" id="tip"></div>
+</div>
+
+<script>
+/* ============================================================
+   FestivKids · Role-aware map popups
+   ============================================================ */
+const I18N = {
+  en: {
+    "nav.home":"Home","nav.map":"Map","nav.about":"About",
+    "nav.applications":"My applications","nav.admin":"Admin",
+    "map.title":"Fair map","map.results":"results","map.searchPlace":"Search address or place…","search.placeholder":"Search…",
+    "fair.spring":"Spring Festival 2026",
+    "banner.public":"Public view · discovery first",
+    "banner.vendor":"Vendor view · browse & apply",
+    "banner.admin":"Admin view · full data & controls",
+    "chip.all":"All","chip.food":"Food","chip.toys":"Toys","chip.crafts":"Crafts","chip.workshops":"Workshops",
+    "chip.tours":"360° tours · 4","chip.available":"Available","chip.taken":"Taken","chip.pending":"Pending",
+    "chip.draft":"Draft","chip.mine":"My houses","chip.flagged":"Flagged · 2",
+    "rules.visitor":"Visitor / Anonymous","rules.visitor.title":"Discovery + business identity + 360°",
+    "rules.vendor":"Vendor","rules.vendor.title":"All public + commercial data",
+    "rules.admin":"Admin / Organizer","rules.admin.title":"Everything · plus governance",
+    "pop.view360":"360° View","pop.route":"Route here","pop.share":"Share",
+    "pop.openHours":"Open · 10–22","pop.openToday":"Open today",
+    "pop.apply":"Apply to rent","pop.reserve":"Reserve","pop.viewApp":"My application",
+    "admin.edit":"Edit","admin.publish":"Published","admin.unpublish":"Unpublish","admin.calibrate":"Calibrate 360°","admin.applications":"3 applications","admin.flag":"Flag",
+    "label.area":"Area","label.price":"Price","label.tenant":"Tenant","label.code":"Code","label.cat":"Category","label.applications":"Applications","label.lastEdit":"Last edit",
+    "v.story.foxie":"\"Cinnamon stars and cocoa thick enough to stand a spoon in. Our oven is right by the window — wave hello.\"",
+    "v.story.luna":"\"Hand-turned wooden trains. Most of our toys outlast the kids who buy them.\"",
+    "v.story.yarn":"\"Workshops Saturdays at 11. Yarn smells better when you knit your own.\"",
+    "v.story.snowy":"\"Sled-building hour, every afternoon. Bring mittens.\"",
+    "v.tag.cinn":"Cinnamon stars","v.tag.cocoa":"Hot cocoa","v.tag.bench":"Train-side bench",
+    "v.tag.wood":"Wooden trains","v.tag.gifts":"Gift sets",
+    "v.tag.yarn":"Yarn workshops","v.tag.knitting":"Hand-knit gifts",
+    "v.tag.sled":"Sled-building","v.tag.snow":"Snow corner"
+  },
+  az: {
+    "nav.home":"Ana səhifə","nav.map":"Xəritə","nav.about":"Haqqımızda",
+    "nav.applications":"Müraciətlərim","nav.admin":"İdarə",
+    "map.title":"Yarmarka xəritəsi","map.results":"nəticə","map.searchPlace":"Ünvan və ya yer axtar…","search.placeholder":"Axtar…",
+    "fair.spring":"Spring Festival 2026",
+    "banner.public":"Ümumi görünüş · əvvəlcə kəşf",
+    "banner.vendor":"Satıcı görünüşü · gözdən keçir və müraciət et",
+    "banner.admin":"İdarəçi görünüşü · tam məlumat və idarəetmə",
+    "chip.all":"Hamısı","chip.food":"Yemək","chip.toys":"Oyuncaqlar","chip.crafts":"Sənətkarlıq","chip.workshops":"Emalatxanalar",
+    "chip.tours":"360° turlar · 4","chip.available":"Boş","chip.taken":"Tutulub","chip.pending":"Gözləyir",
+    "chip.draft":"Qaralama","chip.mine":"Mənim evlərim","chip.flagged":"Bayraqlı · 2",
+    "rules.visitor":"Ziyarətçi / Anonim","rules.visitor.title":"Kəşf + brend kimliyi + 360°",
+    "rules.vendor":"Satıcı","rules.vendor.title":"İctimai + kommersiya datası",
+    "rules.admin":"İdarəçi / Təşkilatçı","rules.admin.title":"Hər şey · plus idarəetmə",
+    "pop.view360":"360° Bax","pop.route":"Yol göstər","pop.share":"Paylaş",
+    "pop.openHours":"Açıq · 10–22","pop.openToday":"Bu gün açıq",
+    "pop.apply":"Müraciət et","pop.reserve":"Bron et","pop.viewApp":"Müraciətim",
+    "admin.edit":"Redaktə","admin.publish":"Yayımlanıb","admin.unpublish":"Yayımdan götür","admin.calibrate":"360° tənzimlə","admin.applications":"3 müraciət","admin.flag":"Bayraqla",
+    "label.area":"Sahə","label.price":"Qiymət","label.tenant":"Kirayəçi","label.code":"Kod","label.cat":"Kateqoriya","label.applications":"Müraciətlər","label.lastEdit":"Son redaktə",
+    "v.story.foxie":"\"Darçınlı ulduzlar və qaşığı dik tutan kakao. Sobamız pəncərə yanındadır — salam deyin.\"",
+    "v.story.luna":"\"Əllə yonulmuş taxta qatarlar. Oyuncaqlarımız çox vaxt onları alan uşaqlardan uzun yaşayır.\"",
+    "v.story.yarn":"\"Şənbələr saat 11-də emalatxana. İp özün toxuyanda daha gözəl iyi gəlir.\"",
+    "v.story.snowy":"\"Hər günortadan sonra xizək düzəltmə saatı. Əlcəkləri unutmayın.\"",
+    "v.tag.cinn":"Darçınlı ulduzlar","v.tag.cocoa":"İsti kakao","v.tag.bench":"Qatar yanında skamya",
+    "v.tag.wood":"Taxta qatarlar","v.tag.gifts":"Hədiyyə dəstləri",
+    "v.tag.yarn":"İp emalatxanaları","v.tag.knitting":"Əl ilə toxunmuş hədiyyələr",
+    "v.tag.sled":"Xizək düzəltmə","v.tag.snow":"Qar guşəsi"
+  }
+};
+let LANG = "en";
+const t = k => (I18N[LANG] && I18N[LANG][k]) || k;
+function applyI18n(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k = el.getAttribute("data-i18n");
+    if(I18N[LANG][k]!==undefined) el.textContent = I18N[LANG][k];
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{
+    const k = el.getAttribute("data-i18n-ph");
+    if(I18N[LANG][k]!==undefined) el.placeholder = I18N[LANG][k];
+  });
+  document.documentElement.lang = LANG;
+}
+
+/* ---------- HOUSE DATA (server-side; only what's allowed is rendered) ---------- */
+const HOUSES = [
+  { id:"H-102", code:"B-12", x:52, y:54, cat:"food", catLbl:"Food", name:"Foxie Café",
+    vendor:{ initial:"F", name:"Aytan & Murad Q.", since:"4 fairs" },
+    hallLabel:"House #3 · Hall B",
+    story:"v.story.foxie", tags:["v.tag.cinn","v.tag.cocoa","v.tag.bench"],
+    hours:"pop.openHours",
+    tour:true,
+    /* privileged */
+    area:"37.8 m²", price:"628.94 AZN", status:"taken", applications:0, mine:false, published:true,
+    tenant:{ initial:"A", name:"Aytan Q.", email:"aytan@foxie.az" }
+  },
+  { id:"H-101", code:"A-4", x:30, y:38, cat:"toy", catLbl:"Toys", name:"LunaToys",
+    vendor:{ initial:"L", name:"Leyla Hüseynli", since:"2 fairs" },
+    hallLabel:"House #1 · Hall A",
+    story:"v.story.luna", tags:["v.tag.wood","v.tag.gifts"],
+    hours:"pop.openToday", tour:true,
+    area:"45 m²", price:"940 AZN", status:"taken", applications:0, mine:true, published:true,
+    tenant:{ initial:"L", name:"Leyla H.", email:"leyla@lunatoys.az" }
+  },
+  { id:"H-103", code:"C-1", x:68, y:48, cat:"craft", catLbl:"Crafts", name:"Yarn Yard",
+    vendor:null,
+    hallLabel:"House #5 · Hall C",
+    story:"v.story.yarn", tags:["v.tag.yarn","v.tag.knitting"],
+    hours:"pop.openHours", tour:false,
+    area:"28 m²", price:"480 AZN", status:"open", applications:3, mine:false, published:true
+  },
+  { id:"H-104", code:"H-3", x:78, y:62, cat:"workshop", catLbl:"Workshops", name:"Snowy Mtn",
+    vendor:{ initial:"S", name:"Sevda M.", since:"new" },
+    hallLabel:"House #11 · Hall H",
+    story:"v.story.snowy", tags:["v.tag.sled","v.tag.snow"],
+    hours:"pop.openToday", tour:true,
+    area:"52 m²", price:"1120 AZN", status:"pending", applications:1, mine:false, published:false,
+    tenant:null
+  },
+  { id:"WC-1", code:"WC-1", x:38, y:62, cat:"fac", catLbl:"Restroom", name:"Restroom", tour:false, status:"open" },
+  { id:"CF-1", code:"CF-1", x:62, y:32, cat:"fac", catLbl:"Cafe", name:"Mini café", tour:false, status:"open" }
+];
+
+const CURRENT_USER = { vendor:"Leyla H.", initial:"L" }; // for vendor role demo
+
+/* ---------- RENDER PINS ---------- */
+const pinLayer = document.getElementById("pinLayer");
+function renderPins(){
+  pinLayer.innerHTML = "";
+  HOUSES.forEach(h=>{
+    const role = document.body.dataset.role;
+    // admin sees draft pins; vendor/public do not
+    if(!h.published && role !== "admin") return;
+
+    const pin = document.createElement("div");
+    pin.className = "pin" + (h.tour ? " tour" : "");
+    pin.dataset.id = h.id;
+    pin.dataset.cat = h.cat;
+    pin.dataset.status = h.status;
+    if(h.cat !== "fac" && h.mine && role === "vendor") pin.dataset.mine = "1";
+    pin.style.left = h.x + "%";
+    pin.style.top = h.y + "%";
+    const head = document.createElement("div");
+    head.className = "head";
+    head.innerHTML = h.cat === "fac"
+      ? (h.id.startsWith("WC") ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 9l4 6 4-6M12 15v6"/></svg>'
+                                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h12v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path d="M16 10h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v2m3-2v2m3-2v2"/></svg>')
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>';
+    pin.appendChild(head);
+    pin.addEventListener("click", e=>{
+      e.stopPropagation();
+      openPopup(h.id);
+    });
+    pinLayer.appendChild(pin);
+  });
+}
+
+/* ---------- RENDER LIST ---------- */
+const houseList = document.getElementById("houseList");
+function renderList(){
+  const role = document.body.dataset.role;
+  const visible = HOUSES.filter(h => h.cat !== "fac" && (h.published || role === "admin"));
+
+  document.getElementById("resCount").textContent = visible.length;
+  houseList.innerHTML = "";
+
+  // group header
+  const hd = document.createElement("div");
+  hd.className = "group-hd";
+  hd.innerHTML = `<span>${role === "admin" ? "All houses" : "Vendor houses"}</span><span>${visible.length}</span>`;
+  houseList.appendChild(hd);
+
+  visible.forEach(h=>{
+    const li = document.createElement("div");
+    li.className = "house-li" + (h.id === selectedId ? " sel" : "");
+    if(h.mine && role === "vendor") li.classList.add("mine");
+
+    // pin icon background by current role rules
+    let bg = "#fff";
+    if(role === "public"){
+      bg = h.cat === "food" ? "var(--cat-food)" : h.cat === "toy" ? "var(--cat-toy)" : h.cat === "craft" ? "var(--cat-craft)" : "var(--cat-workshop)";
+    } else {
+      bg = h.status === "taken" ? "var(--accent)" : h.status === "open" ? "var(--accent-2)" : h.status === "pending" ? "var(--gold)" : "#9b9385";
+    }
+
+    // role-aware badge
+    let badge = "";
+    if(role === "public"){
+      // No availability badge for public — show 360° if tour, otherwise nothing
+      if(h.tour) badge = `<span class="badge tour">360°</span>`;
+    } else if(role === "vendor"){
+      if(h.mine) badge = `<span class="badge mine">Mine</span>`;
+      else if(h.status === "taken") badge = `<span class="badge taken">${t("chip.taken")}</span>`;
+      else badge = `<span class="badge open">${t("chip.available")}</span>`;
+    } else {
+      if(h.status === "taken") badge = `<span class="badge taken">${t("chip.taken")}</span>`;
+      else if(h.status === "open") badge = `<span class="badge open">${t("chip.available")}</span>`;
+      else if(h.status === "pending") badge = `<span class="badge pending">${t("chip.pending")}</span>`;
+      else badge = `<span class="badge draft">${t("chip.draft")}</span>`;
+    }
+
+    // role-aware meta line
+    let meta = "";
+    if(role === "public"){
+      meta = `${h.catLbl} · ${h.hallLabel.split(" · ")[1] || h.hallLabel}`;
+    } else if(role === "vendor"){
+      meta = `${h.catLbl} · ${h.area} · ${h.price}`;
+    } else {
+      meta = `${h.code} · ${h.area} · ${h.price}`;
+      if(h.applications) meta += ` · ${h.applications} apps`;
+    }
+
+    li.innerHTML = `
+      <div class="ic" style="background:${bg};${h.tour?'box-shadow:0 0 0 2px var(--gold)':''}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${h.cat==='fac'?'#161513':'#fff'}" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>
+      </div>
+      <div><h6>${h.name} <span style="color:var(--soft);font-weight:400">· ${h.code}</span></h6><div class="meta">${meta}</div></div>
+      ${badge}`;
+    li.addEventListener("click", ()=>{ openPopup(h.id); });
+    houseList.appendChild(li);
+  });
+}
+
+/* ---------- LEGEND per role ---------- */
+function renderLegend(){
+  const role = document.body.dataset.role;
+  const lbl = document.getElementById("legendLbl");
+  const wrap = document.getElementById("legendItems");
+  wrap.innerHTML = "";
+  let items = [];
+  if(role === "public"){
+    lbl.textContent = "By category";
+    items = [
+      {bg:"var(--cat-food)",l:"Food"},
+      {bg:"var(--cat-toy)",l:"Toys"},
+      {bg:"var(--cat-craft)",l:"Crafts"},
+      {bg:"var(--cat-workshop)",l:"Workshops"},
+      {bg:"#fff",l:"Facility",border:true},
+      {bg:"#22201c",l:"360°",ring:true}
+    ];
+  } else if(role === "vendor"){
+    lbl.textContent = "By availability";
+    items = [
+      {bg:"var(--accent-2)",l:"Available"},
+      {bg:"var(--accent)",l:"Taken"},
+      {bg:"#fff",l:"Facility",border:true},
+      {bg:"#22201c",l:"360°",ring:true},
+      {bg:"#fff",l:"My house",ring:true,goldRing:true}
+    ];
+  } else {
+    lbl.textContent = "By status";
+    items = [
+      {bg:"var(--accent-2)",l:"Open"},
+      {bg:"var(--accent)",l:"Taken"},
+      {bg:"var(--gold)",l:"Pending"},
+      {bg:"#9b9385",l:"Draft"},
+      {bg:"#22201c",l:"360°",ring:true}
+    ];
+  }
+  items.forEach(it=>{
+    const d = document.createElement("div");
+    d.className = "item";
+    d.innerHTML = `<span class="sw" style="background:${it.bg};${it.ring?'box-shadow:0 0 0 2px '+(it.goldRing?'var(--gold)':'var(--gold)'):''}"></span>${it.l}`;
+    wrap.appendChild(d);
+  });
+}
+
+/* ---------- POPUP rendering ---------- */
+const popupMount = document.getElementById("popupMount");
+let selectedId = null;
+
+function openPopup(id){
+  selectedId = id;
+  const h = HOUSES.find(x => x.id === id);
+  if(!h) return;
+  const role = document.body.dataset.role;
+  const variant = document.body.dataset.variant;
+
+  // selected style
+  document.querySelectorAll(".pin").forEach(p=>p.classList.toggle("sel", p.dataset.id === id));
+  document.querySelectorAll(".house-li").forEach(li=>li.classList.remove("sel"));
+
+  // facility popup: a simpler shared popup
+  if(h.cat === "fac"){
+    renderFacilityPopup(h);
+  } else {
+    if(role === "public"){
+      renderVisitorPopupB(h);
+    } else if(role === "vendor"){
+      renderVendorPopup(h);
+    } else {
+      renderAdminPopup(h);
+    }
+  }
+  renderList();
+  // re-mark list selection
+  document.querySelectorAll(".house-li").forEach(li=>{
+    const lbl = li.querySelector("h6")?.textContent || "";
+    if(lbl.includes(h.code)) li.classList.add("sel");
+  });
+}
+
+function position(popEl, h){
+  popEl.style.left = h.x + "%";
+  popEl.style.top  = h.y + "%";
+  popEl.style.pointerEvents = "auto";
+  // Decide flip after layout: if popup would clip top of canvas, render below pin
+  requestAnimationFrame(()=>{
+    const canvas = document.getElementById("mapCanvas");
+    const ch = canvas.clientHeight;
+    const ph = popEl.offsetHeight;
+    const pinTopPx = (h.y/100) * ch; // pin tip y in px
+    // Popup default goes above pin (margin-top -26 + transform -100%). Need ph + 32 above pin tip.
+    const neededAbove = ph + 32;
+    if(pinTopPx < neededAbove){
+      popEl.classList.add("flip");
+    }
+    popEl.classList.add("show");
+  });
+}
+
+function renderVisitorPopupA(h){
+  popupMount.innerHTML = "";
+  const el = document.createElement("div");
+  el.className = "popup pop-visitor-a";
+  el.innerHTML = `
+    <button class="close" data-close>×</button>
+    <div class="hero ${h.cat}">
+      ${h.tour ? `<span class="tour-tag"><span class="dot"></span>360° Tour</span>` : ""}
+      <span class="cat-tag"><span class="swatch" style="background:var(--cat-${h.cat})"></span>${h.catLbl}</span>
+    </div>
+    <div class="body">
+      <div class="vendor-row">
+        <div class="av">${h.vendor?.initial || h.name[0]}</div>
+        <div class="meta">
+          <b>${h.name}</b>
+          <span>${h.hallLabel}</span>
+        </div>
+      </div>
+      <p class="pull-quote">${t(h.story)}</p>
+      <div class="signature">
+        ${(h.tags||[]).map(tag=>`<span class="tag">${t(tag)}</span>`).join("")}
+      </div>
+      <div class="ctas">
+        ${h.tour
+          ? `<button class="btn accent">${t("pop.view360")} →</button>`
+          : `<button class="btn primary">${t("pop.route")} →</button>`}
+        <button class="btn icon ghost" title="${t("pop.share")}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+  popupMount.appendChild(el);
+  position(el, h);
+  el.querySelector("[data-close]").addEventListener("click", closePopup);
+}
+
+function renderVisitorPopupB(h){
+  popupMount.innerHTML = "";
+  const el = document.createElement("div");
+  el.className = "popup pop-visitor-b";
+  const hasGeo = document.body.dataset.geo === "1" && document.body.dataset.geoState === "ok";
+  const geoDenied = document.body.dataset.geo === "1" && document.body.dataset.geoState === "denied";
+  const thumbsByCat = {
+    food:["#a35652","#caa14b","#7c4a2a"],
+    toy:["#caa14b","#7a3e8f","#1f4f44"],
+    craft:["#1f4f44","#5b8a76","#caa14b"],
+    workshop:["#7a3e8f","#3e2a4a","#caa14b"]
+  };
+  const thumbColors = thumbsByCat[h.cat] || ["#6c655b","#9b9385","#caa14b"];
+  el.innerHTML = `
+    <button class="close" data-close>×</button>
+    <div class="strip" data-cat="${h.cat}"></div>
+    <div class="top">
+      <div class="av">${h.vendor?.initial || h.name[0]}<span class="cat-dot" style="background:var(--cat-${h.cat})"></span></div>
+      <div class="meta">
+        <h4>${h.name}</h4>
+        <div class="sub">${h.catLbl} · <b>${h.hallLabel.split(" · ")[1] || h.hallLabel}</b></div>
+      </div>
+    </div>
+    <div class="desc">${t(h.story).replace(/^"|"$/g,"")}</div>
+    <div class="pillrow">
+      <span class="pill hours">${t(h.hours)}</span>
+      ${h.tour ? `<span class="pill tour">360°</span>` : ""}
+      ${(h.tags||[]).slice(0,2).map(tag=>`<span class="pill">${t(tag)}</span>`).join("")}
+    </div>
+    <div class="thumbs" aria-label="Photos from this stall">
+      <div class="th" style="background:${thumbColors[0]}"></div>
+      <div class="th" style="background:${thumbColors[1]}"></div>
+      <div class="th" style="background:${thumbColors[2]}"><div class="more">+5</div></div>
+    </div>
+    ${geoDenied ? `
+      <div class="geo-warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        Enable location to walk here
+      </div>` : ""}
+    <div class="ctas ${h.tour ? "" : "no-tour"}">
+      <button class="btn primary" ${geoDenied?"disabled":""}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="6"/></svg>
+        ${t("pop.route")}
+      </button>
+      ${h.tour ? `<button class="btn icon gold" title="${t("pop.view360")}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12c3-3 6-3 9-3s6 0 9 3"/><path d="M3 12c3 3 6 3 9 3s6 0 9-3"/></svg>
+      </button>` : ""}
+      <button class="btn icon ghost" title="${t("pop.share")}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>
+      </button>
+    </div>
+  `;
+  popupMount.appendChild(el);
+  position(el, h);
+  el.querySelector("[data-close]").addEventListener("click", closePopup);
+  // wire route button → open route panel + simulate routing
+  el.querySelector(".btn.primary")?.addEventListener("click", ()=>{
+    if(geoDenied){ flashToast("Enable location first"); return; }
+    document.querySelector('#stateSeg button[data-state="route"]').classList.add("on");
+    document.body.dataset.route = "1";
+    document.body.dataset.routeTarget = h.id;
+    renderRoutePanel();
+  });
+}
+
+function renderVendorPopup(h){
+  popupMount.innerHTML = "";
+  const el = document.createElement("div");
+  el.className = "popup pop-vendor";
+  const isMine = h.mine;
+  const isOpen = h.status === "open";
+  el.innerHTML = `
+    <button class="close" data-close>×</button>
+    <div class="top">
+      <div class="num">${h.code.split("-")[1] || ""}<small>${h.code.split("-")[0] || "—"}</small></div>
+      <div class="ttl">
+        <h4>${h.name}</h4>
+        <div class="sub">${h.hallLabel} · ${h.catLbl}</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="s"><b>${h.area}</b><span>${t("label.area")}</span></div>
+      <div class="s"><b>${h.price}</b><span>${t("label.price")}</span></div>
+    </div>
+    <div class="status-row">
+      ${isMine ? `<span class="pill mine">★ ${t("chip.mine").replace(/s$/,'')}</span>` : ""}
+      <span class="pill ${h.status === "taken" ? "taken" : "open"}">${h.status === "taken" ? t("chip.taken") : t("chip.available")}</span>
+      ${h.tour ? `<span class="pill tour">360°</span>` : ""}
+      ${(!isMine && isOpen && h.applications) ? `<span class="pill" style="background:#faecc6;border-color:#e6c97a;color:#7a5413">${h.applications} ${t("label.applications").toLowerCase()}</span>` : ""}
+    </div>
+    <div class="desc">${t(h.story)}</div>
+    <div class="ctas">
+      ${isMine
+        ? `<button class="btn primary full" style="grid-column:1/-1">${t("pop.viewApp")}</button>`
+        : isOpen
+          ? `<button class="btn accent">${t("pop.apply")}</button><button class="btn ghost">${t("pop.view360")}</button><button class="btn icon ghost" title="${t("pop.share")}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg></button>`
+          : `<button class="btn ghost" disabled>${t("chip.taken")}</button><button class="btn primary">${t("pop.view360")}</button><button class="btn icon ghost"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg></button>`
+      }
+    </div>
+  `;
+  popupMount.appendChild(el);
+  position(el, h);
+  el.querySelector("[data-close]").addEventListener("click", closePopup);
+}
+
+function renderAdminPopup(h){
+  popupMount.innerHTML = "";
+  const el = document.createElement("div");
+  el.className = "popup pop-admin";
+  el.innerHTML = `
+    <button class="close" data-close style="background:rgba(255,250,240,0.2);color:#fffaf0">×</button>
+    <div class="top">
+      <span class="num">${h.code}</span>
+      <h4>${h.name}</h4>
+      <span class="status-tag ${h.status}">${t("chip."+(h.status==="open"?"available":h.status==="taken"?"taken":h.status))}</span>
+    </div>
+    <dl class="row-data">
+      <dt>${t("label.cat")}</dt><dd>${h.catLbl}</dd>
+      <button class="edit">${t("admin.edit")}</button>
+      <dt>${t("label.area")}</dt><dd>${h.area}</dd>
+      <button class="edit">${t("admin.edit")}</button>
+      <dt>${t("label.price")}</dt><dd>${h.price}</dd>
+      <button class="edit">${t("admin.edit")}</button>
+      <dt>${t("label.lastEdit")}</dt><dd>2 days ago · You</dd>
+      <span></span>
+    </dl>
+    ${h.tenant ? `
+      <div class="tenant">
+        <div class="av">${h.tenant.initial}</div>
+        <div class="meta">
+          <b>${t("label.tenant")}: ${h.tenant.name}</b>
+          <span>${h.tenant.email}</span>
+        </div>
+        <button class="btn ghost" style="width:auto;padding:5px 9px;font-size:11px">Open</button>
+      </div>` : ""
+    }
+    ${h.applications ? `
+      <div class="alerts">
+        <div class="alert warn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 0 0-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/></svg>
+          ${h.applications} ${t("label.applications").toLowerCase()} ${h.status==="open"?"to review":"on waiting list"}
+          <span class="badge">${h.applications}</span>
+        </div>
+      </div>` : ""
+    }
+    <div class="toggle-row">
+      <label>${h.published ? t("admin.publish") : "Draft"}</label>
+      <div class="swit ${h.published?"on":"off"}"></div>
+    </div>
+    <div class="ctas">
+      <button class="btn primary">${t("admin.edit")} →</button>
+      ${h.tour
+        ? `<button class="btn gold">${t("admin.calibrate")}</button>`
+        : `<button class="btn ghost">+ 360°</button>`}
+      <button class="btn icon ghost" title="${t("admin.flag")}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V4l8 2 8-2v11l-8 2-8-2"/></svg>
+      </button>
+    </div>
+  `;
+  popupMount.appendChild(el);
+  position(el, h);
+  el.querySelector("[data-close]").addEventListener("click", closePopup);
+  el.querySelector(".swit").addEventListener("click", e=>{
+    e.currentTarget.classList.toggle("on");
+    e.currentTarget.classList.toggle("off");
+  });
+}
+
+function renderFacilityPopup(h){
+  popupMount.innerHTML = "";
+  const el = document.createElement("div");
+  el.className = "popup pop-visitor-b";
+  el.innerHTML = `
+    <button class="close" data-close>×</button>
+    <div class="top">
+      <div class="av" style="background:#f4ede0;color:var(--ink)">${h.id.startsWith("WC") ? "WC" : "☕"}</div>
+      <div class="meta">
+        <h4>${h.name}</h4>
+        <div class="sub">${h.catLbl} · Facility</div>
+      </div>
+    </div>
+    <div class="pillrow">
+      <span class="pill hours">${t("pop.openHours")}</span>
+    </div>
+    <div class="ctas">
+      <button class="btn primary">${t("pop.route")} →</button>
+      <button class="btn icon ghost">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>
+      </button>
+    </div>
+  `;
+  popupMount.appendChild(el);
+  position(el, h);
+  el.querySelector("[data-close]").addEventListener("click", closePopup);
+}
+
+function closePopup(){
+  const p = popupMount.querySelector(".popup");
+  if(p){ p.classList.remove("show"); setTimeout(()=>{ popupMount.innerHTML = ""; }, 220); }
+  selectedId = null;
+  document.querySelectorAll(".pin").forEach(p=>p.classList.remove("sel"));
+  document.querySelectorAll(".house-li").forEach(li=>li.classList.remove("sel"));
+}
+
+/* ---------- ROLE switcher ---------- */
+document.getElementById("roleSeg").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-role]"); if(!b) return;
+  document.querySelectorAll("#roleSeg button").forEach(x=>x.classList.toggle("on", x===b));
+  document.body.dataset.role = b.dataset.role;
+  const roleLabels = {
+    public: { en:"Visitor", az:"Ziyarətçi", name:"Aysu", initial:"A" },
+    vendor: { en:"Vendor", az:"Satıcı", name:CURRENT_USER.vendor, initial:CURRENT_USER.initial },
+    admin:  { en:"Admin",  az:"İdarəçi", name:"Nihat O.",     initial:"N" }
+  };
+  const r = roleLabels[b.dataset.role];
+  document.getElementById("roleLabel").textContent = r[LANG];
+  document.getElementById("userName").textContent = r.name;
+  document.getElementById("userAv").textContent = r.initial;
+  rerenderAll();
+});
+
+/* ---------- VARIANT toggle (visitor only) ---------- */
+// removed — Variant B is the chosen direction
+
+/* ---------- AUTH toggle (visitor only) ---------- */
+document.getElementById("authSeg").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-auth]"); if(!b) return;
+  document.querySelectorAll("#authSeg button").forEach(x=>x.classList.toggle("on", x===b));
+  document.body.dataset.auth = b.dataset.auth;
+  // when anonymous, friends layer/route can't be shown
+  if(b.dataset.auth === "anon"){
+    // turn off any auth-only states
+    document.querySelectorAll("#stateSeg button[data-state='friends'],#stateSeg button[data-state='route']").forEach(x=>x.classList.remove("on"));
+    document.body.dataset.friends = "";
+    document.body.dataset.route = "";
+  }
+  renderFriendMarkers();
+  renderRoutePanel();
+});
+
+/* ---------- MAP STATES toggles ---------- */
+document.getElementById("stateSeg").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-state]"); if(!b) return;
+  const k = b.dataset.state;
+  // friends + route are auth-only
+  const isAnon = document.body.dataset.role === "public" && document.body.dataset.auth === "anon";
+  if((k==="friends" || k==="route") && isAnon){
+    flashToast("Sign in to see friends and routes");
+    return;
+  }
+  b.classList.toggle("on");
+  document.body.dataset[k] = b.classList.contains("on") ? "1" : "";
+  if(k==="friends") renderFriendMarkers();
+  if(k==="route") renderRoutePanel();
+  if(k==="geo") renderGeoState();
+});
+
+/* ---------- LANG mini toggle ---------- */
+document.getElementById("langMini").addEventListener("click", e=>{
+  const s = e.target.closest("span[data-l]"); if(!s) return;
+  document.querySelectorAll("#langMini span").forEach(x=>x.classList.toggle("on", x===s));
+  LANG = s.dataset.l;
+  applyI18n();
+  rerenderAll();
+});
+
+function rerenderAll(){
+  renderPins();
+  renderList();
+  renderLegend();
+  renderFriendMarkers();
+  renderRoutePanel();
+  renderGeoState();
+  renderFriendsTab();
+  if(selectedId) openPopup(selectedId);
+}
+
+/* ============================================================
+   FRIENDS LAYER
+   ============================================================ */
+const FRIENDS = [
+  { id:"fr-1", name:"Nigar A.", initial:"N", color:"#c4423a", x:42, y:58, distM:120, stale:false, updated:"2 min ago" },
+  { id:"fr-2", name:"Rashad K.", initial:"R", color:"#1f4f44", x:60, y:42, distM:340, stale:false, updated:"just now" },
+  { id:"fr-3", name:"Sevda H.", initial:"S", color:"#7a3e8f", x:74, y:30, distM:680, stale:true, updated:"42 min ago" }
+];
+
+function renderFriendMarkers(){
+  // remove existing
+  pinLayer.querySelectorAll(".friend-pin, .you-dot").forEach(n=>n.remove());
+  if(document.body.dataset.friends !== "1") return;
+  // you-dot — only if locate is ok
+  if(document.body.dataset.geo === "1" && document.body.dataset.geoState === "ok"){
+    const you = document.createElement("div");
+    you.className = "you-dot";
+    you.style.left = "48%";
+    you.style.top = "70%";
+    you.innerHTML = `<div class="core"></div>`;
+    pinLayer.appendChild(you);
+  }
+  FRIENDS.forEach(f=>{
+    const p = document.createElement("div");
+    p.className = "friend-pin";
+    p.style.left = f.x + "%";
+    p.style.top = f.y + "%";
+    p.innerHTML = `<div class="avatar ${f.stale?"stale":""}" style="background:${f.color}">${f.initial}</div>`;
+    p.addEventListener("click", e=>{ e.stopPropagation(); openFriendPopup(f); });
+    pinLayer.appendChild(p);
+  });
+}
+
+function openFriendPopup(f){
+  popupMount.innerHTML = "";
+  selectedId = null;
+  document.querySelectorAll(".pin").forEach(p=>p.classList.remove("sel"));
+  const el = document.createElement("div");
+  el.className = "popup pop-friend";
+  const hasGeo = document.body.dataset.geo === "1" && document.body.dataset.geoState === "ok";
+  const distLabel = f.distM < 1000 ? `${f.distM} m` : `${(f.distM/1000).toFixed(1)} km`;
+  el.innerHTML = `
+    <button class="close" data-close>×</button>
+    <div class="top">
+      <div class="avatar" style="background:${f.color}">${f.initial}</div>
+      <div class="meta">
+        <b>${f.name}</b>
+        <span>Updated · ${f.updated}</span>
+      </div>
+    </div>
+    <div class="dist">
+      <div class="num">${hasGeo ? distLabel : "—"}<small style="display:block">${hasGeo ? "from you" : "location off"}</small></div>
+      ${f.stale ? `<span class="stale">Stale · ${f.updated}</span>` : ""}
+    </div>
+    <div class="ctas">
+      <button class="btn primary" ${hasGeo?"":"disabled"}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="6"/></svg>
+        ${LANG==="az"?"Yol göstər":"Get directions"}
+      </button>
+      <button class="btn ghost reaction">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+        ${LANG==="az"?"Reaksiya":"Send reaction"}
+      </button>
+    </div>
+  `;
+  popupMount.appendChild(el);
+  // position above friend pin
+  el.style.left = f.x + "%";
+  el.style.top  = f.y + "%";
+  el.style.pointerEvents = "auto";
+  requestAnimationFrame(()=>{
+    const canvas = document.getElementById("mapCanvas");
+    const ch = canvas.clientHeight;
+    const ph = el.offsetHeight;
+    const pinTopPx = (f.y/100) * ch;
+    if(pinTopPx < ph + 32) el.classList.add("flip");
+    el.classList.add("show");
+  });
+  el.querySelector("[data-close]").addEventListener("click", closePopup);
+  el.querySelector(".reaction").addEventListener("click", ()=>flashToast("Reaction sent 🎉"));
+  el.querySelector(".btn.primary").addEventListener("click", ()=>{
+    if(!hasGeo){ flashToast("Enable location first"); return; }
+    document.querySelector('#stateSeg button[data-state="route"]').classList.add("on");
+    document.body.dataset.route = "1";
+    document.body.dataset.routeTarget = f.id;
+    renderRoutePanel();
+  });
+}
+
+/* ============================================================
+   ROUTE INSTRUCTIONS PANEL
+   ============================================================ */
+function renderRoutePanel(){
+  let panel = document.getElementById("routePanel");
+  if(!panel){
+    panel = document.createElement("aside");
+    panel.id = "routePanel";
+    panel.className = "route-panel";
+    panel.setAttribute("aria-live","polite");
+    panel.setAttribute("role","region");
+    document.getElementById("mapCanvas").appendChild(panel);
+  }
+  if(document.body.dataset.route !== "1"){
+    panel.classList.remove("show");
+    // remove route line too
+    const ln = document.getElementById("routeLine"); if(ln) ln.remove();
+    return;
+  }
+  const tgt = document.body.dataset.routeTarget || "H-102";
+  let destName = "LunaToys";
+  if(tgt.startsWith("fr-")){
+    const f = FRIENDS.find(x=>x.id===tgt); if(f) destName = f.name;
+  } else {
+    const h = HOUSES.find(x=>x.id===tgt); if(h) destName = h.name;
+  }
+  const isLoading = document.body.dataset.geoState === "loading";
+  if(isLoading){
+    panel.innerHTML = `
+      <div class="rp-top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-8-8 19-2-9z"/></svg>
+        <b>${LANG==="az"?"Yol axtarılır…":"Finding path…"}</b>
+        <button data-rp-close>×</button>
+      </div>
+      <div class="rp-state"><span class="spin"></span> ${LANG==="az"?"Mövqe alınır":"Getting your position"}</div>`;
+  } else {
+    panel.innerHTML = `
+      <div class="rp-top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-8-8 19-2-9z"/></svg>
+        <b>${LANG==="az"?"Yol göstər":"Walking route"} · ${destName}</b>
+        <button data-rp-close title="Clear route">×</button>
+      </div>
+      <div class="rp-totals">
+        <div class="t"><b>3 min</b><span>${LANG==="az"?"Vaxt":"Duration"}</span></div>
+        <div class="t"><b>240 m</b><span>${LANG==="az"?"Məsafə":"Distance"}</span></div>
+        <div class="t"><b>4</b><span>${LANG==="az"?"Addım":"Steps"}</span></div>
+      </div>
+      <div class="rp-steps">
+        <div class="rp-step">
+          <span class="arrow you"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/></svg></span>
+          <span>${LANG==="az"?"Başlanğıc nöqtəsi":"Start at your location"}</span>
+          <span class="meters">0 m</span>
+        </div>
+        <div class="rp-step">
+          <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
+          <span>${LANG==="az"?"Şimal istiqamətində 80 m gedin":"Head north for 80 m"}</span>
+          <span class="meters">80 m</span>
+        </div>
+        <div class="rp-step">
+          <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          <span>${LANG==="az"?"Sağa dön, parka tərəf":"Turn right toward the park"}</span>
+          <span class="meters">120 m</span>
+        </div>
+        <div class="rp-step">
+          <span class="arrow dst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg></span>
+          <span><b>${destName}</b> ${LANG==="az"?"sağda":"on your right"}</span>
+          <span class="meters">40 m</span>
+        </div>
+      </div>`;
+    // draw route line
+    drawRouteLine(tgt);
+  }
+  panel.querySelector("[data-rp-close]").addEventListener("click", ()=>{
+    document.querySelector('#stateSeg button[data-state="route"]').classList.remove("on");
+    document.body.dataset.route = "";
+    renderRoutePanel();
+  });
+  requestAnimationFrame(()=>panel.classList.add("show"));
+}
+
+function drawRouteLine(targetId){
+  const old = document.getElementById("routeLine"); if(old) old.remove();
+  const start = { x:48, y:70 };
+  let end = { x:30, y:38 };
+  if(targetId.startsWith("fr-")){
+    const f = FRIENDS.find(x=>x.id===targetId); if(f) end = { x:f.x, y:f.y };
+  } else {
+    const h = HOUSES.find(x=>x.id===targetId); if(h) end = { x:h.x, y:h.y };
+  }
+  const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.id = "routeLine";
+  svg.classList.add("route-line");
+  svg.setAttribute("viewBox","0 0 100 100");
+  svg.setAttribute("preserveAspectRatio","none");
+  // path with one mid-bend for visual interest
+  const midX = start.x;
+  const midY = end.y;
+  svg.innerHTML = `
+    <path d="M ${start.x} ${start.y} L ${midX} ${midY} L ${end.x} ${end.y}" stroke="#c4423a" stroke-width="0.7" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1.4 1.4" vector-effect="non-scaling-stroke" />
+    <path d="M ${start.x} ${start.y} L ${midX} ${midY} L ${end.x} ${end.y}" stroke="#c4423a" stroke-width="0.25" fill="none" opacity="0.3" vector-effect="non-scaling-stroke" />
+  `;
+  document.getElementById("mapCanvas").insertBefore(svg, document.getElementById("pinLayer"));
+}
+
+/* ============================================================
+   GEOLOCATE STATE
+   ============================================================ */
+function renderGeoState(){
+  let wrap = document.getElementById("geoControl");
+  if(!wrap){
+    wrap = document.createElement("div");
+    wrap.id = "geoControl";
+    wrap.className = "geo-control";
+    document.getElementById("mapCanvas").appendChild(wrap);
+  }
+  const on = document.body.dataset.geo === "1";
+  // cycle states: clicking the locate button moves through loading → ok → off
+  let state = document.body.dataset.geoState || (on ? "loading" : "off");
+  if(!on) state = "off";
+  document.body.dataset.geoState = state;
+
+  let toastHtml = "";
+  if(state === "loading"){
+    toastHtml = `<div class="geo-toast">
+      <span class="spin" style="display:inline-block;width:12px;height:12px;border:2px solid var(--rule);border-top-color:var(--ink);border-radius:50%;animation:rpspin .8s linear infinite"></span>
+      ${LANG==="az"?"Mövqe alınır…":"Locating you…"}
+    </div>`;
+  } else if(state === "denied"){
+    toastHtml = `<div class="geo-toast warn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      ${LANG==="az"?"İcazə rədd edildi. Brauzer parametrlərindən aktivləşdir.":"Permission denied. Enable in browser settings."}
+    </div>`;
+  } else if(state === "ok"){
+    toastHtml = `<div class="geo-toast">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-2)"><path d="M5 12l5 5L20 7"/></svg>
+      ${LANG==="az"?"Sən burdasan":"You are here"}
+    </div>`;
+  }
+
+  wrap.innerHTML = `
+    <button class="geo-btn ${state==="ok"?"active":""} ${state==="loading"?"loading":""} ${state==="denied"?"denied":""}" data-geo-btn title="Locate me">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2"/></svg>
+    </button>
+    <button class="geo-btn" title="Zoom in" data-zoom="+">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="geo-btn" title="Zoom out" data-zoom="-">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg>
+    </button>
+    ${toastHtml}
+  `;
+  wrap.querySelector("[data-geo-btn]").addEventListener("click", ()=>{
+    // cycle: off → loading → ok → denied → off
+    const next = { off:"loading", loading:"ok", ok:"denied", denied:"off" }[state];
+    document.body.dataset.geoState = next;
+    document.body.dataset.geo = next === "off" ? "" : "1";
+    document.querySelector('#stateSeg button[data-state="geo"]').classList.toggle("on", next !== "off");
+    renderGeoState();
+    renderFriendMarkers();
+    if(selectedId) openPopup(selectedId);
+  });
+  // if state was forced to loading by stateSeg toggle, auto-advance to ok after 1.4s
+  if(state === "loading" && !wrap.dataset.autoTick){
+    wrap.dataset.autoTick = "1";
+    setTimeout(()=>{
+      delete wrap.dataset.autoTick;
+      if(document.body.dataset.geoState === "loading"){
+        document.body.dataset.geoState = "ok";
+        renderGeoState();
+        renderFriendMarkers();
+        if(selectedId) openPopup(selectedId);
+      }
+    }, 1400);
+  }
+}
+
+function flashToast(msg){
+  let t = document.getElementById("flashToast");
+  if(!t){
+    t = document.createElement("div");
+    t.id = "flashToast";
+    t.className = "toast";
+    document.getElementById("mapCanvas").appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>t.classList.remove("show"), 1800);
+}
+
+function renderFriendsTab(){
+  let tab = document.getElementById("friendsTab");
+  const isAnon = document.body.dataset.role === "public" && document.body.dataset.auth === "anon";
+  if(isAnon){ if(tab) tab.remove(); return; }
+  if(!tab){
+    tab = document.createElement("button");
+    tab.id = "friendsTab";
+    tab.className = "friends-tab";
+    document.getElementById("mapCanvas").appendChild(tab);
+    tab.addEventListener("click", ()=>{
+      const onNow = document.body.dataset.friends === "1";
+      document.body.dataset.friends = onNow ? "" : "1";
+      document.querySelector('#stateSeg button[data-state="friends"]').classList.toggle("on", !onNow);
+      renderFriendMarkers();
+      renderFriendsTab();
+    });
+  }
+  tab.classList.toggle("on", document.body.dataset.friends === "1");
+  tab.innerHTML = `<span class="ic">👥</span> <span>${LANG==="az"?"Dostlar":"Friends"}</span> <span class="count">${FRIENDS.length}</span>`;
+}
+
+/* INIT */
+applyI18n();
+renderPins();
+renderList();
+renderLegend();
+renderGeoState();
+renderFriendsTab();
+openPopup("H-102");
+
+/* close popup on canvas click */
+document.getElementById("mapCanvas").addEventListener("click", e=>{
+  if(!e.target.closest(".pin") && !e.target.closest(".popup")) closePopup();
+});
+</script>
+</body>
+</html>

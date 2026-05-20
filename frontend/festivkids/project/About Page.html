@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FestivKids — About</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f7f3ec;--bg-2:#efe7d7;--paper:#fffaf0;
+    --ink:#161513;--ink-2:#2a2622;--soft:#6c655b;--rule:#d9d1bd;--rule-soft:#e6dec8;
+    --accent:#c4423a;--accent-soft:#f4d6d2;
+    --accent-2:#1f4f44;--accent-2-soft:#cce0d8;
+    --gold:#caa14b;--gold-soft:#faf1d9;--sky:#b4d4e0;
+    --display:'Fraunces',ui-serif,Georgia,serif;
+    --body:'Inter Tight',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--body);color:var(--ink);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased}
+
+  /* ---------- shared ---------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 36px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--soft);font-weight:600}
+  .display{font-family:var(--display);font-weight:500;letter-spacing:-0.02em;line-height:1}
+  .display em{font-style:italic;font-weight:400;color:var(--accent)}
+  .lede{font-size:18px;line-height:1.6;color:var(--ink-2);text-wrap:pretty;max-width:62ch}
+
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:4px 11px;font-size:12px;background:#fff;color:var(--ink-2);font-weight:500}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--soft)}
+  .pill.live{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .pill.live .dot{background:var(--accent)}
+  .pill.warn{background:var(--gold-soft);border-color:#e6c97a;color:#7a5413}
+  .pill.warn .dot{background:var(--gold)}
+  .pill.ok{background:var(--accent-2-soft);border-color:#bcd6c0;color:var(--accent-2)}
+  .pill.ok .dot{background:var(--accent-2)}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:11px 18px;font:inherit;font-weight:600;font-size:14px;border:1px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;text-decoration:none;line-height:1;white-space:nowrap;transition:transform .12s ease,box-shadow .12s ease}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(20,18,14,0.3)}
+  .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.ghost{background:transparent;border-color:var(--rule)}
+  .btn.sm{padding:7px 12px;font-size:12px;border-radius:8px}
+
+  /* ---------- NAV ---------- */
+  .nav{position:sticky;top:0;z-index:30;background:rgba(247,243,236,0.85);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--rule)}
+  .nav-in{max-width:1180px;margin:0 auto;padding:14px 36px;display:flex;align-items:center;gap:28px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:20px;font-weight:600;letter-spacing:-0.015em;color:var(--ink);text-decoration:none}
+  .brand svg{flex:none}
+  .nav-links{display:flex;gap:4px;margin-left:14px}
+  .nav-links a{color:var(--ink-2);text-decoration:none;font-size:14px;font-weight:500;padding:8px 12px;border-radius:8px}
+  .nav-links a:hover{background:rgba(20,18,14,0.05)}
+  .nav-links a.active{color:var(--accent);font-weight:600}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .lang{display:inline-flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden;font-family:var(--mono);font-size:11px;letter-spacing:1px;background:#fff}
+  .lang span{padding:5px 10px;cursor:pointer;color:var(--soft);font-weight:600}
+  .lang span.on{background:var(--ink);color:#fff}
+
+  /* ---------- HERO ---------- */
+  .hero{position:relative;padding:74px 0 56px;overflow:hidden}
+  .hero-in{display:grid;grid-template-columns:1fr 0.85fr;gap:48px;align-items:end}
+  .hero h1{font-family:var(--display);font-size:clamp(56px,7vw,104px);font-weight:500;letter-spacing:-0.025em;line-height:0.95;margin:18px 0 0;text-wrap:balance}
+  .hero h1 em{font-style:italic;font-weight:400;color:var(--accent)}
+  .hero .deck{margin-top:22px;font-size:19px;line-height:1.55;color:var(--ink-2);text-wrap:pretty;max-width:48ch}
+  .hero-stamp{position:absolute;top:38px;right:36px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);text-align:right;line-height:1.7}
+  .hero-stamp b{color:var(--ink)}
+  .hero-meta{display:flex;gap:10px;align-items:center;margin-top:36px;flex-wrap:wrap}
+  .hero-meta .since{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft)}
+  .hero-meta .dot{width:4px;height:4px;border-radius:50%;background:var(--rule)}
+
+  /* hero illustration */
+  .hero-art{position:relative;height:380px;align-self:end}
+  .hero-art .sky-bg{position:absolute;inset:0 -40px 0 0;background:
+    radial-gradient(120% 80% at 70% 60%, #fff8e8 0%, #f0dfb8 60%, #e6cf95 100%);
+    border-radius:18px;border:1px solid var(--rule)}
+  .hero-art .snowflakes{position:absolute;inset:0;opacity:0.55}
+  .hero-art .snowman{position:absolute;right:30px;bottom:18px;width:260px;height:300px}
+  .hero-art .city{position:absolute;left:0;right:0;bottom:30%;opacity:0.2}
+  .hero-art .ground{position:absolute;left:0;right:-40px;bottom:0;height:32%;background:linear-gradient(180deg,transparent,#fff8e8 30%, #f0dfb8);border-bottom-left-radius:18px;border-bottom-right-radius:18px}
+  .hero-art .caption{position:absolute;left:20px;bottom:14px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2);background:rgba(255,250,240,0.85);padding:5px 9px;border-radius:6px;border:1px solid var(--rule)}
+
+  /* ---------- BREADCRUMB BAR ---------- */
+  .breadcrumb{border-top:1px dashed var(--rule);border-bottom:1px dashed var(--rule);padding:14px 0;background:var(--paper);overflow:hidden}
+  .breadcrumb-in{display:flex;gap:60px;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);white-space:nowrap}
+  .breadcrumb-in b{color:var(--ink);font-weight:600}
+  .breadcrumb-in .sep{width:6px;height:6px;border-radius:50%;background:var(--gold);flex:none}
+  .breadcrumb-in span{display:inline-flex;align-items:center;gap:8px}
+
+  /* ---------- MISSION (editorial pullquote) ---------- */
+  .mission{padding:80px 0 70px}
+  .mission-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:60px;align-items:start}
+  .mission .marker{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--soft);text-transform:uppercase;display:flex;align-items:center;gap:10px}
+  .mission .marker .n{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:0}
+  .mission h2{font-family:var(--display);font-size:54px;font-weight:500;letter-spacing:-0.02em;margin:20px 0 0;line-height:1.02}
+  .mission h2 em{font-style:italic;font-weight:400;color:var(--accent)}
+  .mission .body{font-size:17px;line-height:1.65;color:var(--ink-2);text-wrap:pretty}
+  .mission .body p{margin:0 0 16px}
+  .mission .body p:last-child{margin-bottom:0}
+  .mission .body p:first-child::first-letter{font-family:var(--display);font-size:62px;font-weight:500;float:left;line-height:0.9;padding:4px 12px 0 0;color:var(--accent)}
+  .mission-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}
+  .mission-tags .t{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2);border:1px solid var(--rule);background:var(--paper);padding:5px 10px;border-radius:6px}
+
+  /* ---------- HISTORY (timeline) ---------- */
+  .history{padding:60px 0;background:var(--paper);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  .history-head{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:42px}
+  .history-head h2{font-family:var(--display);font-size:46px;font-weight:500;letter-spacing:-0.02em;margin:14px 0 0;line-height:1.05}
+  .history-head h2 em{font-style:italic;font-weight:400;color:var(--accent)}
+  .history-head .lede{max-width:46ch}
+  .timeline{position:relative}
+  .timeline::before{content:"";position:absolute;left:0;right:0;top:55px;height:2px;background:repeating-linear-gradient(90deg,var(--rule) 0 8px,transparent 8px 16px)}
+  .timeline-row{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;position:relative}
+  .tl{position:relative;padding:80px 0 0}
+  .tl .node{position:absolute;top:46px;left:0;width:20px;height:20px;border-radius:50%;background:var(--paper);border:2.5px solid var(--accent);box-shadow:0 0 0 4px var(--paper)}
+  .tl.gold .node{border-color:var(--gold)}
+  .tl.green .node{border-color:var(--accent-2)}
+  .tl.ink .node{border-color:var(--ink);background:var(--ink)}
+  .tl .yr{font-family:var(--display);font-size:30px;font-weight:600;letter-spacing:-0.01em;color:var(--ink)}
+  .tl .title{font-weight:600;font-size:15px;margin-top:6px;color:var(--ink)}
+  .tl .body{font-size:13px;color:var(--soft);margin-top:6px;line-height:1.5}
+
+  /* ---------- TEAM ---------- */
+  .team{padding:80px 0 70px}
+  .team-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+  .team h2{font-family:var(--display);font-size:46px;font-weight:500;letter-spacing:-0.02em;margin:14px 0 0;line-height:1.05}
+  .team h2 em{font-style:italic;font-weight:400;color:var(--accent-2)}
+  .team .body{font-size:17px;line-height:1.65;color:var(--ink-2);margin-top:18px;text-wrap:pretty}
+  .team-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px}
+  .team-stat{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:18px}
+  .team-stat .v{font-family:var(--display);font-size:38px;font-weight:500;letter-spacing:-0.02em;line-height:1;color:var(--accent)}
+  .team-stat:nth-child(2) .v{color:var(--accent-2)}
+  .team-stat:nth-child(3) .v{color:var(--gold)}
+  .team-stat .l{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);margin-top:8px;font-weight:600}
+
+  .roster{display:flex;flex-direction:column;gap:14px}
+  .roster .row{display:flex;gap:16px;padding:14px;border:1px solid var(--rule);border-radius:14px;background:var(--paper);align-items:center}
+  .roster .av{width:54px;height:54px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:22px;font-weight:600;flex:none}
+  .roster .row.green .av{background:var(--accent-2-soft);color:var(--accent-2)}
+  .roster .row.gold .av{background:var(--gold-soft);color:var(--gold)}
+  .roster .row.sky .av{background:#dceaf0;color:#3a6e80}
+  .roster b{font-weight:600;font-size:15px;display:block}
+  .roster span{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--soft);font-weight:600}
+  .roster .meta-r{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--soft);text-align:right}
+
+  /* ---------- CONTACT (with Donatello) ---------- */
+  .contact{padding:60px 0;background:var(--ink);color:#fff;position:relative;overflow:hidden}
+  .contact::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(60% 60% at 20% 20%, rgba(196,66,58,0.18), transparent 60%),
+    radial-gradient(50% 50% at 90% 80%, rgba(31,79,68,0.25), transparent 60%);
+    pointer-events:none}
+  .contact-in{position:relative;display:grid;grid-template-columns:1.1fr 0.9fr;gap:50px;align-items:center}
+  .contact .eyebrow{color:rgba(255,255,255,0.6)}
+  .contact h2{font-family:var(--display);font-size:54px;font-weight:500;letter-spacing:-0.02em;margin:16px 0 0;color:#fff;line-height:1.02}
+  .contact h2 em{font-style:italic;font-weight:400;color:var(--gold)}
+  .contact .lede{color:rgba(255,255,255,0.75);max-width:50ch;margin-top:18px;font-size:17px}
+  .contact-rows{display:flex;flex-direction:column;gap:12px;margin-top:32px}
+  .contact-row{display:flex;gap:16px;align-items:center;padding:14px 18px;border:1px solid rgba(255,255,255,0.12);border-radius:12px;background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;transition:background .14s ease}
+  .contact-row:hover{background:rgba(255,255,255,0.08)}
+  .contact-row .icob{width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;color:var(--gold);flex:none}
+  .contact-row .l{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.55);font-weight:600;display:block;margin-bottom:3px}
+  .contact-row .v{font-size:16px;font-weight:600}
+  .contact-row .arrow{margin-left:auto;color:rgba(255,255,255,0.4);font-family:var(--mono)}
+
+  .social-row{display:flex;gap:10px;margin-top:18px;align-items:center}
+  .social-row .l{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.55);font-weight:600}
+  .social-row a{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);display:inline-flex;align-items:center;justify-content:center;color:#fff;transition:background .14s ease}
+  .social-row a:hover{background:var(--accent);border-color:var(--accent)}
+
+  /* Donatello plate */
+  .donatello{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.14);background:
+    radial-gradient(80% 80% at 30% 30%, #2a2622 0%, #161513 70%);
+    aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+  .donatello .donatello-img{width:78%;height:78%;border-radius:14px;background:
+    /* Placeholder for /tmnt-donatello.gif — image shown as placeholder block in mock */
+    repeating-linear-gradient(45deg,#3a6e80 0 14px,#2f5a6b 14px 28px);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
+  .donatello .donatello-img img{width:100%;height:100%;object-fit:cover;border-radius:14px}
+  .donatello .tag{position:absolute;top:14px;left:14px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.4);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.12)}
+  .donatello .tag b{color:var(--gold)}
+
+  /* ---------- UPCOMING EVENTS ---------- */
+  .upcoming{padding:80px 0 30px}
+  .sec-head{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:30px}
+  .sec-head h2{font-family:var(--display);font-size:46px;font-weight:500;letter-spacing:-0.02em;margin:14px 0 0;line-height:1.05}
+  .sec-head h2 em{font-style:italic;font-weight:400;color:var(--accent)}
+  .sec-head .right{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--soft);text-transform:uppercase}
+
+  .fairs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .fair{background:#fff;border:1px solid var(--rule);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:transform .14s ease,box-shadow .14s ease}
+  .fair:hover{transform:translateY(-2px);box-shadow:0 14px 26px -18px rgba(20,18,14,0.3)}
+  .fair .cover{height:160px;position:relative;border-bottom:1px solid var(--rule);background:#cfe1eb url('https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=900&q=70') center/cover}
+  .fair .cover.spring{background:#dceedb url('https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=900&q=70') center/cover}
+  .fair .cover.summer{background:#fff0d6 url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=70') center/cover}
+  .fair .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,18,14,0) 50%,rgba(20,18,14,0.35))}
+  .fair .cover .badge{position:absolute;top:12px;left:12px;z-index:2}
+  .fair .cover .city{position:absolute;bottom:10px;left:12px;z-index:2;color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600}
+  .fair .body{padding:18px 18px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .fair h3{font-family:var(--display);font-size:24px;margin:0;font-weight:500;letter-spacing:-0.01em;line-height:1.1}
+  .fair .when{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;color:var(--soft);text-transform:uppercase}
+  .fair .desc{font-size:13px;color:var(--ink-2);line-height:1.55;margin-top:2px}
+  .fair .row-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:14px;border-top:1px dashed var(--rule);gap:10px}
+  .fair .where{font-size:12px;color:var(--soft);display:flex;align-items:center;gap:6px}
+  .fair .where svg{flex:none}
+
+  /* ---------- PAST EVENTS ---------- */
+  .past{padding:60px 0 100px}
+  .past-list{display:flex;flex-direction:column;gap:12px}
+  .past-card{background:var(--paper);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+  .past-head{display:flex;align-items:center;gap:18px;padding:18px 22px;cursor:pointer}
+  .past-head:hover{background:#fff}
+  .past-yr{font-family:var(--display);font-size:36px;font-weight:500;letter-spacing:-0.02em;color:var(--accent-2);line-height:1;flex:none;width:80px}
+  .past-info{flex:1;min-width:0}
+  .past-info h3{font-family:var(--display);font-size:22px;margin:0;font-weight:500;letter-spacing:-0.01em}
+  .past-info .meta{display:flex;gap:14px;margin-top:4px;font-size:12px;color:var(--soft);flex-wrap:wrap}
+  .past-info .meta span{display:inline-flex;align-items:center;gap:5px}
+  .past-info .meta b{color:var(--ink-2);font-weight:600}
+  .past-actions{display:flex;align-items:center;gap:14px}
+  .past-actions .vc{font-family:var(--display);font-size:22px;font-weight:600;color:var(--ink)}
+  .past-actions .vc-l{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);display:block;margin-top:2px;text-align:right;font-weight:600}
+  .past-expand{width:34px;height:34px;border-radius:50%;border:1px solid var(--rule);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--soft);transition:transform .18s ease}
+  .past-card.open .past-expand{transform:rotate(180deg);color:var(--ink);border-color:var(--ink)}
+
+  .past-body{display:none;border-top:1px dashed var(--rule);padding:22px;background:#fff}
+  .past-card.open .past-body{display:block}
+  .past-body h4{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);margin:0 0 14px;font-weight:600}
+  .vendors-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .vendor{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--rule);border-radius:10px;background:var(--paper)}
+  .vendor .vlogo{width:36px;height:36px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:600;flex:none}
+  .vendor:nth-child(3n+2) .vlogo{background:var(--accent-2-soft);color:var(--accent-2)}
+  .vendor:nth-child(3n+3) .vlogo{background:var(--gold-soft);color:var(--gold)}
+  .vendor b{display:block;font-size:13px;font-weight:600}
+  .vendor span{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--soft)}
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:36px 0 50px;border-top:1px solid var(--rule);background:var(--paper)}
+  .foot-in{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase;gap:20px;flex-wrap:wrap}
+  .foot-in b{color:var(--ink)}
+
+  /* ---------- FOXI MASCOT ---------- */
+  .foxi{position:fixed;right:28px;bottom:24px;z-index:50;display:flex;align-items:end;gap:12px;pointer-events:none}
+  .foxi .bubble{background:#fff;border:1px solid var(--rule);border-radius:14px 14px 4px 14px;padding:10px 14px;font-size:13px;color:var(--ink);box-shadow:0 12px 24px -16px rgba(20,18,14,0.3);max-width:200px;line-height:1.4;pointer-events:auto;position:relative}
+  .foxi .bubble b{color:var(--accent);font-weight:600}
+  .foxi .bubble .l{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);display:block;margin-bottom:3px;font-weight:600}
+  .foxi .fox{width:80px;height:90px;pointer-events:auto;cursor:pointer;filter:drop-shadow(0 10px 18px rgba(20,18,14,0.25));transition:transform .18s ease}
+  .foxi .fox:hover{transform:translateY(-3px) rotate(-2deg)}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:1080px){
+    .hero-in,.mission-grid,.team-grid,.history-head,.contact-in{grid-template-columns:1fr}
+    .hero-art{height:280px}
+    .fairs{grid-template-columns:repeat(2,1fr)}
+    .vendors-grid{grid-template-columns:repeat(2,1fr)}
+    .timeline::before{display:none}
+    .timeline-row{grid-template-columns:1fr 1fr}
+    .tl{padding-left:30px;padding-top:0}
+    .tl .node{top:6px;left:0}
+  }
+  @media (max-width:680px){
+    .wrap{padding:0 20px}
+    .nav-in{padding:12px 20px;gap:14px}
+    .nav-links{display:none}
+    .hero{padding:48px 0 30px}
+    .fairs{grid-template-columns:1fr}
+    .past-head{flex-wrap:wrap}
+    .past-yr{width:auto}
+    .breadcrumb-in{font-size:10px;gap:24px}
+  }
+</style>
+</head>
+<body data-screen-label="About · /about">
+
+<!-- ============== NAV ============== -->
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="#">
+      <svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true">
+        <g>
+          <path d="M10 22 L22 10 L26 24 Z" fill="#c4423a" stroke="#161513" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M54 22 L42 10 L38 24 Z" fill="#c4423a" stroke="#161513" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M14 26 C 14 46, 22 56, 32 56 C 42 56, 50 46, 50 26 Z" fill="#e8702a" stroke="#161513" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M22 38 C 26 34, 38 34, 42 38 C 40 48, 24 48, 22 38 Z" fill="#fffaf0" stroke="#161513" stroke-width="2"/>
+          <circle cx="24" cy="32" r="2" fill="#161513"></circle>
+          <circle cx="40" cy="32" r="2" fill="#161513"></circle>
+        </g>
+      </svg>
+      FestivKids
+    </a>
+    <nav class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">Map</a>
+      <a href="#" class="active">About</a>
+    </nav>
+    <div class="nav-right">
+      <span class="lang"><span class="on">EN</span><span>AZ</span></span>
+      <a href="#" class="btn ghost sm">Sign in</a>
+      <a href="#" class="btn primary sm">Apply as vendor</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============== HERO ============== -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-stamp">
+      <div>About · FestivKids</div>
+      <div><b>EST. 2020</b> · Baku, AZ</div>
+      <div>Bilingual · EN · AZ</div>
+    </div>
+    <div class="hero-in">
+      <div>
+        <div class="eyebrow"><span class="pill live"><span class="dot"></span>Winter Fair · live now</span></div>
+        <h1>A marketplace<br/>that <em>travels</em><br/>with the seasons.</h1>
+        <p class="deck">Family-friendly fairs across Azerbaijan — temporary villages of wooden houses, vendor stands, kids' workshops and warm food. We've been doing this since 2020, and 38,000 families have walked our maps so far.</p>
+        <div class="hero-meta">
+          <span class="since">Since 2020</span>
+          <span class="dot"></span>
+          <span class="since">3 cities · Baku · Ganja · Şəki</span>
+          <span class="dot"></span>
+          <span class="since">218 vendors</span>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="sky-bg"></div>
+        <!-- snowflakes -->
+        <svg class="snowflakes" viewBox="0 0 600 380" preserveAspectRatio="none">
+          <g stroke="#161513" stroke-width="1" fill="none">
+            <g transform="translate(60 50)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g>
+            <g transform="translate(160 110)"><line x1="-6" y1="0" x2="6" y2="0"/><line x1="0" y1="-6" x2="0" y2="6"/><line x1="-4" y1="-4" x2="4" y2="4"/><line x1="-4" y1="4" x2="4" y2="-4"/></g>
+            <g transform="translate(260 70)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/></g>
+            <g transform="translate(410 40)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g>
+            <g transform="translate(510 100)"><line x1="-5" y1="0" x2="5" y2="0"/><line x1="0" y1="-5" x2="0" y2="5"/></g>
+            <g transform="translate(110 180)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/></g>
+            <g transform="translate(350 170)"><line x1="-6" y1="0" x2="6" y2="0"/><line x1="0" y1="-6" x2="0" y2="6"/></g>
+          </g>
+        </svg>
+        <!-- city silhouette -->
+        <svg class="city" viewBox="0 0 600 200" preserveAspectRatio="none">
+          <g fill="#161513">
+            <rect x="40" y="80" width="40" height="100"/>
+            <polygon points="40,80 60,60 80,80"/>
+            <rect x="100" y="40" width="50" height="140"/>
+            <polygon points="100,40 125,10 150,40"/>
+            <rect x="170" y="70" width="40" height="110"/>
+            <rect x="230" y="20" width="60" height="160"/>
+            <polygon points="230,20 260,-10 290,20"/>
+            <rect x="310" y="60" width="40" height="120"/>
+            <rect x="370" y="30" width="50" height="150"/>
+            <polygon points="370,30 395,0 420,30"/>
+            <rect x="440" y="70" width="40" height="110"/>
+            <rect x="500" y="40" width="60" height="140"/>
+            <polygon points="500,40 530,10 560,40"/>
+          </g>
+        </svg>
+        <div class="ground"></div>
+        <!-- snowman -->
+        <svg class="snowman" viewBox="0 0 240 260">
+          <g stroke="#161513" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+            <ellipse cx="120" cy="248" rx="90" ry="7" fill="#161513" opacity="0.14" stroke="none"></ellipse>
+            <circle cx="120" cy="200" r="58" fill="#fffaf0"></circle>
+            <circle cx="120" cy="178" r="3.5" fill="#161513" stroke="none"></circle>
+            <circle cx="120" cy="200" r="3.5" fill="#161513" stroke="none"></circle>
+            <circle cx="120" cy="222" r="3.5" fill="#161513" stroke="none"></circle>
+            <circle cx="120" cy="138" r="44" fill="#fffaf0"></circle>
+            <path d="M76 138 C 56 132, 42 116, 38 96 M 38 96 L 32 92 M 38 96 L 38 88 M 50 108 L 44 102" fill="none"/>
+            <path d="M164 138 C 184 132, 198 116, 202 96 M 202 96 L 208 92 M 202 96 L 202 88 M 190 108 L 196 102" fill="none"/>
+            <path d="M82 96 C 100 108, 140 108, 158 96 L 158 112 C 140 122, 100 122, 82 112 Z" fill="#c4423a"></path>
+            <path d="M152 116 L 174 124 L 168 144 L 148 132 Z" fill="#c4423a"></path>
+            <circle cx="120" cy="74" r="34" fill="#fffaf0"></circle>
+            <path d="M120 76 L 152 82 L 120 84 Z" fill="#e8702a"></path>
+            <path d="M104 64 C 108 60, 114 60, 116 64" fill="none"/>
+            <path d="M124 64 C 126 60, 132 60, 136 64" fill="none"/>
+            <circle cx="108" cy="92" r="2" fill="#161513" stroke="none"></circle>
+            <circle cx="116" cy="94" r="2" fill="#161513" stroke="none"></circle>
+            <circle cx="124" cy="94" r="2" fill="#161513" stroke="none"></circle>
+            <circle cx="132" cy="92" r="2" fill="#161513" stroke="none"></circle>
+            <path d="M86 46 L 154 46 L 154 50 L 86 50 Z" fill="#1f4f44"></path>
+            <path d="M96 14 L 144 14 L 148 46 L 92 46 Z" fill="#1f4f44"></path>
+            <path d="M93 38 L 147 38" stroke="#caa14b" stroke-width="4"></path>
+            <circle cx="138" cy="36" r="3" fill="#c4423a" stroke="none"></circle>
+            <circle cx="143" cy="34" r="3" fill="#c4423a" stroke="none"></circle>
+          </g>
+        </svg>
+        <div class="caption">Yasamal Park · Dec 18 — Jan 6</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== TICKER / BREADCRUMB ============== -->
+<div class="breadcrumb">
+  <div class="wrap">
+    <div class="breadcrumb-in">
+      <span>FestivKids <b>/ About</b></span>
+      <span class="sep"></span>
+      <span><b>4</b> seasons</span>
+      <span class="sep"></span>
+      <span><b>5</b> winters</span>
+      <span class="sep"></span>
+      <span><b>38,000+</b> visitors</span>
+      <span class="sep"></span>
+      <span><b>218</b> vendors</span>
+      <span class="sep"></span>
+      <span><b>3</b> cities</span>
+      <span class="sep"></span>
+      <span>last updated <b>May 12 '26</b></span>
+    </div>
+  </div>
+</div>
+
+<!-- ============== 01 · MISSION ============== -->
+<section class="mission">
+  <div class="wrap">
+    <div class="mission-grid">
+      <div>
+        <div class="marker"><span class="n">01</span>Mission</div>
+        <h2>Bring sellers<br/>and visitors<br/>into one <em>lively</em><br/>room.</h2>
+        <div class="mission-tags">
+          <span class="t">Hospitality</span>
+          <span class="t">Local craft</span>
+          <span class="t">Small business</span>
+          <span class="t">Seasonal</span>
+        </div>
+      </div>
+      <div class="body">
+        <p>FestivKids exists to bring sellers and visitors into one lively, hospitable room. Our mission is to celebrate local craft, support small businesses, and create unforgettable experiences for everyone who visits our seasonal fairs.</p>
+        <p>Each fair is a temporary village. Wooden houses arranged around a central square, vendors who know their craft by heart, kids' workshops on weekend mornings, and food that smells like the season we're in. Visitors can walk the map online before they arrive — so a Saturday afternoon never starts with "where is anything."</p>
+        <p>We work directly with the vendors. No middle layers, no opaque fees. If you make something good with your hands, we want a house with your name on it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 02 · HISTORY (TIMELINE) ============== -->
+<section class="history">
+  <div class="wrap">
+    <div class="history-head">
+      <div>
+        <div class="marker" style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--soft);text-transform:uppercase">
+          <span style="display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:0">02</span>
+          History
+        </div>
+        <h2>Five winters in.<br/>And we're <em>just</em> getting<br/>started.</h2>
+      </div>
+      <p class="lede">FestivKids started in 2020 with one fair in Baku and twelve vendors. The simple idea: traditional craft, modern marketplace. Here's how we got here.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-row">
+        <div class="tl"><span class="node"></span>
+          <div class="yr">2020</div>
+          <div class="title">First Winter Fair</div>
+          <div class="body">Yasamal Park, Baku. 12 vendors, 4 wooden houses, 1 month. Two team members. Hand-drawn floor plan taped to a clipboard.</div>
+        </div>
+        <div class="tl gold"><span class="node"></span>
+          <div class="yr">2022</div>
+          <div class="title">Spring Fair · Ganja</div>
+          <div class="body">First fair outside Baku. Added bilingual signage everywhere. Started recording each vendor on a real map so visitors could find them.</div>
+        </div>
+        <div class="tl green"><span class="node"></span>
+          <div class="yr">2023</div>
+          <div class="title">The online map</div>
+          <div class="body">Launched festivkids.az/map. Visitors could walk the fair before arriving. Vendor bookings opened a month earlier than ever before.</div>
+        </div>
+        <div class="tl"><span class="node"></span>
+          <div class="yr">2024</div>
+          <div class="title">Şəki Harvest Fair</div>
+          <div class="body">Third city. First autumn-only fair. Local dairies and bakeries set the tone — and quietly became some of our most-loved vendors.</div>
+        </div>
+        <div class="tl ink"><span class="node"></span>
+          <div class="yr">2026</div>
+          <div class="title">Foxie · AI guide</div>
+          <div class="body">Live now. Ask about workshops, vendors, opening hours — answers in EN today, AZ later this year. Still very much a beta.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 03 · TEAM ============== -->
+<section class="team">
+  <div class="wrap">
+    <div class="team-grid">
+      <div>
+        <div class="marker" style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--soft);text-transform:uppercase">
+          <span style="display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:0">03</span>
+          Team
+        </div>
+        <h2>A small team,<br/>a <em>big</em> rolodex of<br/>makers.</h2>
+        <p class="body">Eight of us run FestivKids full-time, year-round. The fair itself is built by hundreds of people — vendors, workshop leaders, local woodworkers who put the houses up every season, and a long roster of volunteers. Below: who you'll meet by email.</p>
+        <div class="team-stats">
+          <div class="team-stat"><div class="v">8</div><div class="l">Full-time</div></div>
+          <div class="team-stat"><div class="v">42</div><div class="l">Seasonal</div></div>
+          <div class="team-stat"><div class="v">160+</div><div class="l">Volunteers</div></div>
+        </div>
+      </div>
+      <div class="roster">
+        <div class="row">
+          <div class="av">A</div>
+          <div><b>Aysel Bayramova</b><span>Founder · Direction</span></div>
+          <div class="meta-r">Baku<br/>2020 →</div>
+        </div>
+        <div class="row green">
+          <div class="av">N</div>
+          <div><b>Nigar Aliyeva</b><span>Head of Vendors</span></div>
+          <div class="meta-r">Baku<br/>2021 →</div>
+        </div>
+        <div class="row gold">
+          <div class="av">R</div>
+          <div><b>Rashad Quliyev</b><span>Operations · Logistics</span></div>
+          <div class="meta-r">Ganja<br/>2022 →</div>
+        </div>
+        <div class="row sky">
+          <div class="av">İ</div>
+          <div><b>İlkin Hüseynov</b><span>Workshops · Programming</span></div>
+          <div class="meta-r">Şəki<br/>2024 →</div>
+        </div>
+        <div class="row">
+          <div class="av">L</div>
+          <div><b>Leyla Hasanova</b><span>Design · Foxie product</span></div>
+          <div class="meta-r">Baku<br/>2023 →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 04 · CONTACT (dark, with Donatello) ============== -->
+<section class="contact">
+  <div class="wrap">
+    <div class="contact-in">
+      <div>
+        <div class="marker" style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6)">
+          <span style="display:inline-flex;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--ink);align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:0">04</span>
+          Contact
+        </div>
+        <h2>Say <em>hello</em>.<br/>We read every line.</h2>
+        <p class="lede">Vendors, partners, parents with workshop ideas, journalists — all welcome. We answer in Azerbaijani or English, usually within two working days.</p>
+
+        <div class="contact-rows">
+          <a class="contact-row" href="tel:+994505005050">
+            <span class="icob">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            </span>
+            <div>
+              <span class="l">Phone</span>
+              <span class="v">+994 50 500 50 50</span>
+            </div>
+            <span class="arrow">↗</span>
+          </a>
+          <a class="contact-row" href="mailto:hello@festivkids.az">
+            <span class="icob">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            </span>
+            <div>
+              <span class="l">Email</span>
+              <span class="v">hello@festivkids.az</span>
+            </div>
+            <span class="arrow">↗</span>
+          </a>
+        </div>
+
+        <div class="social-row">
+          <span class="l">Social</span>
+          <a href="#" aria-label="Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.766 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Donatello plate -->
+      <div class="donatello" aria-hidden="true">
+        <span class="tag">Mascot · <b>Donatello</b></span>
+        <div class="donatello-img">
+          <img src="https://media.tenor.com/SP_n_2bgaO0AAAAi/donatello.gif" alt="" onerror="this.style.display='none';this.parentNode.style.background='repeating-linear-gradient(45deg,#3a6e80 0 14px,#2f5a6b 14px 28px)';this.parentNode.insertAdjacentHTML('beforeend','<span>/tmnt-donatello.gif</span>')"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 05 · UPCOMING EVENTS ============== -->
+<section class="upcoming">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="marker" style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--soft);text-transform:uppercase">
+          <span style="display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:0">05</span>
+          Upcoming
+        </div>
+        <h2>What's <em>next</em> on the calendar.</h2>
+      </div>
+      <div class="right">3 fairs · 2026 →</div>
+    </div>
+
+    <div class="fairs">
+      <article class="fair">
+        <div class="cover">
+          <span class="pill live badge"><span class="dot"></span>Live · ends in 7d</span>
+          <div class="city">Yasamal · Baku</div>
+        </div>
+        <div class="body">
+          <h3>Winter Fair 2026</h3>
+          <div class="when">Dec 18 → Jan 6</div>
+          <p class="desc">48 wooden houses, 62 vendors, two indoor workshop tents. Saturday toy-making sessions for ages 6+.</p>
+          <div class="row-foot">
+            <span class="where">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              Yasamal Park
+            </span>
+            <a href="#" class="btn sm ghost">View on map →</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="fair">
+        <div class="cover spring">
+          <span class="pill warn badge"><span class="dot"></span>Upcoming · Apr 4</span>
+          <div class="city">Heydar Aliyev · Ganja</div>
+        </div>
+        <div class="body">
+          <h3>Spring Fair · Ganja</h3>
+          <div class="when">Apr 4 → 19</div>
+          <p class="desc">Bahar yarmarkası — new season, new vendors. 32 houses planned, applications close Feb 28.</p>
+          <div class="row-foot">
+            <span class="where">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              Heydar Aliyev Park
+            </span>
+            <a href="#" class="btn sm ghost">Apply as vendor →</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="fair">
+        <div class="cover summer">
+          <span class="pill warn badge"><span class="dot"></span>Upcoming · Jun 7</span>
+          <div class="city">Old City · Baku</div>
+        </div>
+        <div class="body">
+          <h3>Night Bazaar · Baku</h3>
+          <div class="when">Jun 7 · one night</div>
+          <p class="desc">One night, 18 stalls in the Old City square, lanterns, live oud. Tickets free, RSVP from June 1.</p>
+          <div class="row-foot">
+            <span class="where">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              Old City Square
+            </span>
+            <a href="#" class="btn sm ghost">RSVP →</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 06 · PAST EVENTS ============== -->
+<section class="past">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="marker" style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--soft);text-transform:uppercase">
+          <span style="display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:0">06</span>
+          Archive
+        </div>
+        <h2>Past <em>fairs</em>. And the makers who showed up.</h2>
+      </div>
+      <div class="right">12 archived fairs · 2020 → 2025</div>
+    </div>
+
+    <div class="past-list">
+      <div class="past-card open">
+        <div class="past-head" onclick="this.parentNode.classList.toggle('open')">
+          <div class="past-yr">'25</div>
+          <div class="past-info">
+            <h3>Winter Fair · Baku 2025</h3>
+            <div class="meta">
+              <span>📅 Dec 19 '24 → Jan 6 '25</span>
+              <span>📍 Yasamal Park, Baku</span>
+              <span>visitors <b>9,400</b></span>
+            </div>
+          </div>
+          <div class="past-actions">
+            <div>
+              <div class="vc">54</div>
+              <span class="vc-l">Vendors</span>
+            </div>
+            <button class="past-expand" aria-label="Toggle">▼</button>
+          </div>
+        </div>
+        <div class="past-body">
+          <h4>Participating vendors</h4>
+          <div class="vendors-grid">
+            <div class="vendor"><div class="vlogo">S</div><div><b>Sweet Snowflakes</b><span>Bakery</span></div></div>
+            <div class="vendor"><div class="vlogo">Ş</div><div><b>Şəki Kərəyağı</b><span>Dairy</span></div></div>
+            <div class="vendor"><div class="vlogo">T</div><div><b>Tiny Forest Toys</b><span>Toys · Wood</span></div></div>
+            <div class="vendor"><div class="vlogo">K</div><div><b>Kərpic Studio</b><span>Ceramics</span></div></div>
+            <div class="vendor"><div class="vlogo">B</div><div><b>Baku Bread Co.</b><span>Bakery</span></div></div>
+            <div class="vendor"><div class="vlogo">G</div><div><b>Gülüm Soaps</b><span>Cosmetics</span></div></div>
+            <div class="vendor"><div class="vlogo">N</div><div><b>Naxçıvan Honey</b><span>Food</span></div></div>
+            <div class="vendor"><div class="vlogo">A</div><div><b>Atelye 14</b><span>Textiles</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="past-card">
+        <div class="past-head" onclick="this.parentNode.classList.toggle('open')">
+          <div class="past-yr">'24</div>
+          <div class="past-info">
+            <h3>Harvest Fair · Şəki 2024</h3>
+            <div class="meta">
+              <span>📅 Sep 12 → 26 '24</span>
+              <span>📍 Khan's Garden, Şəki</span>
+              <span>visitors <b>3,200</b></span>
+            </div>
+          </div>
+          <div class="past-actions">
+            <div>
+              <div class="vc">28</div>
+              <span class="vc-l">Vendors</span>
+            </div>
+            <button class="past-expand">▼</button>
+          </div>
+        </div>
+        <div class="past-body">
+          <h4>Participating vendors</h4>
+          <div class="vendors-grid">
+            <div class="vendor"><div class="vlogo">A</div><div><b>Anar's Apples</b><span>Produce</span></div></div>
+            <div class="vendor"><div class="vlogo">P</div><div><b>Pomegranate Press</b><span>Food</span></div></div>
+            <div class="vendor"><div class="vlogo">Ş</div><div><b>Şəki Halva House</b><span>Sweets</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="past-card">
+        <div class="past-head" onclick="this.parentNode.classList.toggle('open')">
+          <div class="past-yr">'24</div>
+          <div class="past-info">
+            <h3>Spring Fair · Ganja 2024</h3>
+            <div class="meta">
+              <span>📅 Apr 5 → 20 '24</span>
+              <span>📍 Heydar Aliyev Park, Ganja</span>
+              <span>visitors <b>4,800</b></span>
+            </div>
+          </div>
+          <div class="past-actions">
+            <div>
+              <div class="vc">31</div>
+              <span class="vc-l">Vendors</span>
+            </div>
+            <button class="past-expand">▼</button>
+          </div>
+        </div>
+        <div class="past-body">
+          <h4>Participating vendors</h4>
+          <div class="vendors-grid">
+            <div class="vendor"><div class="vlogo">N</div><div><b>Nar Bağı</b><span>Produce</span></div></div>
+            <div class="vendor"><div class="vlogo">G</div><div><b>Ganja Glass</b><span>Crafts</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="past-card">
+        <div class="past-head" onclick="this.parentNode.classList.toggle('open')">
+          <div class="past-yr">'23</div>
+          <div class="past-info">
+            <h3>Winter Fair · Baku 2023</h3>
+            <div class="meta">
+              <span>📅 Dec 18 '22 → Jan 5 '23</span>
+              <span>📍 Yasamal Park, Baku</span>
+              <span>visitors <b>7,100</b></span>
+            </div>
+          </div>
+          <div class="past-actions">
+            <div>
+              <div class="vc">42</div>
+              <span class="vc-l">Vendors</span>
+            </div>
+            <button class="past-expand">▼</button>
+          </div>
+        </div>
+        <div class="past-body">
+          <h4>Participating vendors</h4>
+          <div class="vendors-grid">
+            <div class="vendor"><div class="vlogo">S</div><div><b>Sweet Snowflakes</b><span>Bakery</span></div></div>
+            <div class="vendor"><div class="vlogo">T</div><div><b>Tiny Forest Toys</b><span>Toys</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FOOTER ============== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-in">
+      <span><b>FestivKids</b> · est. 2020 · Baku</span>
+      <span>festivkids.az / about</span>
+      <span>© 2026 · all rights reserved</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============== FLOATING FOXI MASCOT ============== -->
+<div class="foxi" id="foxi">
+  <div class="bubble" id="foxiBubble">
+    <span class="l">Foxie · AI</span>
+    Winter Fair opens in <b>7 days</b>. Want me to walk you to a vendor?
+  </div>
+  <svg class="fox" viewBox="0 0 100 110" id="foxiFox">
+    <g stroke="#161513" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+      <!-- shadow -->
+      <ellipse cx="50" cy="104" rx="32" ry="3" fill="#161513" opacity="0.15" stroke="none"></ellipse>
+      <!-- tail -->
+      <path d="M 78 80 C 92 72, 96 60, 88 50 C 82 56, 80 64, 78 72 Z" fill="#e8702a"></path>
+      <path d="M 88 50 C 92 54, 94 58, 92 62" fill="none" stroke="#fffaf0" stroke-width="1.5"></path>
+      <!-- body -->
+      <path d="M 22 90 C 22 70, 30 56, 50 56 C 70 56, 78 70, 78 90 Z" fill="#e8702a"></path>
+      <!-- belly -->
+      <path d="M 36 90 C 38 78, 44 72, 50 72 C 56 72, 62 78, 64 90 Z" fill="#fffaf0"></path>
+      <!-- head -->
+      <circle cx="50" cy="42" r="22" fill="#e8702a"></circle>
+      <!-- ears -->
+      <path d="M 32 30 L 28 16 L 42 26 Z" fill="#c4423a"></path>
+      <path d="M 68 30 L 72 16 L 58 26 Z" fill="#c4423a"></path>
+      <path d="M 32 28 L 32 22 L 38 25 Z" fill="#fffaf0" stroke="none"></path>
+      <path d="M 68 28 L 68 22 L 62 25 Z" fill="#fffaf0" stroke="none"></path>
+      <!-- snout -->
+      <path d="M 40 46 C 44 56, 56 56, 60 46 Z" fill="#fffaf0"></path>
+      <!-- eyes -->
+      <circle cx="42" cy="40" r="2.2" fill="#161513" stroke="none"></circle>
+      <circle cx="58" cy="40" r="2.2" fill="#161513" stroke="none"></circle>
+      <circle cx="42.6" cy="39.4" r="0.7" fill="#fff" stroke="none"></circle>
+      <circle cx="58.6" cy="39.4" r="0.7" fill="#fff" stroke="none"></circle>
+      <!-- nose -->
+      <ellipse cx="50" cy="48" rx="2.4" ry="1.8" fill="#161513" stroke="none"></ellipse>
+      <!-- mouth -->
+      <path d="M 50 50 L 50 52 M 50 52 C 47 54, 45 54, 44 52 M 50 52 C 53 54, 55 54, 56 52" fill="none"></path>
+      <!-- scarf -->
+      <path d="M 30 58 C 38 64, 62 64, 70 58 L 70 64 C 62 70, 38 70, 30 64 Z" fill="#c4423a"></path>
+    </g>
+  </svg>
+</div>
+
+<script>
+  // toggle past-event cards (already inline onclick, this just enables esc)
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.getElementById('foxiBubble').style.display = 'none';
+  });
+  // Foxi: cycle messages on click (per Word doc: pet counter / playful)
+  const msgs = [
+    `<span class="l">Foxie · AI</span>Winter Fair opens in <b>7 days</b>. Want me to walk you to a vendor?`,
+    `<span class="l">Foxie · AI</span>I've welcomed <b>38,000 families</b> over five winters. Glad you're here.`,
+    `<span class="l">Foxie · pet me</span>Pet count: <b id="petN">1</b>. Try clicking again — I dare you.`,
+    `<span class="l">Foxie · tip</span>The map page shows every vendor in real time. Highly recommend.`
+  ];
+  let pet = parseInt(localStorage.getItem('foxie-pet-count') || '0', 10);
+  let mi = 0;
+  document.getElementById('foxiFox').addEventListener('click', () => {
+    pet += 1;
+    localStorage.setItem('foxie-pet-count', pet);
+    mi = (mi + 1) % msgs.length;
+    const b = document.getElementById('foxiBubble');
+    b.style.display = 'block';
+    b.innerHTML = msgs[mi];
+    const n = document.getElementById('petN');
+    if (n) n.textContent = pet;
+  });
+</script>
+</body>
+</html>
