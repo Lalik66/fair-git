@@ -1,132 +1,193 @@
-/* Vendor Bookings - Fair Marketplace Design System */
+/* Vendor Bookings — Editorial restyle (Festivkids/About design language) */
+@import '../styles/admin-design-system.css';
+
 .vendor-bookings-container {
-  padding: 1.5rem;
-  max-width: 1200px;
+  padding: 36px;
+  max-width: 1180px;
   margin: 0 auto;
-  background: var(--color-background);
-  min-height: calc(100vh - 60px);
+  background: var(--fk-bg);
+  min-height: calc(100vh - 80px);
+  font-family: var(--fk-font-body);
+  color: var(--fk-ink);
 }
 
-.page-header {
+.vendor-bookings-container .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+  align-items: flex-end;
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
-.page-header h1 {
+.vendor-bookings-container .page-header h1 {
   margin: 0;
-  font-size: 1.75rem;
-  color: var(--color-text-primary);
+  font-family: var(--fk-font-display);
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--fk-ink);
+}
+
+.vendor-bookings-container .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: var(--fk-ink);
+  border: 1px solid var(--fk-rule);
+  border-radius: var(--fk-radius-lg);
+  padding: 10px 16px;
+  font-family: var(--fk-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--fk-transition-fast), box-shadow var(--fk-transition-fast), border-color var(--fk-transition-fast);
+}
+
+.vendor-bookings-container .btn-secondary:hover:not(:disabled) {
+  border-color: var(--fk-ink);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px -8px rgba(20, 18, 14, 0.3);
 }
 
 .loading-spinner {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 3rem;
-  color: var(--color-text-secondary);
-  font-size: 1.1rem;
+  padding: 48px;
+  color: var(--fk-soft);
+  font-family: var(--fk-font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .error-message {
-  background-color: rgba(245, 101, 101, 0.15);
-  color: var(--color-error);
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 1rem;
-  text-align: center;
+  background: var(--fk-accent-soft);
+  color: var(--fk-accent);
+  border: 1px solid var(--fk-accent);
+  padding: 12px 18px;
+  border-radius: var(--fk-radius-lg);
+  margin-bottom: 16px;
+  font-size: 14px;
 }
 
 .no-bookings {
   text-align: center;
-  padding: 3rem;
-  color: var(--color-text-secondary);
-  background-color: var(--color-white);
-  border-radius: 16px;
-  border: 2px solid var(--color-mint);
+  padding: 56px 24px;
+  color: var(--fk-soft);
+  background: var(--fk-paper);
+  border: 1px dashed var(--fk-rule);
+  border-radius: var(--fk-radius-xl);
 }
 
 .no-bookings p {
   margin: 0;
+  font-size: 15px;
+  color: var(--fk-ink-2);
 }
 
 .no-bookings .help-text {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--fk-soft);
 }
 
-/* Bookings Grid */
+/* Cards grid */
 .bookings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
 }
 
 .booking-card {
-  background-color: var(--color-white);
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(45, 55, 72, 0.06);
+  background: var(--fk-paper);
+  border: 1px solid var(--fk-rule);
+  border-radius: var(--fk-radius-xl);
+  box-shadow: var(--fk-shadow-sm);
   overflow: hidden;
-  border: 2px solid var(--color-mint);
-  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--fk-transition-fast), box-shadow var(--fk-transition-fast), border-color var(--fk-transition-fast);
 }
 
 .booking-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(45, 55, 72, 0.12);
+  box-shadow: var(--fk-shadow-md);
+  border-color: var(--fk-ink-2);
 }
 
 .booking-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
-  background-color: var(--color-background);
-  border-bottom: 1px solid var(--color-mint);
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--fk-rule);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent);
 }
 
 .fair-status {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  font-family: var(--fk-font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--fk-soft);
 }
 
 .booking-content {
-  padding: 1.25rem;
+  padding: 18px;
+  flex: 1;
 }
 
 .fair-name {
-  margin: 0 0 1rem 0;
-  font-size: 1.25rem;
-  color: var(--color-text-primary);
+  margin: 0 0 16px;
+  font-family: var(--fk-font-display);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--fk-ink);
 }
 
 .booking-details {
-  display: grid;
-  gap: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 1rem;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--fk-rule);
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
 .detail-row.full-width {
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
+  align-items: stretch;
 }
 
 .detail-label {
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
+  font-family: var(--fk-font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--fk-soft);
+  font-weight: 600;
   flex-shrink: 0;
 }
 
 .detail-value {
-  font-size: 0.95rem;
-  color: var(--color-text-primary);
+  font-family: var(--fk-font-body);
+  font-size: 14px;
+  color: var(--fk-ink);
   text-align: right;
 }
 
@@ -135,85 +196,137 @@
 }
 
 .house-number {
-  font-family: monospace;
+  font-family: var(--fk-font-mono);
   font-weight: 600;
-  font-size: 1rem;
-  color: var(--color-sky-blue);
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--fk-accent-2);
 }
 
 .price {
+  font-family: var(--fk-font-display);
   font-weight: 600;
-  color: var(--color-success);
+  font-size: 16px;
+  color: var(--fk-ink);
 }
 
 .booking-footer {
-  padding: 0.75rem 1.25rem;
-  background-color: var(--color-background);
-  border-top: 1px solid var(--color-mint);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--fk-rule);
+  background: var(--fk-bg);
 }
 
 .booked-date {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  font-family: var(--fk-font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--fk-soft);
 }
 
-/* Badges */
+.btn-360-tour {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--fk-radius-md);
+  font-family: var(--fk-font-body);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--fk-accent-soft);
+  color: var(--fk-accent);
+  border: 1px solid var(--fk-accent);
+  cursor: pointer;
+  transition: background var(--fk-transition-fast), color var(--fk-transition-fast);
+}
+
+.btn-360-tour:hover {
+  background: var(--fk-accent);
+  color: #fff;
+}
+
+.tour-icon {
+  font-size: 13px;
+}
+
+/* Status pills — repurpose .badge classes as Festivkids pills */
 .badge {
-  display: inline-block;
-  padding: 0.35rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--fk-rule);
+  border-radius: var(--fk-radius-full);
+  padding: 4px 10px;
+  font-family: var(--fk-font-body);
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: 1px;
+  background: #fff;
+  color: var(--fk-ink-2);
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fk-soft);
 }
 
 .badge-success {
-  background-color: rgba(72, 187, 120, 0.2);
-  color: var(--color-success);
+  background: #e3eee5;
+  border-color: #bcd6c0;
+  color: var(--fk-accent-2);
+}
+
+.badge-success::before {
+  background: var(--fk-accent-2);
 }
 
 .badge-danger {
-  background-color: rgba(245, 101, 101, 0.2);
-  color: var(--color-error);
+  background: var(--fk-accent-soft);
+  border-color: var(--fk-accent);
+  color: var(--fk-accent);
+}
+
+.badge-danger::before {
+  background: var(--fk-accent);
 }
 
 .badge-info {
-  background-color: rgba(6, 190, 225, 0.2);
-  color: var(--color-sky-blue);
+  background: var(--fk-sky-soft);
+  border-color: var(--fk-sky);
+  color: var(--fk-sky);
+}
+
+.badge-info::before {
+  background: var(--fk-sky);
 }
 
 .badge-secondary {
-  background-color: rgba(127, 205, 205, 0.2);
-  color: var(--color-text-secondary);
-}
-
-/* Button Styles - inherit from index.css, override if needed */
-.vendor-bookings-container .btn-secondary {
-  background-color: transparent;
-  color: var(--color-sky-blue);
-  border: 2px solid var(--color-sky-blue);
-  border-radius: 12px;
-}
-
-.vendor-bookings-container .btn-secondary:hover:not(:disabled) {
-  background-color: rgba(6, 190, 225, 0.1);
+  color: var(--fk-soft);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .vendor-bookings-container {
-    padding: 1rem;
+    padding: 20px 16px;
   }
 
-  .page-header {
+  .vendor-bookings-container .page-header {
     flex-direction: column;
-    gap: 1rem;
+    gap: 14px;
     align-items: flex-start;
   }
 
-  .page-header h1 {
-    font-size: 1.5rem;
+  .vendor-bookings-container .page-header h1 {
+    font-size: 28px;
   }
 
   .bookings-grid {
@@ -222,22 +335,30 @@
 
   .detail-row {
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 4px;
+    align-items: stretch;
   }
 
   .detail-value {
     text-align: left;
   }
+
+  .booking-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
 }
 
-/* Accessibility: Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .booking-card {
+  .booking-card,
+  .vendor-bookings-container .btn-secondary {
     transition: none;
   }
 
-  .booking-card:hover {
+  .booking-card:hover,
+  .vendor-bookings-container .btn-secondary:hover:not(:disabled) {
     transform: none;
-    box-shadow: 0 2px 8px rgba(45, 55, 72, 0.06);
+    box-shadow: var(--fk-shadow-sm);
   }
 }

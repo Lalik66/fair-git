@@ -199,35 +199,41 @@ const VendorDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
+  const closeNav = () => setNavOpen(false);
 
   return (
     <div className="vendor-layout">
-      <aside className="vendor-sidebar">
+      <aside className={`vendor-sidebar${navOpen ? ' is-open' : ''}`}>
         <div className="vendor-sidebar-header">
           <h2>Vendor Portal</h2>
-          <Link to="/" className="back-link">← Back to Home</Link>
+          <Link to="/" className="back-link" onClick={closeNav}>← Back to Home</Link>
         </div>
         <nav className="vendor-nav">
           <Link
             to="/vendor"
+            onClick={closeNav}
             className={`vendor-nav-link ${location.pathname === '/vendor' ? 'active' : ''}`}
           >
             Dashboard
           </Link>
           <Link
             to="/vendor/bookings"
+            onClick={closeNav}
             className={`vendor-nav-link ${location.pathname.includes('/vendor/bookings') ? 'active' : ''}`}
           >
             My Bookings
           </Link>
           <Link
             to="/vendor/applications"
+            onClick={closeNav}
             className={`vendor-nav-link ${location.pathname.includes('/vendor/applications') ? 'active' : ''}`}
           >
             My Applications
           </Link>
           <Link
             to="/vendor/profile"
+            onClick={closeNav}
             className={`vendor-nav-link ${location.pathname.includes('/vendor/profile') ? 'active' : ''}`}
           >
             My Profile
@@ -243,12 +249,35 @@ const VendorDashboard: React.FC = () => {
           </button>
         </div>
       </aside>
+      {navOpen && (
+        <div
+          className="vendor-sidebar-backdrop is-open"
+          onClick={closeNav}
+          aria-hidden="true"
+        />
+      )}
       <main className="vendor-main">
+        <div className="vendor-mobile-bar">
+          <button
+            type="button"
+            className="vendor-nav-toggle"
+            aria-label="Open navigation"
+            onClick={() => setNavOpen(true)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="4" y1="7" x2="20" y2="7" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="17" x2="20" y2="17" />
+            </svg>
+          </button>
+          <span className="brand">Vendor Portal</span>
+        </div>
         <Routes>
           <Route
             index
             element={
               <div className="vendor-dashboard-home">
+                <p className="eyebrow">Vendor Portal</p>
                 <h1>{t('vendor.dashboard', 'Vendor Dashboard')}</h1>
                 <p>Welcome back, {user?.firstName || user?.email}!</p>
                 <div className="dashboard-cards">
