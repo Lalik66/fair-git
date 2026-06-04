@@ -130,9 +130,27 @@ model VendorHouse {
   // Relations
   applications    Application[]
   bookings        Booking[]
+  clicks          VendorClick[]
 
   @@map("vendor_houses")
   @@index([isEnabled])
+}
+
+// Visitor analytics: one row per popup-open or directions-tap on a vendor
+// house marker. userId is nullable so anonymous foot traffic is captured too.
+model VendorClick {
+  id            String      @id @default(uuid())
+  vendorHouseId String      @map("vendor_house_id")
+  userId        String?     @map("user_id")
+  eventType     String      @map("event_type") // "popup_open" | "directions"
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  vendorHouse   VendorHouse @relation(fields: [vendorHouseId], references: [id], onDelete: Cascade)
+
+  @@map("vendor_clicks")
+  @@index([vendorHouseId, createdAt])
+  @@index([createdAt])
+  @@index([eventType, createdAt])
 }
 
 // Facilities table

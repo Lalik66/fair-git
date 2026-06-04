@@ -6,6 +6,7 @@ import { distance, point } from '@turf/turf';
 import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEmojiForType, getCategoryColor, getCategoryLabel, getCategoryEmoji } from '../../types/map';
 import type { FriendLocation } from '../../services/friendsService';
 import { getAvatarLetter, getAvatarColor, getAvatarAnimationDelay } from '../../utils/avatarHelpers';
+import { trackVendorClick } from '../../services/analyticsService';
 
 // Set Mapbox access token
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -219,6 +220,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
             data-lat="${escapeHtml(String(obj.latitude))}"
             data-lng="${escapeHtml(String(obj.longitude))}"
             data-name="${houseLabel}"
+            data-vendor-id="${escapeHtml(obj.id)}"
             aria-label="${directionsLabel}">
             <span aria-hidden="true">📍</span> ${directionsLabel}
           </button>`;
@@ -301,6 +303,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
             data-lat="${escapeHtml(String(obj.latitude))}"
             data-lng="${escapeHtml(String(obj.longitude))}"
             data-name="${escapeHtml(vendor?.companyName || obj.label)}"
+            data-vendor-id="${escapeHtml(obj.id)}"
             aria-label="${directionsLabel}">
             <span aria-hidden="true">📍</span> ${directionsLabel}
           </button>`;
@@ -380,6 +383,12 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       // Create popup
       const popup = new mapboxgl.Popup({ offset: 25, closeOnClick: false })
         .setHTML(createPopupContent(obj));
+
+      // Analytics: count popup opens on vendor houses only (facilities are
+      // not part of the vendor-engagement metric).
+      if (isVendorHouse) {
+        popup.on('open', () => trackVendorClick(obj.id, 'popup_open'));
+      }
 
       // Create marker
       const marker = new mapboxgl.Marker({ element: el })
@@ -552,6 +561,9 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         const lat = parseFloat(objectBtn.getAttribute('data-lat') || '');
         const lng = parseFloat(objectBtn.getAttribute('data-lng') || '');
         const name = objectBtn.getAttribute('data-name') || '';
+        // Vendor-only — facilities don't carry data-vendor-id and aren't counted.
+        const vendorId = objectBtn.getAttribute('data-vendor-id');
+        if (vendorId) trackVendorClick(vendorId, 'directions');
         if (!Number.isNaN(lat) && !Number.isNaN(lng)) onObjectDirections(lat, lng, name);
         return;
       }

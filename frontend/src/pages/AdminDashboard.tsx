@@ -9,6 +9,7 @@ import FairManagement from './FairManagement';
 import ApplicationReview from './ApplicationReview';
 import AboutUsEditor from './AboutUsEditor';
 import MapManagement from './MapManagement';
+import AnalyticsDashboard from './AnalyticsDashboard';
 import '../styles/admin-design-system.css';
 import './AdminDashboard.css';
 
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
       { path: '/admin/applications', label: 'Applications', icon: '\u2605' },
       { path: '/admin/fairs', label: 'Fairs', icon: '\u229E' },
       { path: '/admin/map', label: 'Map editor', icon: '\u2295' },
+      { path: '/admin/analytics', label: 'Analytics', icon: '\u25eb' },
     ],
   },
   {
@@ -135,6 +137,16 @@ const AdminHome: React.FC = () => {
             <div className="when">{t('adminDashboard.editAboutDesc')}</div>
           </div>
         </Link>
+
+        <Link to="/admin/analytics" className="fair-card" style={{ textDecoration: 'none' }}>
+          <div className="cover summer"></div>
+          <div className="body">
+            <h3>{t('admin.analytics', 'Vendor analytics')}</h3>
+            <div className="when">
+              {t('adminDashboard.analyticsDesc', 'Which houses get the most attention from visitors')}
+            </div>
+          </div>
+        </Link>
       </div>
     </>
   );
@@ -180,6 +192,7 @@ const AdminDashboard: React.FC = () => {
       'logs': t('admin.adminLogs', { defaultValue: 'Audit log' }),
       'about-us': t('admin.aboutUsEditor', { defaultValue: 'About page' }),
       'map': t('admin.mapManagement', { defaultValue: 'Map editor' }),
+      'analytics': t('admin.analytics', { defaultValue: 'Analytics' }),
     };
     const subPath = location.pathname.replace(/^\/admin\/?/, '').split('/')[0];
     return routeLabels[subPath] || 'Dashboard';
@@ -271,6 +284,7 @@ const AdminDashboard: React.FC = () => {
             <Route path="/applications" element={<ApplicationReview />} />
             <Route path="/about-us" element={<AboutUsEditor />} />
             <Route path="/map" element={<MapManagement />} />
+            <Route path="/analytics" element={<AnalyticsDashboard />} />
           </Routes>
         </div>
       </div>
