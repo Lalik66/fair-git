@@ -685,6 +685,23 @@ const resources = {
         dismiss: 'Dismiss',
       },
 
+      // Personal map pins (parking, picnic, etc.)
+      pin: {
+        car: {
+          title: 'My car',
+          save: 'Save my car',
+          routeBack: 'Back to my car',
+          clear: 'Clear saved car location',
+          saved: 'Car location saved',
+          cleared: 'Car location cleared',
+          needLocation: 'Enable location to save your car',
+          saveFailed: 'Could not save car location',
+          clearFailed: 'Could not clear car location',
+        },
+        picnic: { title: 'My picnic spot' },
+        generic: { title: 'My pin' },
+      },
+
       // Chat
       chat: {
         panelLabel: 'Chat with {{name}}',
@@ -1464,6 +1481,23 @@ const resources = {
         },
         staleWarning: "Dostunuzun məkanı {{minutes}} dəqiqə əvvəl yenilənib. Marşrut dəqiq olmaya bilər.",
         dismiss: 'Bağla',
+      },
+
+      // Şəxsi xəritə nişanları (parking, piknik, və s.)
+      pin: {
+        car: {
+          title: 'Maşınım',
+          save: 'Maşınımı yadda saxla',
+          routeBack: 'Maşınıma qayıt',
+          clear: 'Maşının yerini sil',
+          saved: 'Maşının yeri yadda saxlanıldı',
+          cleared: 'Maşının yeri silindi',
+          needLocation: 'Maşını yadda saxlamaq üçün məkanı aktivləşdirin',
+          saveFailed: 'Maşının yerini yadda saxlamaq mümkün olmadı',
+          clearFailed: 'Maşının yerini silmək mümkün olmadı',
+        },
+        picnic: { title: 'Piknik yerim' },
+        generic: { title: 'Nişanım' },
       },
 
       // Chat

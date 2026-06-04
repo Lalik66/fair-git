@@ -97,6 +97,7 @@ import aiRoutes from './routes/ai';
 import messagesRoutes, { setSocketIO } from './routes/messages';
 import reactionsRoutes, { setSocketIO as setReactionsSocketIO } from './routes/reactions';
 import analyticsRoutes from './routes/analytics';
+import pinsRoutes from './routes/pins';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -110,6 +111,7 @@ app.use('/api/friends/reactions', reactionsRoutes);
 app.use('/api/invite', inviteRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/pins', pinsRoutes);
 
 // Error handling middleware
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

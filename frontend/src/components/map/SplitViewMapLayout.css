@@ -1301,3 +1301,117 @@
     flex-direction: column;
   }
 }
+
+/* ========================================
+   Car-pin floating control ("Save my car" / "Back to my car")
+   ======================================== */
+
+.car-pin-control {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.car-pin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.car-pin-btn.primary {
+  background: linear-gradient(135deg, #0EA5E9, #0369A1);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+}
+
+.car-pin-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.45);
+}
+
+.car-pin-btn.primary:active {
+  transform: translateY(0);
+}
+
+.car-pin-btn.ghost {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  color: #475569;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+}
+
+.car-pin-btn.ghost:hover {
+  background: #fff;
+  color: #0F172A;
+}
+
+.pin-toast {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  z-index: 13;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+  animation: pin-toast-in 0.2s ease;
+}
+
+.pin-toast.success {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.pin-toast.error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+@keyframes pin-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* User-pin marker (rendered inside the Mapbox map) */
+.map-marker.user-pin-marker {
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+}
+
+@media (max-width: 768px) {
+  /* On mobile the friends-tab-btn-mobile is bottom-right too, so move the
+     car-pin control above it. */
+  .car-pin-control {
+    bottom: 210px;
+    right: 12px;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .car-pin-btn.primary {
+    padding: 9px 14px;
+    font-size: 0.85rem;
+  }
+  .pin-toast {
+    bottom: 270px;
+    right: 12px;
+    left: 12px;
+  }
+}

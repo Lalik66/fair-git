@@ -6,6 +6,7 @@ import { useMapInteraction } from '../../hooks/useMapInteraction';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
 import { useFriendsLocations } from '../../hooks/useFriendsLocations';
+import { useUserPins } from '../../hooks/useUserPins';
 import { useRouteToFriend } from '../../hooks/useRouteToFriend';
 import { getFollowing } from '../../services/friendsService';
 import { sendReaction } from '../../services/reactionsService';
@@ -96,6 +97,15 @@ const SplitViewMapLayout: React.FC = () => {
     isAuthenticated: !!user,
     isActive: true,
   });
+
+  // Personal map pins ("I parked my car here") — only for logged-in users.
+  const {
+    pins: userPins,
+    getPin,
+    savePin,
+    deletePin,
+  } = useUserPins({ isAuthenticated: !!user });
+  const [pinMessage, setPinMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Get map instance when MapPanel signals it's ready (reliable vs. arbitrary delay)
   const handleMapReady = useCallback((map: MapboxMap) => {
@@ -238,6 +248,49 @@ const SplitViewMapLayout: React.FC = () => {
     }
   }, [userLocation, fetchRouteToPoint]);
 
+  // "Save my car" — drops a personal pin at the user's current GPS position.
+  // Requires a location fix; if missing, trigger the GeolocateControl and the
+  // user can tap again once it activates.
+  const handleSaveCar = useCallback(async () => {
+    if (!user) return;
+    if (!userLocation) {
+      if (geolocateControl) geolocateControl.trigger();
+      setPinMessage({ type: 'error', text: t('pin.car.needLocation', 'Enable location to save your car') });
+      return;
+    }
+    try {
+      await savePin('car', userLocation.latitude, userLocation.longitude);
+      setPinMessage({ type: 'success', text: t('pin.car.saved', 'Car location saved') });
+    } catch {
+      setPinMessage({ type: 'error', text: t('pin.car.saveFailed', 'Could not save car location') });
+    }
+  }, [user, userLocation, geolocateControl, savePin, t]);
+
+  // "Back to my car" — reuses the vendor-house directions handler so the
+  // pending-fix flow and Mapbox layer cleanup stay in one place.
+  const handleRouteToCar = useCallback(() => {
+    const carPin = getPin('car');
+    if (!carPin) return;
+    handleObjectDirections(carPin.latitude, carPin.longitude, t('pin.car.title', 'My car'));
+  }, [getPin, handleObjectDirections, t]);
+
+  const handleClearCar = useCallback(async () => {
+    try {
+      await deletePin('car');
+      setPinMessage({ type: 'success', text: t('pin.car.cleared', 'Car location cleared') });
+    } catch {
+      setPinMessage({ type: 'error', text: t('pin.car.clearFailed', 'Could not clear car location') });
+    }
+  }, [deletePin, t]);
+
+  // Auto-dismiss pin feedback messages.
+  useEffect(() => {
+    if (!pinMessage) return;
+    const timeoutMs = pinMessage.type === 'success' ? 2000 : 3500;
+    const id = setTimeout(() => setPinMessage(null), timeoutMs);
+    return () => clearTimeout(id);
+  }, [pinMessage]);
+
   // Handle Send Reaction - opens the reaction picker
   const handleOpenReactionPicker = useCallback((friendId: string, friendName: string) => {
     setReactionPickerFriend({ id: friendId, name: friendName });
@@ -377,7 +430,48 @@ const SplitViewMapLayout: React.FC = () => {
           onObjectDirections={handleObjectDirections}
           onMapReady={handleMapReady}
           isPrivileged={isPrivileged}
+          userPins={userPins}
         />
+
+        {/* Personal car pin control — only visible to logged-in users.
+            States: no pin → "Save my car"; pin saved → "Back to my car" + clear. */}
+        {user && (
+          <div className="car-pin-control">
+            {getPin('car') ? (
+              <>
+                <button
+                  className="car-pin-btn primary"
+                  onClick={handleRouteToCar}
+                  title={t('pin.car.routeBack', 'Walk back to my car')}
+                >
+                  🚗 {t('pin.car.routeBack', 'Back to my car')}
+                </button>
+                <button
+                  className="car-pin-btn ghost"
+                  onClick={handleClearCar}
+                  title={t('pin.car.clear', 'Clear saved car location')}
+                  aria-label={t('pin.car.clear', 'Clear saved car location')}
+                >
+                  ✕
+                </button>
+              </>
+            ) : (
+              <button
+                className="car-pin-btn primary"
+                onClick={handleSaveCar}
+                title={t('pin.car.save', 'Save my car location')}
+              >
+                🚗 {t('pin.car.save', 'Save my car')}
+              </button>
+            )}
+          </div>
+        )}
+
+        {pinMessage && (
+          <div className={`pin-toast ${pinMessage.type}`} role="status">
+            {pinMessage.text}
+          </div>
+        )}
         <FoxMapPeek />
 
         {/* Screen reader announcement for route status */}

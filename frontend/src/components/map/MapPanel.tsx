@@ -5,6 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { distance, point } from '@turf/turf';
 import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEmojiForType, getCategoryColor, getCategoryLabel, getCategoryEmoji } from '../../types/map';
 import type { FriendLocation } from '../../services/friendsService';
+import type { UserPin } from '../../services/pinsService';
 import { getAvatarLetter, getAvatarColor, getAvatarAnimationDelay } from '../../utils/avatarHelpers';
 import { trackVendorClick } from '../../services/analyticsService';
 
@@ -55,6 +56,12 @@ interface MapPanelProps {
   selectionMode?: boolean;
   /** Called when a free house is picked in selectionMode. */
   onHouseSelect?: (houseId: string, houseNumber: string) => void;
+  /**
+   * Personal user pins ("I parked my car here"). Private to the current user;
+   * rendered as a distinct marker style so they read as "mine" vs. friends/
+   * vendors. Empty array (default) skips the layer entirely.
+   */
+  userPins?: UserPin[];
 }
 
 export interface MapPanelRef {
@@ -78,6 +85,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   isPrivileged = false,
   selectionMode = false,
   onHouseSelect,
+  userPins = [],
 }, ref) => {
   const { t } = useTranslation();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -87,6 +95,9 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
   // Separate ref for friend markers to manage them independently
   const friendMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  // Personal user pins ("my car") — kept in their own ref so the friend/
+  // vendor marker diffs don't touch them.
+  const userPinMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
 
   // Initialize map
   useEffect(() => {
@@ -545,6 +556,56 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       }
     });
   }, [friendLocations, createFriendPopupContent]);
+
+  // Personal user pins (e.g. "I parked my car here"). Diffed independently
+  // of friend/vendor markers so a pin update never rebuilds the whole map.
+  useEffect(() => {
+    if (!map.current) return;
+
+    const currentIds = new Set(userPins.map((p) => p.id));
+    const existingIds = new Set(userPinMarkersRef.current.keys());
+
+    // Remove markers that no longer exist (e.g. user cleared the pin).
+    existingIds.forEach((id) => {
+      if (!currentIds.has(id)) {
+        const marker = userPinMarkersRef.current.get(id);
+        if (marker) {
+          marker.remove();
+          userPinMarkersRef.current.delete(id);
+        }
+      }
+    });
+
+    // Add/update.
+    userPins.forEach((pin) => {
+      const emoji = pin.label === 'car' ? '🚗' : pin.label === 'picnic' ? '🧺' : '📍';
+      const existing = userPinMarkersRef.current.get(pin.id);
+      if (existing) {
+        existing.setLngLat([pin.longitude, pin.latitude]);
+        return;
+      }
+      const el = document.createElement('div');
+      el.className = 'map-marker user-pin-marker';
+      el.style.backgroundColor = '#0EA5E9'; // sky-500 — distinct from friend/vendor palette
+      el.innerHTML = `<span class="marker-icon">${emoji}</span>`;
+      el.title = pin.label;
+
+      const popupLabel = pin.label === 'car'
+        ? t('pin.car.title', 'My car')
+        : pin.label === 'picnic'
+          ? t('pin.picnic.title', 'My picnic spot')
+          : t('pin.generic.title', 'My pin');
+      const popup = new mapboxgl.Popup({ offset: 25, closeOnClick: true })
+        .setHTML(`<div class="marker-popup user-pin-popup"><h3>${emoji} ${escapeHtml(popupLabel)}</h3></div>`);
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([pin.longitude, pin.latitude])
+        .setPopup(popup)
+        .addTo(map.current!);
+
+      userPinMarkersRef.current.set(pin.id, marker);
+    });
+  }, [userPins, t]);
 
   // Event delegation for Get Directions and Send Reaction button clicks in friend popups
   useEffect(() => {

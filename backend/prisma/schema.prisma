@@ -43,8 +43,29 @@ model User {
   sentMessages        Message[] @relation("MessageSender")
   reactionsSent       Reaction[] @relation("ReactionSender")
   reactionsReceived   Reaction[] @relation("ReactionRecipient")
+  pins                UserPin[]
 
   @@map("users")
+}
+
+// Personal map bookmarks (e.g. "I parked my car here"). Private to the user;
+// never exposed to other accounts. Stored backend-side so the pin survives
+// device changes and clearing localStorage. Unique on (userId, label) so
+// "Save my car" overwrites the previous car location instead of stacking.
+model UserPin {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  label     String   // "car" today; future: "picnic", "stroller", ...
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, label])
+  @@map("user_pins")
+  @@index([userId])
 }
 
 // Vendor profiles table
