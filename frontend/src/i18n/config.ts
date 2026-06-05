@@ -658,6 +658,12 @@ const resources = {
           failed: 'Failed to create invite link',
           loginRequired: 'Please log in to invite friends',
         },
+        sharing: {
+          title: 'Share my live location',
+          onSubtitle: 'Friends who follow you can see your position in real time.',
+          offSubtitle: 'Your position is private. Friends can’t see you on the map until you turn this on.',
+          toggleFailed: 'Could not update sharing',
+        },
         tab: 'Friends',
       },
 
@@ -1455,6 +1461,12 @@ const resources = {
           shared: 'Dəvət paylaşıldı!',
           failed: 'Dəvət linki yaradılmadı',
           loginRequired: 'Dostları dəvət etmək üçün daxil olun',
+        },
+        sharing: {
+          title: 'Canlı məkanımı paylaş',
+          onSubtitle: 'Sizi izləyən dostlar yerinizi real vaxtda görür.',
+          offSubtitle: 'Yeriniz gizlidir. Bunu açmayınca dostlar sizi xəritədə görməyəcək.',
+          toggleFailed: 'Paylaşma yenilənmədi',
         },
         tab: 'Dostlar',
       },

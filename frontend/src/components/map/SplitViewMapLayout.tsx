@@ -5,9 +5,10 @@ import type { Map as MapboxMap, GeolocateControl } from 'mapbox-gl';
 import { useMapInteraction } from '../../hooks/useMapInteraction';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
-import { useFriendsLocations } from '../../hooks/useFriendsLocations';
+import { useFriendsLocationsLive } from '../../hooks/useFriendsLocationsLive';
 import { useUserPins } from '../../hooks/useUserPins';
 import { useRouteToFriend } from '../../hooks/useRouteToFriend';
+import { emitLiveLocation } from '../../services/locationSocketService';
 import { getFollowing } from '../../services/friendsService';
 import { sendReaction } from '../../services/reactionsService';
 import Sidebar from './Sidebar';
@@ -55,12 +56,16 @@ const SplitViewMapLayout: React.FC = () => {
   // visitors (anonymous or role 'user') see only the public story.
   const isPrivileged = user?.role === 'vendor' || user?.role === 'admin';
 
-  // Enable location tracking when user is authenticated and geolocateControl is ready
+  // Enable location tracking when user is authenticated and geolocateControl is ready.
+  // The REST write happens inside useLocationTracking; we also emit live on
+  // the socket so followers see updates in real time. The backend gates both
+  // paths on the per-user isSharingLocation flag, so opting out kills both.
   useLocationTracking({
     geolocateControl,
     isAuthenticated: !!user,
     onLocationSent: (lat, lng) => {
       setUserLocation({ latitude: lat, longitude: lng });
+      emitLiveLocation(lat, lng);
     },
   });
 
@@ -92,8 +97,10 @@ const SplitViewMapLayout: React.FC = () => {
     }
   }, [user]);
 
-  // Fetch friends' locations when user is authenticated
-  const { friendLocations, isLoading: friendLocationsLoading } = useFriendsLocations({
+  // Fetch friends' locations when user is authenticated. Live socket events
+  // are merged on top of the 30s REST poll; the poll is the source of truth
+  // for "who is my friend" and the socket adds sub-second freshness.
+  const { friendLocations, isLoading: friendLocationsLoading } = useFriendsLocationsLive({
     isAuthenticated: !!user,
     isActive: true,
   });

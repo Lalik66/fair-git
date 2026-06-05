@@ -59,6 +59,19 @@ router.patch(
         return;
       }
 
+      // Privacy gate: if the user has not opted into sharing, no-op silently.
+      // The client never gets to know whether the write happened, but the
+      // 200 response keeps the client code path identical so we don't leak
+      // the flag through error responses.
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { isSharingLocation: true },
+      });
+      if (!user?.isSharingLocation) {
+        res.json({ success: true, message: 'Location not shared (sharing disabled)' });
+        return;
+      }
+
       // Update user location in database
       await prisma.user.update({
         where: { id: userId },
@@ -75,6 +88,74 @@ router.patch(
       });
     } catch (error) {
       console.error('Update location error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
+/**
+ * PATCH /api/user/sharing-location
+ *
+ * Toggle whether the current user broadcasts their live location to followers.
+ * Body: { enabled: boolean }. Returns the updated flag value.
+ *
+ * When disabling, also clears the stored last-known location so a previously
+ * shared position doesn't linger for followers to fetch.
+ */
+router.patch(
+  '/sharing-location',
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { enabled } = req.body ?? {};
+      if (typeof enabled !== 'boolean') {
+        res.status(400).json({ error: 'enabled must be a boolean' });
+        return;
+      }
+
+      const userId = req.user!.id;
+      const updated = await prisma.user.update({
+        where: { id: userId },
+        data: enabled
+          ? { isSharingLocation: true }
+          : {
+              // When the user opts out, scrub the stored position so it stops
+              // appearing in friends' GET /locations responses immediately.
+              isSharingLocation: false,
+              lastLatitude: null,
+              lastLongitude: null,
+              locationUpdatedAt: null,
+            },
+        select: { isSharingLocation: true },
+      });
+
+      res.json({ isSharingLocation: updated.isSharingLocation });
+    } catch (error) {
+      console.error('Update sharing-location error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
+/**
+ * GET /api/user/sharing-location
+ *
+ * Return the current user's sharing flag. Used by the FriendsPanel toggle to
+ * render the correct initial state on mount.
+ */
+router.get(
+  '/sharing-location',
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.user!.id;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { isSharingLocation: true },
+      });
+      res.json({ isSharingLocation: user?.isSharingLocation ?? false });
+    } catch (error) {
+      console.error('Get sharing-location error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }

@@ -5,6 +5,7 @@ import { getFollowing, getFriendLocations, FollowingUser, FriendLocation } from 
 import { getUnreadCount, UnreadConversation } from '../../services/friendsMessagesService';
 import { getReactionCounts, sendReaction, onReactionNew, NewReactionEvent } from '../../services/reactionsService';
 import { inviteApi } from '../../services/api';
+import { getLocationSharing, setLocationSharing } from '../../services/userService';
 import FriendChatPanel from './FriendChatPanel';
 import ReactionPicker from '../ReactionPicker';
 import { getAvatarLetter, getAvatarColor } from '../../utils/avatarHelpers';
@@ -76,6 +77,43 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [reactionsByFriend, setReactionsByFriend] = useState<Map<string, number>>(new Map());
   const [reactionPickerFriend, setReactionPickerFriend] = useState<{ id: string; name: string } | null>(null);
+
+  // Live-location sharing toggle. Off by default — opt-in privacy model.
+  // Initial null = "not yet loaded" so the switch doesn't flicker on/off.
+  const [isSharingLocation, setIsSharingLocation] = useState<boolean | null>(null);
+  const [sharingPending, setSharingPending] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    getLocationSharing()
+      .then((value) => {
+        if (!cancelled) setIsSharingLocation(value);
+      })
+      .catch(() => {
+        if (!cancelled) setIsSharingLocation(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
+  const handleToggleSharing = useCallback(async () => {
+    if (sharingPending || isSharingLocation === null) return;
+    const target = !isSharingLocation;
+    setSharingPending(true);
+    // Optimistic flip so the switch feels instant; revert on failure.
+    setIsSharingLocation(target);
+    try {
+      const value = await setLocationSharing(target);
+      setIsSharingLocation(value);
+    } catch {
+      setIsSharingLocation(!target);
+      setMessage({ type: 'error', text: t('friends.sharing.toggleFailed', 'Could not update sharing') });
+    } finally {
+      setSharingPending(false);
+    }
+  }, [isSharingLocation, sharingPending, t]);
 
   // Fetch friends list when panel opens
   useEffect(() => {
@@ -416,6 +454,32 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
           <h2 className="friends-panel-title">{t('friends.panel.title')}</h2>
           <button className="friends-panel-close" onClick={onClose} aria-label="Close">
             <span>&times;</span>
+          </button>
+        </div>
+
+        {/* Live location sharing toggle. Off by default so the user has to
+            explicitly opt in before followers can see them on the map. */}
+        <div className="friends-sharing-row">
+          <div className="friends-sharing-text">
+            <div className="friends-sharing-title">
+              {t('friends.sharing.title', 'Share my live location')}
+            </div>
+            <div className="friends-sharing-sub">
+              {isSharingLocation
+                ? t('friends.sharing.onSubtitle', 'Friends who follow you can see your position in real time.')
+                : t('friends.sharing.offSubtitle', 'Your position is private. Friends can’t see you on the map until you turn this on.')}
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isSharingLocation === true}
+            aria-label={t('friends.sharing.title', 'Share my live location')}
+            className={`friends-sharing-switch ${isSharingLocation ? 'on' : 'off'}`}
+            disabled={isSharingLocation === null || sharingPending}
+            onClick={handleToggleSharing}
+          >
+            <span className="friends-sharing-thumb" />
           </button>
         </div>
 

@@ -74,6 +74,90 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
     socket.join(`user:${userId}`);
     console.log(`User ${userId} connected via WebSocket`);
 
+    // Locate everyone who follows this user and pre-join the senders into
+    // their followers' notification rooms. Cheaper than a per-event DB lookup
+    // on every location tick.
+    (async () => {
+      try {
+        const followers = await prisma.userFollow.findMany({
+          where: { followingId: userId },
+          select: { followerId: true },
+        });
+        // The sender broadcasts to room `followers-of:<their userId>`. Each
+        // follower joins that room on their own connection — see below.
+        const following = await prisma.userFollow.findMany({
+          where: { followerId: userId },
+          select: { followingId: true },
+        });
+        for (const f of following) {
+          socket.join(`followers-of:${f.followingId}`);
+        }
+        // Touch followers count for logging clarity — not used otherwise.
+        if (followers.length || following.length) {
+          // no-op: documented for future debugging
+        }
+      } catch (err) {
+        console.error('socket follow-room join error:', err);
+      }
+    })();
+
+    /**
+     * Live location broadcast.
+     * Client emits: { lat, lng }
+     * Server validates sharing flag, writes through to DB so the polling
+     * fallback keeps working, then fans out to followers.
+     */
+    socket.on('location:update', async (data: { lat: number; lng: number }) => {
+      try {
+        const { lat, lng } = data ?? {};
+        if (
+          typeof lat !== 'number' ||
+          typeof lng !== 'number' ||
+          !Number.isFinite(lat) || !Number.isFinite(lng) ||
+          lat < -90 || lat > 90 ||
+          lng < -180 || lng > 180
+        ) {
+          return;
+        }
+
+        // Privacy gate. We re-read on every tick so toggling off takes effect
+        // immediately without waiting for the socket to reconnect.
+        const sender = await prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            isSharingLocation: true,
+            firstName: true,
+            lastName: true,
+          },
+        });
+        if (!sender?.isSharingLocation) return;
+
+        const now = new Date();
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            lastLatitude: lat,
+            lastLongitude: lng,
+            locationUpdatedAt: now,
+          },
+        });
+
+        const firstName = sender.firstName || '';
+        const lastName = sender.lastName || '';
+        const name = `${firstName} ${lastName}`.trim() || 'Anonymous';
+
+        io.to(`followers-of:${userId}`).emit('friend:location', {
+          id: userId,
+          name,
+          lastLatitude: lat,
+          lastLongitude: lng,
+          locationUpdatedAt: now.toISOString(),
+        });
+      } catch (err) {
+        console.error('location:update error:', err);
+      }
+    });
+
     // Handle typing indicators
     socket.on('typing:start', async (data: { conversationId: string }) => {
       try {

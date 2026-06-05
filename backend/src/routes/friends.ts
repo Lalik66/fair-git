@@ -49,17 +49,22 @@ router.get(
               lastLongitude: true,
               locationUpdatedAt: true,
               isActive: true,
+              isSharingLocation: true,
             },
           },
         },
       });
 
-      // Filter and map to response format
+      // Filter and map to response format. The sharing-flag check is
+      // belt-and-suspenders: lastLatitude is already cleared on opt-out, but
+      // an explicit guard here protects against a stale row created before
+      // the privacy gate landed.
       const friendLocations: FriendLocation[] = followingWithLocations
         .filter((follow) => {
           const user = follow.following;
           return (
             user.isActive &&
+            user.isSharingLocation &&
             user.lastLatitude !== null &&
             user.lastLongitude !== null
           );

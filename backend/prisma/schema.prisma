@@ -27,6 +27,11 @@ model User {
   lastLatitude        Float?    @map("last_latitude")
   lastLongitude       Float?    @map("last_longitude")
   locationUpdatedAt   DateTime? @map("location_updated_at")
+  // Live-location sharing flag. Default true to preserve the original
+  // implicit-share behavior — a festival app is a "find each other" tool,
+  // so opt-out beats opt-in for the common case. Users who want privacy
+  // can disable it any time from the Friends panel toggle.
+  isSharingLocation   Boolean   @default(true) @map("is_sharing_location")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
