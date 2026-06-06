@@ -6,6 +6,7 @@ import { distance, point } from '@turf/turf';
 import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEmojiForType, getCategoryColor, getCategoryLabel, getCategoryEmoji } from '../../types/map';
 import type { FriendLocation } from '../../services/friendsService';
 import type { UserPin } from '../../services/pinsService';
+import type { MapZone } from '../../services/zonesService';
 import { getAvatarLetter, getAvatarColor, getAvatarAnimationDelay } from '../../utils/avatarHelpers';
 import { trackVendorClick } from '../../services/analyticsService';
 
@@ -62,6 +63,11 @@ interface MapPanelProps {
    * vendors. Empty array (default) skips the layer entirely.
    */
   userPins?: UserPin[];
+  /**
+   * Map zones (polygon overlays — food court, kids zone, VIP, …). Rendered
+   * as translucent fill + outline layers underneath all DOM markers.
+   */
+  zones?: MapZone[];
 }
 
 export interface MapPanelRef {
@@ -86,8 +92,9 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   selectionMode = false,
   onHouseSelect,
   userPins = [],
+  zones = [],
 }, ref) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -606,6 +613,143 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       userPinMarkersRef.current.set(pin.id, marker);
     });
   }, [userPins, t]);
+
+  // Zone overlay (polygon fills + outlines). One GeoJSON source + two layers.
+  // Layers are added once and the source data is updated when zones change —
+  // cheaper than tearing them down on every re-render. Mapbox DOM markers
+  // (vendor houses, friends, car pin) render above all style layers by
+  // virtue of being in the DOM, so this overlay never hides them.
+  useEffect(() => {
+    if (!map.current) return;
+
+    const ZONE_SRC = 'fair-zones-src';
+    const FILL_LAYER = 'fair-zones-fill';
+    const LINE_LAYER = 'fair-zones-line';
+
+    const buildFeatures = () => ({
+      type: 'FeatureCollection' as const,
+      features: zones
+        .map((z) => {
+          try {
+            const geom = JSON.parse(z.geometry);
+            return {
+              type: 'Feature' as const,
+              id: z.id,
+              properties: {
+                id: z.id,
+                name: z.name,
+                type: z.type,
+                color: z.color,
+                opacity: z.opacity,
+                descriptionAz: z.descriptionAz || '',
+                descriptionEn: z.descriptionEn || '',
+              },
+              geometry: geom,
+            };
+          } catch {
+            return null;
+          }
+        })
+        .filter((f): f is NonNullable<typeof f> => f !== null),
+    });
+
+    const applyZones = () => {
+      const m = map.current;
+      if (!m) return;
+      const data = buildFeatures();
+      const existing = m.getSource(ZONE_SRC) as mapboxgl.GeoJSONSource | undefined;
+      if (existing) {
+        existing.setData(data as never);
+        return;
+      }
+      m.addSource(ZONE_SRC, { type: 'geojson', data: data as never });
+      m.addLayer({
+        id: FILL_LAYER,
+        type: 'fill',
+        source: ZONE_SRC,
+        paint: {
+          'fill-color': ['get', 'color'],
+          'fill-opacity': ['get', 'opacity'],
+        },
+      });
+      m.addLayer({
+        id: LINE_LAYER,
+        type: 'line',
+        source: ZONE_SRC,
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 2,
+          'line-opacity': 0.85,
+        },
+      });
+    };
+
+    if (map.current.isStyleLoaded()) {
+      applyZones();
+    } else {
+      map.current.once('load', applyZones);
+    }
+  }, [zones]);
+
+  // Zone popups — open on click of the fill layer. Created lazily so we
+  // never attach handlers before the layer exists.
+  useEffect(() => {
+    if (!map.current) return;
+    const m = map.current;
+    const FILL_LAYER = 'fair-zones-fill';
+
+    const handleZoneClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
+      const f = e.features?.[0];
+      if (!f) return;
+      const props = f.properties as {
+        name?: string;
+        type?: string;
+        color?: string;
+        descriptionAz?: string;
+        descriptionEn?: string;
+      } | null;
+      if (!props) return;
+      const lang = (i18n.language || 'en').toLowerCase().startsWith('az') ? 'az' : 'en';
+      const description = lang === 'az' ? props.descriptionAz : props.descriptionEn;
+      const html = `
+        <div class="marker-popup zone-popup" style="border-left:4px solid ${escapeHtml(props.color || '#6B7280')};padding-left:10px;">
+          <h3 style="margin:0 0 6px 0;">${escapeHtml(props.name || '')}</h3>
+          ${description ? `<p style="margin:0;color:#475569;font-size:0.9rem;">${escapeHtml(description)}</p>` : ''}
+        </div>`;
+      new mapboxgl.Popup({ offset: 8, closeOnClick: true })
+        .setLngLat(e.lngLat)
+        .setHTML(html)
+        .addTo(m);
+    };
+
+    const handleEnter = () => {
+      m.getCanvas().style.cursor = 'pointer';
+    };
+    const handleLeave = () => {
+      m.getCanvas().style.cursor = '';
+    };
+
+    const wire = () => {
+      if (!m.getLayer(FILL_LAYER)) return;
+      m.on('click', FILL_LAYER, handleZoneClick);
+      m.on('mouseenter', FILL_LAYER, handleEnter);
+      m.on('mouseleave', FILL_LAYER, handleLeave);
+    };
+
+    // Run after layers exist. The zone-render effect above also runs on the
+    // 'load' event, so by the next microtask we're safe.
+    if (m.isStyleLoaded()) {
+      wire();
+    } else {
+      m.once('load', wire);
+    }
+
+    return () => {
+      m.off('click', FILL_LAYER, handleZoneClick);
+      m.off('mouseenter', FILL_LAYER, handleEnter);
+      m.off('mouseleave', FILL_LAYER, handleLeave);
+    };
+  }, [i18n.language]);
 
   // Event delegation for Get Directions and Send Reaction button clicks in friend popups
   useEffect(() => {

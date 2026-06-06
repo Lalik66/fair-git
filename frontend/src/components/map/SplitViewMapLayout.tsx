@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
 import { useFriendsLocationsLive } from '../../hooks/useFriendsLocationsLive';
 import { useUserPins } from '../../hooks/useUserPins';
+import { getZones, MapZone } from '../../services/zonesService';
 import { useRouteToFriend } from '../../hooks/useRouteToFriend';
 import { emitLiveLocation } from '../../services/locationSocketService';
 import { getFollowing } from '../../services/friendsService';
@@ -114,6 +115,10 @@ const SplitViewMapLayout: React.FC = () => {
   } = useUserPins({ isAuthenticated: !!user });
   const [pinMessage, setPinMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Polygon zones for the currently selected fair. Public endpoint so this
+  // works for anonymous visitors. Refetches when the fair selection changes.
+  const [zones, setZones] = useState<MapZone[]>([]);
+
   // Get map instance when MapPanel signals it's ready (reliable vs. arbitrary delay)
   const handleMapReady = useCallback((map: MapboxMap) => {
     setMapInstance(map);
@@ -181,6 +186,26 @@ const SplitViewMapLayout: React.FC = () => {
       });
     }
   }, [selectedFairId, setSearchParams]);
+
+  // Fetch polygon zones for the active fair. Anonymous-safe (public endpoint).
+  // Empty state when no fair is selected so we don't leak zones across fairs.
+  useEffect(() => {
+    let cancelled = false;
+    if (!selectedFairId) {
+      setZones([]);
+      return;
+    }
+    getZones(selectedFairId)
+      .then((list) => {
+        if (!cancelled) setZones(list);
+      })
+      .catch(() => {
+        if (!cancelled) setZones([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedFairId]);
 
   // Listen for panorama open events from popup buttons
   useEffect(() => {
@@ -438,6 +463,7 @@ const SplitViewMapLayout: React.FC = () => {
           onMapReady={handleMapReady}
           isPrivileged={isPrivileged}
           userPins={userPins}
+          zones={zones}
         />
 
         {/* Personal car pin control — only visible to logged-in users.

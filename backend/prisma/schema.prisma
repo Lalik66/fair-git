@@ -127,10 +127,36 @@ model Fair {
   // Relations
   applications    Application[]
   bookings        Booking[]
+  zones           MapZone[]
 
   @@map("fairs")
   @@index([status])
   @@index([status, startDate])
+}
+
+// Tappable, colored regions on the fair map ("food court", "kids zone", "VIP").
+// Scoped to a fair so different fairs in different venues each get their own
+// layout. Geometry is stored as a JSON-stringified GeoJSON Polygon because
+// SQLite has no native JSON type; we parse on read.
+model MapZone {
+  id            String   @id @default(uuid())
+  fairId        String   @map("fair_id")
+  name          String
+  type          String   // food | kids | vip | craft | stage | info | other
+  color         String   // hex, e.g. "#F59E0B"
+  opacity       Float    @default(0.30)
+  descriptionAz String?  @map("description_az")
+  descriptionEn String?  @map("description_en")
+  // Stringified GeoJSON Polygon: { type: "Polygon", coordinates: [[[lng,lat], ...]] }
+  geometry      String
+  isVisible     Boolean  @default(true) @map("is_visible")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  fair          Fair     @relation(fields: [fairId], references: [id], onDelete: Cascade)
+
+  @@map("map_zones")
+  @@index([fairId, isVisible])
 }
 
 // Vendor houses table

@@ -12,8 +12,10 @@
     "lint:fix": "eslint src --ext ts,tsx --fix"
   },
   "dependencies": {
+    "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@photo-sphere-viewer/core": "^5.7.1",
     "@turf/turf": "^7.3.4",
+    "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "axios": "^1.6.2",
     "i18next": "^23.7.11",
     "jspdf": "^4.0.0",

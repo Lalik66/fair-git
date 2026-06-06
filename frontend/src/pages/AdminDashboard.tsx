@@ -10,6 +10,7 @@ import ApplicationReview from './ApplicationReview';
 import AboutUsEditor from './AboutUsEditor';
 import MapManagement from './MapManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import ZoneManagement from './ZoneManagement';
 import '../styles/admin-design-system.css';
 import './AdminDashboard.css';
 
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
       { path: '/admin/applications', label: 'Applications', icon: '\u2605' },
       { path: '/admin/fairs', label: 'Fairs', icon: '\u229E' },
       { path: '/admin/map', label: 'Map editor', icon: '\u2295' },
+      { path: '/admin/zones', label: 'Zones', icon: '\u25ca' },
       { path: '/admin/analytics', label: 'Analytics', icon: '\u25eb' },
     ],
   },
@@ -147,6 +149,16 @@ const AdminHome: React.FC = () => {
             </div>
           </div>
         </Link>
+
+        <Link to="/admin/zones" className="fair-card" style={{ textDecoration: 'none' }}>
+          <div className="cover autumn"></div>
+          <div className="body">
+            <h3>{t('admin.zones', 'Map zones')}</h3>
+            <div className="when">
+              {t('adminDashboard.zonesDesc', 'Outline food courts, kids zones, VIP areas on the visitor map')}
+            </div>
+          </div>
+        </Link>
       </div>
     </>
   );
@@ -192,6 +204,7 @@ const AdminDashboard: React.FC = () => {
       'logs': t('admin.adminLogs', { defaultValue: 'Audit log' }),
       'about-us': t('admin.aboutUsEditor', { defaultValue: 'About page' }),
       'map': t('admin.mapManagement', { defaultValue: 'Map editor' }),
+      'zones': t('admin.zones', { defaultValue: 'Zones' }),
       'analytics': t('admin.analytics', { defaultValue: 'Analytics' }),
     };
     const subPath = location.pathname.replace(/^\/admin\/?/, '').split('/')[0];
@@ -284,6 +297,7 @@ const AdminDashboard: React.FC = () => {
             <Route path="/applications" element={<ApplicationReview />} />
             <Route path="/about-us" element={<AboutUsEditor />} />
             <Route path="/map" element={<MapManagement />} />
+            <Route path="/zones" element={<ZoneManagement />} />
             <Route path="/analytics" element={<AnalyticsDashboard />} />
           </Routes>
         </div>
