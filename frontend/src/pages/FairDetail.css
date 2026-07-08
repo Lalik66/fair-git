@@ -1,0 +1,316 @@
+.fair-detail {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+.fair-detail-back {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #5b6473);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.fair-detail-back:hover {
+  color: var(--color-coral);
+}
+
+.fair-detail-hero {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-color: #2a2a2a;
+  min-height: 360px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.fair-detail-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0.55) 70%,
+    rgba(255, 209, 102, 0.18) 100%
+  );
+}
+
+.fair-detail-hero-content {
+  position: relative;
+  padding: 32px 36px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.fair-detail-badge {
+  align-self: flex-start;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.fair-detail-badge.active {
+  color: var(--color-coral);
+}
+
+.fair-detail-badge.upcoming {
+  color: #8a6a14;
+}
+
+.fair-detail-badge.archived,
+.fair-detail-badge.completed {
+  color: #5b6473;
+}
+
+.fair-detail-title {
+  font-family: var(--font-headings);
+  font-size: 3rem;
+  line-height: 1.05;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+}
+
+.fair-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  padding: 28px 8px;
+  border-bottom: 1px solid rgba(127, 205, 205, 0.35);
+  margin-top: 16px;
+}
+
+.fair-detail-meta-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.fair-detail-meta-icon {
+  font-size: 1.2rem;
+  color: var(--color-coral);
+  line-height: 1.4;
+}
+
+.fair-detail-meta-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary, #5b6473);
+  margin-bottom: 2px;
+}
+
+.fair-detail-meta-value {
+  font-family: var(--font-headings);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.fair-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 24px 0;
+}
+
+.fair-detail-body {
+  max-width: 720px;
+  margin: 16px 0 0;
+}
+
+.fair-detail-section-title {
+  font-family: var(--font-headings);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 12px;
+}
+
+.fair-detail-description {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* Archive sections: gallery, video, participating vendors. */
+.fair-detail-section {
+  margin: 32px 0 0;
+}
+
+.fair-detail-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.fair-detail-gallery-item {
+  display: block;
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--color-background, #f7f4ed);
+}
+
+.fair-detail-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.fair-detail-gallery-item:hover img {
+  transform: scale(1.04);
+}
+
+.fair-detail-video {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  max-width: 820px;
+}
+
+.fair-detail-video video {
+  width: 100%;
+  display: block;
+  max-height: 460px;
+}
+
+.fair-detail-vendors {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.fair-detail-vendor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(127, 205, 205, 0.4);
+  border-radius: 14px;
+  background: var(--color-white, #fff);
+}
+
+.fair-detail-vendor-logo,
+.fair-detail-vendor-logo-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.fair-detail-vendor-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-coral);
+  color: #fff;
+  font-family: var(--font-headings);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.fair-detail-vendor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fair-detail-vendor-info b {
+  font-family: var(--font-headings);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fair-detail-vendor-info span {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #5b6473);
+}
+
+.fair-detail-state {
+  max-width: 600px;
+  margin: 80px auto;
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.fair-detail-state h2 {
+  font-family: var(--font-headings);
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.fair-detail-state p {
+  color: var(--color-text-secondary, #5b6473);
+  margin: 0 0 8px;
+}
+
+.fair-detail-spinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid rgba(127, 205, 205, 0.3);
+  border-top-color: var(--color-coral);
+  animation: fairDetailSpin 0.8s linear infinite;
+}
+
+@keyframes fairDetailSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .fair-detail-hero {
+    min-height: 220px;
+    border-radius: 18px;
+  }
+
+  .fair-detail-hero-content {
+    padding: 20px 22px;
+  }
+
+  .fair-detail-title {
+    font-size: 2rem;
+  }
+
+  .fair-detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fair-detail-actions .event-card-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fair-detail-spinner {
+    animation: none;
+  }
+}

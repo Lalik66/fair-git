@@ -150,6 +150,8 @@ export const adminApi = {
     mapCenterLat?: number;
     mapCenterLng?: number;
     bannerImageUrl?: string;
+    gallery?: string[];
+    archiveVideoUrl?: string;
     status?: string;
   }) => {
     const response = await api.post('/admin/fairs', data);
@@ -166,6 +168,8 @@ export const adminApi = {
     mapCenterLat?: number;
     mapCenterLng?: number;
     bannerImageUrl?: string;
+    gallery?: string[];
+    archiveVideoUrl?: string;
     status?: string;
   }) => {
     const response = await api.put(`/admin/fairs/${fairId}`, data);
@@ -494,6 +498,11 @@ export const publicApi = {
 
   getFairs: async () => {
     const response = await api.get('/public/fairs');
+    return response.data;
+  },
+
+  getPublicFair: async (fairId: string) => {
+    const response = await api.get(`/public/fairs/${fairId}`);
     return response.data;
   },
 

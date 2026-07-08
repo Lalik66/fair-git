@@ -119,6 +119,10 @@ model Fair {
   mapCenterLat    Float?    @map("map_center_lat")
   mapCenterLng    Float?    @map("map_center_lng")
   bannerImageUrl  String?   @map("banner_image_url")
+  // Archive media. galleryUrls is a JSON-stringified String array of image URLs
+  // (SQLite has no native JSON type; parsed on read); archiveVideoUrl is one optional video URL.
+  galleryUrls     String?   @map("gallery_urls")
+  archiveVideoUrl String?   @map("archive_video_url")
   status          String    @default("upcoming") // upcoming, active, completed, archived
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")

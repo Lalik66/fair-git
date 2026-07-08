@@ -17,6 +17,18 @@ import { panoramaUpload, getUploadedFileUrl, isCloudinaryConfigured } from '../m
 
 const router = Router();
 
+// Serialize a gallery image-URL array into the JSON string stored on Fair.galleryUrls
+// (SQLite has no native JSON type). Accepts an array from the client; anything
+// else (missing/invalid) yields null. Empty/blank entries are dropped.
+function serializeGallery(gallery: unknown): string | null {
+  if (!Array.isArray(gallery)) return null;
+  const cleaned = gallery
+    .filter((u): u is string => typeof u === 'string')
+    .map((u) => u.trim())
+    .filter((u) => u.length > 0);
+  return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+}
+
 // All admin routes require authentication and admin role
 router.use(authenticateToken);
 router.use(requireAdmin);
@@ -1152,6 +1164,8 @@ router.post('/fairs', async (req: Request, res: Response): Promise<void> => {
       mapCenterLat,
       mapCenterLng,
       bannerImageUrl,
+      gallery,
+      archiveVideoUrl,
       status,
     } = req.body;
 
@@ -1196,6 +1210,8 @@ router.post('/fairs', async (req: Request, res: Response): Promise<void> => {
         mapCenterLat: mapCenterLat ? parseFloat(mapCenterLat) : null,
         mapCenterLng: mapCenterLng ? parseFloat(mapCenterLng) : null,
         bannerImageUrl: bannerImageUrl || null,
+        galleryUrls: serializeGallery(gallery),
+        archiveVideoUrl: archiveVideoUrl || null,
         status: status || 'upcoming',
       },
     });
@@ -1231,6 +1247,8 @@ router.put('/fairs/:fairId', async (req: Request, res: Response): Promise<void> 
       mapCenterLat,
       mapCenterLng,
       bannerImageUrl,
+      gallery,
+      archiveVideoUrl,
       status,
     } = req.body;
 
@@ -1294,6 +1312,8 @@ router.put('/fairs/:fairId', async (req: Request, res: Response): Promise<void> 
         mapCenterLat: mapCenterLat !== undefined ? (mapCenterLat ? parseFloat(mapCenterLat) : null) : existingFair.mapCenterLat,
         mapCenterLng: mapCenterLng !== undefined ? (mapCenterLng ? parseFloat(mapCenterLng) : null) : existingFair.mapCenterLng,
         bannerImageUrl: bannerImageUrl !== undefined ? bannerImageUrl : existingFair.bannerImageUrl,
+        galleryUrls: gallery !== undefined ? serializeGallery(gallery) : existingFair.galleryUrls,
+        archiveVideoUrl: archiveVideoUrl !== undefined ? (archiveVideoUrl || null) : existingFair.archiveVideoUrl,
         status: status || existingFair.status,
       },
     });

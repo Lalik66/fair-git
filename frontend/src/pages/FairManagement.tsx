@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminApi } from '../services/api';
 import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning';
+import { useAdminSearchQuery, matchesQuery } from '../hooks/useAdminSearch';
 import './FairManagement.css';
 
 interface Fair {
@@ -15,6 +16,8 @@ interface Fair {
   mapCenterLat: number | null;
   mapCenterLng: number | null;
   bannerImageUrl: string | null;
+  galleryUrls: string | null;
+  archiveVideoUrl: string | null;
   status: string;
   archivedAt: string | null;
   createdAt: string;
@@ -69,6 +72,11 @@ interface FairFormData {
   mapCenterLat: string;
   mapCenterLng: string;
   bannerImageUrl: string;
+  galleryUrl1: string;
+  galleryUrl2: string;
+  galleryUrl3: string;
+  galleryUrl4: string;
+  archiveVideoUrl: string;
   status: string;
 }
 
@@ -89,6 +97,11 @@ const initialFormData: FairFormData = {
   mapCenterLat: '',
   mapCenterLng: '',
   bannerImageUrl: '',
+  galleryUrl1: '',
+  galleryUrl2: '',
+  galleryUrl3: '',
+  galleryUrl4: '',
+  archiveVideoUrl: '',
   status: 'upcoming',
 };
 
@@ -98,10 +111,39 @@ const getTodayDateString = (): string => {
   return today.toISOString().split('T')[0];
 };
 
+// Fair.galleryUrls arrives from the API as a JSON-stringified array of image URLs.
+// Parse defensively into a clean string[] for the (up to 4) edit-form inputs.
+const parseGalleryUrls = (raw: string | null): string[] => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((u): u is string => typeof u === 'string') : [];
+  } catch {
+    return [];
+  }
+};
+
+// Collect the 4 gallery-URL inputs into a trimmed, non-empty array for the API.
+const collectGallery = (data: FairFormData): string[] =>
+  [data.galleryUrl1, data.galleryUrl2, data.galleryUrl3, data.galleryUrl4]
+    .map((u) => u.trim())
+    .filter((u) => u.length > 0);
+
 const FairManagement: React.FC = () => {
   const { t } = useTranslation();
   const [fairs, setFairs] = useState<Fair[]>([]);
   const [pastFairs, setPastFairs] = useState<Fair[]>([]);
+  const searchQuery = useAdminSearchQuery();
+  const fairMatches = useCallback(
+    (f: Fair) =>
+      matchesQuery(f.name, searchQuery) ||
+      matchesQuery(f.locationAddress, searchQuery) ||
+      matchesQuery(f.descriptionEn, searchQuery) ||
+      matchesQuery(f.descriptionAz, searchQuery),
+    [searchQuery]
+  );
+  const visibleFairs = useMemo(() => fairs.filter(fairMatches), [fairs, fairMatches]);
+  const visiblePastFairs = useMemo(() => pastFairs.filter(fairMatches), [pastFairs, fairMatches]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -149,7 +191,7 @@ const FairManagement: React.FC = () => {
       setFairs(activeFairs);
       setError(null);
     } catch (err) {
-      setError('Failed to load fairs');
+      setError(t('fairAdmin.loadFailed'));
       console.error('Error fetching fairs:', err);
     } finally {
       setLoading(false);
@@ -173,7 +215,7 @@ const FairManagement: React.FC = () => {
       setShowDetailsModal(true);
     } catch (err) {
       console.error('Error fetching fair details:', err);
-      setError('Failed to load fair details');
+      setError(t('fairAdmin.loadDetailsFailed'));
     } finally {
       setLoadingDetails(false);
     }
@@ -185,7 +227,7 @@ const FairManagement: React.FC = () => {
   };
 
   const handleArchiveFairs = async () => {
-    if (!window.confirm('This will archive all fairs that ended more than 30 days ago. Continue?')) {
+    if (!window.confirm(t('fairAdmin.archiveConfirm'))) {
       return;
     }
 
@@ -194,9 +236,9 @@ const FairManagement: React.FC = () => {
       const result = await adminApi.archiveFairs();
 
       if (result.archivedCount > 0) {
-        setSuccessMessage(`Successfully archived ${result.archivedCount} fair(s)!`);
+        setSuccessMessage(t('fairAdmin.archivedCount', { count: result.archivedCount }));
       } else {
-        setSuccessMessage('No fairs needed to be archived.');
+        setSuccessMessage(t('fairAdmin.noneToArchive'));
       }
 
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -205,7 +247,7 @@ const FairManagement: React.FC = () => {
       fetchFairs();
       fetchPastFairs();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to archive fairs');
+      setError(err.response?.data?.error || t('fairAdmin.archiveFailed'));
     } finally {
       setArchiving(false);
     }
@@ -229,6 +271,7 @@ const FairManagement: React.FC = () => {
 
   const openEditModal = (fair: Fair) => {
     setSelectedFair(fair);
+    const gallery = parseGalleryUrls(fair.galleryUrls);
     const editFormData = {
       name: fair.name,
       descriptionAz: fair.descriptionAz || '',
@@ -239,6 +282,11 @@ const FairManagement: React.FC = () => {
       mapCenterLat: fair.mapCenterLat?.toString() || '',
       mapCenterLng: fair.mapCenterLng?.toString() || '',
       bannerImageUrl: fair.bannerImageUrl || '',
+      galleryUrl1: gallery[0] || '',
+      galleryUrl2: gallery[1] || '',
+      galleryUrl3: gallery[2] || '',
+      galleryUrl4: gallery[3] || '',
+      archiveVideoUrl: fair.archiveVideoUrl || '',
       status: fair.status,
     };
     setFormData(editFormData);
@@ -279,16 +327,18 @@ const FairManagement: React.FC = () => {
         mapCenterLat: formData.mapCenterLat ? parseFloat(formData.mapCenterLat) : undefined,
         mapCenterLng: formData.mapCenterLng ? parseFloat(formData.mapCenterLng) : undefined,
         bannerImageUrl: formData.bannerImageUrl || undefined,
+        gallery: collectGallery(formData),
+        archiveVideoUrl: formData.archiveVideoUrl || undefined,
         status: formData.status,
       });
 
-      setSuccessMessage('Fair created successfully!');
+      setSuccessMessage(t('fairAdmin.createSuccess'));
       setTimeout(() => setSuccessMessage(null), 3000);
       closeModals();
       fetchFairs();
       fetchPastFairs();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create fair');
+      setError(err.response?.data?.error || t('fairAdmin.createFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -312,34 +362,36 @@ const FairManagement: React.FC = () => {
         mapCenterLat: formData.mapCenterLat ? parseFloat(formData.mapCenterLat) : undefined,
         mapCenterLng: formData.mapCenterLng ? parseFloat(formData.mapCenterLng) : undefined,
         bannerImageUrl: formData.bannerImageUrl,
+        gallery: collectGallery(formData),
+        archiveVideoUrl: formData.archiveVideoUrl,
         status: formData.status,
       });
 
-      setSuccessMessage('Fair updated successfully!');
+      setSuccessMessage(t('fairAdmin.updateSuccess'));
       setTimeout(() => setSuccessMessage(null), 3000);
       closeModals();
       fetchFairs();
       fetchPastFairs();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update fair');
+      setError(err.response?.data?.error || t('fairAdmin.updateFailed'));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteFair = async (fair: Fair) => {
-    if (!window.confirm(`Are you sure you want to delete "${fair.name}"?`)) {
+    if (!window.confirm(t('fairAdmin.deleteConfirm', { name: fair.name }))) {
       return;
     }
 
     try {
       await adminApi.deleteFair(fair.id);
-      setSuccessMessage('Fair deleted successfully!');
+      setSuccessMessage(t('fairAdmin.deleteSuccess'));
       setTimeout(() => setSuccessMessage(null), 3000);
       fetchFairs();
       fetchPastFairs();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete fair');
+      setError(err.response?.data?.error || t('fairAdmin.deleteFailed'));
     }
   };
 
@@ -381,19 +433,56 @@ const FairManagement: React.FC = () => {
 
   const getStatusLabel = (status: string): string => {
     const labels: Record<string, string> = {
-      upcoming: 'Upcoming',
-      active: 'Active',
-      completed: 'Completed',
-      archived: 'Archived',
+      upcoming: t('fairAdmin.statusUpcoming'),
+      active: t('fairAdmin.statusActive'),
+      completed: t('fairAdmin.statusCompleted'),
+      archived: t('fairAdmin.statusArchived'),
     };
     return labels[status] || status;
   };
+
+  // Archive media inputs (up to 4 gallery image URLs + one optional video URL),
+  // shared by the Create and Edit fair modals. Plain text inputs so relative
+  // paths like /winter.jpg are accepted (an `url` input would reject them).
+  const renderMediaFields = () => (
+    <>
+      <div className="form-group">
+        <label>{t('fairAdmin.galleryImages', 'Gallery images (up to 4)')}</label>
+        {(['galleryUrl1', 'galleryUrl2', 'galleryUrl3', 'galleryUrl4'] as const).map((field, i) => (
+          <input
+            key={field}
+            type="text"
+            name={field}
+            value={formData[field]}
+            onChange={handleInputChange}
+            placeholder={`/image-${i + 1}.jpg or https://...`}
+            style={i > 0 ? { marginTop: 8 } : undefined}
+          />
+        ))}
+        <small className="field-hint">
+          {t('fairAdmin.galleryHint', 'Image URLs shown on the public archive page (e.g. /spring.jpg).')}
+        </small>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="archiveVideoUrl">{t('fairAdmin.archiveVideoUrl', 'Archive video URL (optional)')}</label>
+        <input
+          type="text"
+          id="archiveVideoUrl"
+          name="archiveVideoUrl"
+          value={formData.archiveVideoUrl}
+          onChange={handleInputChange}
+          placeholder="/recap.mp4 or https://..."
+        />
+      </div>
+    </>
+  );
 
   if (loading) {
     return (
       <div className="fair-management-container">
         <div className="loading-spinner">
-          {t('Loading...', { defaultValue: 'Loading...' })}
+          {t('common.loading')}
         </div>
       </div>
     );
@@ -417,33 +506,37 @@ const FairManagement: React.FC = () => {
             onClick={handleArchiveFairs}
             disabled={archiving}
           >
-            {archiving ? 'Archiving...' : 'Run Archive'}
+            {archiving ? t('fairAdmin.archiving') : t('fairAdmin.runArchive')}
           </button>
           <button className="btn btn-primary" onClick={openCreateModal}>
-            {t('Create Fair', { defaultValue: 'Create Fair' })}
+            {t('fairAdmin.createFair')}
           </button>
         </div>
       </div>
 
       {fairs.length === 0 ? (
         <div className="no-fairs">
-          <p>{t('No active fairs found. Create your first fair!', { defaultValue: 'No active fairs found. Create your first fair!' })}</p>
+          <p>{t('fairAdmin.noFairs')}</p>
+        </div>
+      ) : visibleFairs.length === 0 ? (
+        <div className="no-fairs">
+          <p>{t('common.noResults', { defaultValue: 'No results found.' })}</p>
         </div>
       ) : (
         <div className="fairs-table-container">
           <table className="fairs-table">
             <thead>
               <tr>
-                <th>{t('Name', { defaultValue: 'Name' })}</th>
-                <th>{t('Start Date', { defaultValue: 'Start Date' })}</th>
-                <th>{t('End Date', { defaultValue: 'End Date' })}</th>
-                <th>{t('Location', { defaultValue: 'Location' })}</th>
-                <th>{t('Status', { defaultValue: 'Status' })}</th>
-                <th>{t('Actions', { defaultValue: 'Actions' })}</th>
+                <th>{t('common.name')}</th>
+                <th>{t('fairAdmin.startDate')}</th>
+                <th>{t('fairAdmin.endDate')}</th>
+                <th>{t('common.location')}</th>
+                <th>{t('common.status')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
-              {fairs.map((fair) => (
+              {visibleFairs.map((fair) => (
                 <tr key={fair.id}>
                   <td className="name-cell">
                     <strong>{fair.name}</strong>
@@ -464,13 +557,13 @@ const FairManagement: React.FC = () => {
                       className="btn btn-secondary btn-sm"
                       onClick={() => openEditModal(fair)}
                     >
-                      {t('Edit', { defaultValue: 'Edit' })}
+                      {t('common.edit')}
                     </button>
                     <button
                       className="btn btn-danger btn-sm"
                       onClick={() => handleDeleteFair(fair)}
                     >
-                      {t('Delete', { defaultValue: 'Delete' })}
+                      {t('common.delete')}
                     </button>
                   </td>
                 </tr>
@@ -484,31 +577,35 @@ const FairManagement: React.FC = () => {
       <div className="past-events-section">
         <div className="past-events-header">
           <h2 onClick={() => setShowPastEvents(!showPastEvents)} style={{ cursor: 'pointer' }}>
-            {showPastEvents ? '▼' : '►'} Past Events ({pastFairs.length})
+            {showPastEvents ? '▼' : '►'} {t('fairAdmin.pastEvents')} ({pastFairs.length})
           </h2>
         </div>
 
         {showPastEvents && (
           pastFairs.length === 0 ? (
             <div className="no-fairs">
-              <p>No past events found.</p>
+              <p>{t('fairAdmin.noPastEvents')}</p>
+            </div>
+          ) : visiblePastFairs.length === 0 ? (
+            <div className="no-fairs">
+              <p>{t('common.noResults', { defaultValue: 'No results found.' })}</p>
             </div>
           ) : (
             <div className="fairs-table-container past-fairs-table">
               <table className="fairs-table">
                 <thead>
                   <tr>
-                    <th>{t('Name', { defaultValue: 'Name' })}</th>
-                    <th>{t('Start Date', { defaultValue: 'Start Date' })}</th>
-                    <th>{t('End Date', { defaultValue: 'End Date' })}</th>
-                    <th>{t('Location', { defaultValue: 'Location' })}</th>
-                    <th>{t('Status', { defaultValue: 'Status' })}</th>
-                    <th>{t('Archived At', { defaultValue: 'Archived At' })}</th>
-                    <th>{t('Actions', { defaultValue: 'Actions' })}</th>
+                    <th>{t('common.name')}</th>
+                    <th>{t('fairAdmin.startDate')}</th>
+                    <th>{t('fairAdmin.endDate')}</th>
+                    <th>{t('common.location')}</th>
+                    <th>{t('common.status')}</th>
+                    <th>{t('fairAdmin.archivedAt')}</th>
+                    <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {pastFairs.map((fair) => (
+                  {visiblePastFairs.map((fair) => (
                     <tr key={fair.id} className="past-fair-row">
                       <td className="name-cell">
                         <strong>{fair.name}</strong>
@@ -527,11 +624,17 @@ const FairManagement: React.FC = () => {
                       <td>{formatDateTime(fair.archivedAt)}</td>
                       <td className="actions-cell">
                         <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => openEditModal(fair)}
+                        >
+                          {t('common.edit')}
+                        </button>
+                        <button
                           className="btn btn-primary btn-sm"
                           onClick={() => fetchFairDetails(fair.id)}
                           disabled={loadingDetails}
                         >
-                          {loadingDetails ? 'Loading...' : t('View Details', { defaultValue: 'View Details' })}
+                          {loadingDetails ? t('common.loading') : t('fairAdmin.viewDetails')}
                         </button>
                       </td>
                     </tr>
@@ -548,14 +651,15 @@ const FairManagement: React.FC = () => {
         <div className="modal-overlay" onClick={attemptCloseModal}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{t('Create New Fair', { defaultValue: 'Create New Fair' })}</h2>
+              <h2>{t('fairAdmin.createTitle')}</h2>
               <button className="modal-close" onClick={attemptCloseModal}>&times;</button>
             </div>
             <form onSubmit={handleCreateFair}>
+              <div className="modal-form-body">
               {error && <div className="form-error">{error}</div>}
 
               <div className="form-group">
-                <label htmlFor="name">{t('Fair Name', { defaultValue: 'Fair Name' })} *</label>
+                <label htmlFor="name">{t('fairAdmin.fairName')} *</label>
                 <input
                   type="text"
                   id="name"
@@ -563,25 +667,32 @@ const FairManagement: React.FC = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  placeholder="e.g., Winter 2026"
+                  placeholder={t('fairAdmin.namePlaceholder')}
                 />
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="startDate">{t('Start Date', { defaultValue: 'Start Date' })} *</label>
+                  <label htmlFor="startDate">{t('fairAdmin.startDate')} *</label>
                   <input
                     type="date"
                     id="startDate"
                     name="startDate"
                     value={formData.startDate}
                     onChange={handleInputChange}
-                    min={getTodayDateString()}
+                    // When editing, allow the fair's existing (possibly past) start date so
+                    // archived/completed fairs stay saveable. On create, selectedFair is null,
+                    // so this falls back to today — unchanged behavior.
+                    min={
+                      selectedFair && selectedFair.startDate.split('T')[0] < getTodayDateString()
+                        ? selectedFair.startDate.split('T')[0]
+                        : getTodayDateString()
+                    }
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="endDate">{t('End Date', { defaultValue: 'End Date' })} *</label>
+                  <label htmlFor="endDate">{t('fairAdmin.endDate')} *</label>
                   <input
                     type="date"
                     id="endDate"
@@ -595,44 +706,44 @@ const FairManagement: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="locationAddress">{t('Location Address', { defaultValue: 'Location Address' })}</label>
+                <label htmlFor="locationAddress">{t('fairAdmin.locationAddress')}</label>
                 <input
                   type="text"
                   id="locationAddress"
                   name="locationAddress"
                   value={formData.locationAddress}
                   onChange={handleInputChange}
-                  placeholder="e.g., Baku, Azerbaijan"
+                  placeholder={t('fairAdmin.addressPlaceholder')}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="descriptionAz">{t('Description (Azerbaijani)', { defaultValue: 'Description (Azerbaijani)' })}</label>
+                <label htmlFor="descriptionAz">{t('fairAdmin.descriptionAz')}</label>
                 <textarea
                   id="descriptionAz"
                   name="descriptionAz"
                   value={formData.descriptionAz}
                   onChange={handleInputChange}
                   rows={3}
-                  placeholder="Azerbaijani description..."
+                  placeholder={t('fairAdmin.descAzPlaceholder')}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="descriptionEn">{t('Description (English)', { defaultValue: 'Description (English)' })}</label>
+                <label htmlFor="descriptionEn">{t('fairAdmin.descriptionEn')}</label>
                 <textarea
                   id="descriptionEn"
                   name="descriptionEn"
                   value={formData.descriptionEn}
                   onChange={handleInputChange}
                   rows={3}
-                  placeholder="English description..."
+                  placeholder={t('fairAdmin.descEnPlaceholder')}
                 />
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="mapCenterLat">{t('Map Center Latitude', { defaultValue: 'Map Center Latitude' })}</label>
+                  <label htmlFor="mapCenterLat">{t('fairAdmin.mapCenterLat')}</label>
                   <input
                     type="number"
                     id="mapCenterLat"
@@ -640,11 +751,11 @@ const FairManagement: React.FC = () => {
                     value={formData.mapCenterLat}
                     onChange={handleInputChange}
                     step="any"
-                    placeholder="e.g., 40.4093"
+                    placeholder="40.4093"
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="mapCenterLng">{t('Map Center Longitude', { defaultValue: 'Map Center Longitude' })}</label>
+                  <label htmlFor="mapCenterLng">{t('fairAdmin.mapCenterLng')}</label>
                   <input
                     type="number"
                     id="mapCenterLng"
@@ -652,44 +763,48 @@ const FairManagement: React.FC = () => {
                     value={formData.mapCenterLng}
                     onChange={handleInputChange}
                     step="any"
-                    placeholder="e.g., 49.8671"
+                    placeholder="49.8671"
                   />
                 </div>
               </div>
 
               <div className="form-group">
-                <label htmlFor="bannerImageUrl">{t('Banner Image URL', { defaultValue: 'Banner Image URL' })}</label>
+                <label htmlFor="bannerImageUrl">{t('fairAdmin.bannerImageUrl')}</label>
                 <input
-                  type="url"
+                  type="text"
                   id="bannerImageUrl"
                   name="bannerImageUrl"
                   value={formData.bannerImageUrl}
                   onChange={handleInputChange}
-                  placeholder="https://..."
+                  placeholder="/winter.jpg or https://..."
                 />
               </div>
 
+              {renderMediaFields()}
+
               <div className="form-group">
-                <label htmlFor="status">{t('Status', { defaultValue: 'Status' })}</label>
+                <label htmlFor="status">{t('common.status')}</label>
                 <select
                   id="status"
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
                 >
-                  <option value="upcoming">Upcoming</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="archived">Archived</option>
+                  <option value="upcoming">{t('fairAdmin.statusUpcoming')}</option>
+                  <option value="active">{t('fairAdmin.statusActive')}</option>
+                  <option value="completed">{t('fairAdmin.statusCompleted')}</option>
+                  <option value="archived">{t('fairAdmin.statusArchived')}</option>
                 </select>
+              </div>
+
               </div>
 
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={attemptCloseModal}>
-                  {t('Cancel', { defaultValue: 'Cancel' })}
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? t('Creating...', { defaultValue: 'Creating...' }) : t('Create Fair', { defaultValue: 'Create Fair' })}
+                  {submitting ? t('common.creating') : t('fairAdmin.createFair')}
                 </button>
               </div>
             </form>
@@ -702,14 +817,15 @@ const FairManagement: React.FC = () => {
         <div className="modal-overlay" onClick={attemptCloseModal}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{t('Edit Fair', { defaultValue: 'Edit Fair' })}</h2>
+              <h2>{t('fairAdmin.editTitle')}</h2>
               <button className="modal-close" onClick={attemptCloseModal}>&times;</button>
             </div>
             <form onSubmit={handleUpdateFair}>
+              <div className="modal-form-body">
               {error && <div className="form-error">{error}</div>}
 
               <div className="form-group">
-                <label htmlFor="name">{t('Fair Name', { defaultValue: 'Fair Name' })} *</label>
+                <label htmlFor="name">{t('fairAdmin.fairName')} *</label>
                 <input
                   type="text"
                   id="name"
@@ -722,19 +838,26 @@ const FairManagement: React.FC = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="startDate">{t('Start Date', { defaultValue: 'Start Date' })} *</label>
+                  <label htmlFor="startDate">{t('fairAdmin.startDate')} *</label>
                   <input
                     type="date"
                     id="startDate"
                     name="startDate"
                     value={formData.startDate}
                     onChange={handleInputChange}
-                    min={getTodayDateString()}
+                    // When editing, allow the fair's existing (possibly past) start date so
+                    // archived/completed fairs stay saveable. On create, selectedFair is null,
+                    // so this falls back to today — unchanged behavior.
+                    min={
+                      selectedFair && selectedFair.startDate.split('T')[0] < getTodayDateString()
+                        ? selectedFair.startDate.split('T')[0]
+                        : getTodayDateString()
+                    }
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="endDate">{t('End Date', { defaultValue: 'End Date' })} *</label>
+                  <label htmlFor="endDate">{t('fairAdmin.endDate')} *</label>
                   <input
                     type="date"
                     id="endDate"
@@ -748,7 +871,7 @@ const FairManagement: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="locationAddress">{t('Location Address', { defaultValue: 'Location Address' })}</label>
+                <label htmlFor="locationAddress">{t('fairAdmin.locationAddress')}</label>
                 <input
                   type="text"
                   id="locationAddress"
@@ -759,7 +882,7 @@ const FairManagement: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="descriptionAz">{t('Description (Azerbaijani)', { defaultValue: 'Description (Azerbaijani)' })}</label>
+                <label htmlFor="descriptionAz">{t('fairAdmin.descriptionAz')}</label>
                 <textarea
                   id="descriptionAz"
                   name="descriptionAz"
@@ -770,7 +893,7 @@ const FairManagement: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="descriptionEn">{t('Description (English)', { defaultValue: 'Description (English)' })}</label>
+                <label htmlFor="descriptionEn">{t('fairAdmin.descriptionEn')}</label>
                 <textarea
                   id="descriptionEn"
                   name="descriptionEn"
@@ -782,7 +905,7 @@ const FairManagement: React.FC = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="mapCenterLat">{t('Map Center Latitude', { defaultValue: 'Map Center Latitude' })}</label>
+                  <label htmlFor="mapCenterLat">{t('fairAdmin.mapCenterLat')}</label>
                   <input
                     type="number"
                     id="mapCenterLat"
@@ -793,7 +916,7 @@ const FairManagement: React.FC = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="mapCenterLng">{t('Map Center Longitude', { defaultValue: 'Map Center Longitude' })}</label>
+                  <label htmlFor="mapCenterLng">{t('fairAdmin.mapCenterLng')}</label>
                   <input
                     type="number"
                     id="mapCenterLng"
@@ -806,37 +929,42 @@ const FairManagement: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="bannerImageUrl">{t('Banner Image URL', { defaultValue: 'Banner Image URL' })}</label>
+                <label htmlFor="bannerImageUrl">{t('fairAdmin.bannerImageUrl')}</label>
                 <input
-                  type="url"
+                  type="text"
                   id="bannerImageUrl"
                   name="bannerImageUrl"
                   value={formData.bannerImageUrl}
                   onChange={handleInputChange}
+                  placeholder="/winter.jpg or https://..."
                 />
               </div>
 
+              {renderMediaFields()}
+
               <div className="form-group">
-                <label htmlFor="status">{t('Status', { defaultValue: 'Status' })}</label>
+                <label htmlFor="status">{t('common.status')}</label>
                 <select
                   id="status"
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
                 >
-                  <option value="upcoming">Upcoming</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="archived">Archived</option>
+                  <option value="upcoming">{t('fairAdmin.statusUpcoming')}</option>
+                  <option value="active">{t('fairAdmin.statusActive')}</option>
+                  <option value="completed">{t('fairAdmin.statusCompleted')}</option>
+                  <option value="archived">{t('fairAdmin.statusArchived')}</option>
                 </select>
+              </div>
+
               </div>
 
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={attemptCloseModal}>
-                  {t('Cancel', { defaultValue: 'Cancel' })}
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? t('Saving...', { defaultValue: 'Saving...' }) : t('Save Changes', { defaultValue: 'Save Changes' })}
+                  {submitting ? t('common.saving') : t('fairAdmin.saveChanges')}
                 </button>
               </div>
             </form>
@@ -871,39 +999,39 @@ const FairManagement: React.FC = () => {
         <div className="modal-overlay" onClick={closeDetailsModal}>
           <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{t('Fair Details', { defaultValue: 'Fair Details' })} - {fairDetails.fair.name}</h2>
+              <h2>{t('fairAdmin.detailsTitle')} - {fairDetails.fair.name}</h2>
               <button className="modal-close" onClick={closeDetailsModal}>&times;</button>
             </div>
             <div className="fair-details-content">
               {/* Fair Info Section */}
               <div className="details-section">
-                <h3>{t('Fair Information', { defaultValue: 'Fair Information' })}</h3>
+                <h3>{t('fairAdmin.fairInfo')}</h3>
                 <div className="details-grid">
                   <div className="detail-item">
-                    <span className="detail-label">{t('Name', { defaultValue: 'Name' })}:</span>
+                    <span className="detail-label">{t('common.name')}:</span>
                     <span className="detail-value">{fairDetails.fair.name}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">{t('Location', { defaultValue: 'Location' })}:</span>
+                    <span className="detail-label">{t('common.location')}:</span>
                     <span className="detail-value">{fairDetails.fair.locationAddress || '-'}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">{t('Start Date', { defaultValue: 'Start Date' })}:</span>
+                    <span className="detail-label">{t('fairAdmin.startDate')}:</span>
                     <span className="detail-value">{formatDate(fairDetails.fair.startDate)}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">{t('End Date', { defaultValue: 'End Date' })}:</span>
+                    <span className="detail-label">{t('fairAdmin.endDate')}:</span>
                     <span className="detail-value">{formatDate(fairDetails.fair.endDate)}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">{t('Status', { defaultValue: 'Status' })}:</span>
+                    <span className="detail-label">{t('common.status')}:</span>
                     <span className={`badge ${getStatusBadgeClass(fairDetails.fair.status)}`}>
                       {getStatusLabel(fairDetails.fair.status)}
                     </span>
                   </div>
                   {fairDetails.fair.archivedAt && (
                     <div className="detail-item">
-                      <span className="detail-label">{t('Archived At', { defaultValue: 'Archived At' })}:</span>
+                      <span className="detail-label">{t('fairAdmin.archivedAt')}:</span>
                       <span className="detail-value">{formatDateTime(fairDetails.fair.archivedAt)}</span>
                     </div>
                   )}
@@ -912,49 +1040,49 @@ const FairManagement: React.FC = () => {
 
               {/* Application Statistics Section */}
               <div className="details-section">
-                <h3>{t('Application Statistics', { defaultValue: 'Application Statistics' })}</h3>
+                <h3>{t('fairAdmin.applicationStats')}</h3>
                 <div className="stats-grid">
                   <div className="stat-card">
                     <span className="stat-value">{fairDetails.applicationStats.total}</span>
-                    <span className="stat-label">{t('Total Applications', { defaultValue: 'Total Applications' })}</span>
+                    <span className="stat-label">{t('fairAdmin.totalApplications')}</span>
                   </div>
                   <div className="stat-card stat-approved">
                     <span className="stat-value">{fairDetails.applicationStats.approved}</span>
-                    <span className="stat-label">{t('Approved', { defaultValue: 'Approved' })}</span>
+                    <span className="stat-label">{t('applicationReview.approved')}</span>
                   </div>
                   <div className="stat-card stat-rejected">
                     <span className="stat-value">{fairDetails.applicationStats.rejected}</span>
-                    <span className="stat-label">{t('Rejected', { defaultValue: 'Rejected' })}</span>
+                    <span className="stat-label">{t('applicationReview.rejected')}</span>
                   </div>
                   <div className="stat-card stat-pending">
                     <span className="stat-value">{fairDetails.applicationStats.pending}</span>
-                    <span className="stat-label">{t('Pending', { defaultValue: 'Pending' })}</span>
+                    <span className="stat-label">{t('applicationReview.pending')}</span>
                   </div>
                 </div>
               </div>
 
               {/* Revenue Section */}
               <div className="details-section">
-                <h3>{t('Revenue Summary', { defaultValue: 'Revenue Summary' })}</h3>
+                <h3>{t('fairAdmin.revenueSummary')}</h3>
                 <div className="revenue-summary">
-                  <span className="revenue-label">{t('Total Revenue', { defaultValue: 'Total Revenue' })}:</span>
+                  <span className="revenue-label">{t('fairAdmin.totalRevenue')}:</span>
                   <span className="revenue-value">${fairDetails.totalRevenue.toFixed(2)}</span>
                 </div>
               </div>
 
               {/* Rented Houses Section */}
               <div className="details-section">
-                <h3>{t('Rented Houses', { defaultValue: 'Rented Houses' })} ({fairDetails.rentedHouses.length})</h3>
+                <h3>{t('fairAdmin.rentedHouses')} ({fairDetails.rentedHouses.length})</h3>
                 {fairDetails.rentedHouses.length === 0 ? (
-                  <p className="no-data">{t('No houses were rented for this fair.', { defaultValue: 'No houses were rented for this fair.' })}</p>
+                  <p className="no-data">{t('fairAdmin.noRentedHouses')}</p>
                 ) : (
                   <table className="details-table">
                     <thead>
                       <tr>
-                        <th>{t('House Number', { defaultValue: 'House Number' })}</th>
-                        <th>{t('Area (sqm)', { defaultValue: 'Area (sqm)' })}</th>
-                        <th>{t('Price', { defaultValue: 'Price' })}</th>
-                        <th>{t('Vendor', { defaultValue: 'Vendor' })}</th>
+                        <th>{t('fairAdmin.houseNumber')}</th>
+                        <th>{t('fairAdmin.areaSqm')}</th>
+                        <th>{t('application.price')}</th>
+                        <th>{t('auth.roleVendor')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -973,18 +1101,18 @@ const FairManagement: React.FC = () => {
 
               {/* Participating Vendors Section */}
               <div className="details-section">
-                <h3>{t('Participating Vendors', { defaultValue: 'Participating Vendors' })} ({fairDetails.participatingVendors.length})</h3>
+                <h3>{t('fairAdmin.participatingVendors')} ({fairDetails.participatingVendors.length})</h3>
                 {fairDetails.participatingVendors.length === 0 ? (
-                  <p className="no-data">{t('No vendors participated in this fair.', { defaultValue: 'No vendors participated in this fair.' })}</p>
+                  <p className="no-data">{t('fairAdmin.noParticipatingVendors')}</p>
                 ) : (
                   <table className="details-table">
                     <thead>
                       <tr>
-                        <th>{t('Company', { defaultValue: 'Company' })}</th>
-                        <th>{t('Category', { defaultValue: 'Category' })}</th>
-                        <th>{t('Contact', { defaultValue: 'Contact' })}</th>
-                        <th>{t('House', { defaultValue: 'House' })}</th>
-                        <th>{t('Booking Status', { defaultValue: 'Booking Status' })}</th>
+                        <th>{t('applicationReview.company')}</th>
+                        <th>{t('applicationReview.category')}</th>
+                        <th>{t('applicationReview.contact')}</th>
+                        <th>{t('applicationReview.house')}</th>
+                        <th>{t('fairAdmin.bookingStatus')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -999,7 +1127,7 @@ const FairManagement: React.FC = () => {
                           <td>{vendor.houseNumber}</td>
                           <td>
                             <span className={`badge ${vendor.bookingStatus === 'approved' ? 'badge-success' : 'badge-secondary'}`}>
-                              {vendor.bookingStatus}
+                              {t(`applications.status.${vendor.bookingStatus}`, vendor.bookingStatus)}
                             </span>
                           </td>
                         </tr>
@@ -1011,7 +1139,7 @@ const FairManagement: React.FC = () => {
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={closeDetailsModal}>
-                {t('Close', { defaultValue: 'Close' })}
+                {t('common.close')}
               </button>
             </div>
           </div>

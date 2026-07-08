@@ -17,9 +17,9 @@
   --about-gold: #caa14b;
   --about-gold-soft: #faf1d9;
   --about-sky: #b4d4e0;
-  --about-display: 'Fraunces', ui-serif, Georgia, serif;
-  --about-body: 'Inter Tight', system-ui, sans-serif;
-  --about-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --about-display: var(--font-headings);
+  --about-body: var(--font-primary);
+  --about-mono: var(--font-mono);
 
   background: var(--about-bg);
   color: var(--about-ink);
@@ -124,7 +124,7 @@
   font-family: var(--about-display);
   font-style: italic;
   font-weight: 400;
-  font-size: clamp(40px, 5.5vw, 72px);
+  font-size: clamp(20px, 5.5vw, 50px);
   letter-spacing: -0.025em;
   line-height: 1;
   color: var(--about-accent);
@@ -160,7 +160,7 @@
 }
 .about-hero-section .hero-h1 {
   font-family: var(--about-display);
-  font-size: clamp(48px, 7vw, 104px);
+  font-size: clamp(20px, 7vw, 40px);
   font-weight: 500;
   letter-spacing: -0.025em;
   line-height: 0.95;
@@ -305,7 +305,7 @@
 }
 .mission-h2 {
   font-family: var(--about-display);
-  font-size: clamp(36px, 4vw, 54px);
+  font-size: clamp(20px, 4vw, 40px);
   font-weight: 500;
   letter-spacing: -0.02em;
   margin: 20px 0 0;
@@ -374,7 +374,7 @@
 }
 .history-h2 {
   font-family: var(--about-display);
-  font-size: clamp(32px, 3.6vw, 46px);
+  font-size: clamp(20px, 3.6vw, 40px);
   font-weight: 500;
   letter-spacing: -0.02em;
   margin: 14px 0 0;
@@ -470,7 +470,7 @@
 }
 .team-h2 {
   font-family: var(--about-display);
-  font-size: clamp(32px, 3.6vw, 46px);
+  font-size: clamp(20px, 3.6vw, 40px);
   font-weight: 500;
   letter-spacing: -0.02em;
   margin: 14px 0 0;
@@ -604,7 +604,7 @@
 }
 .contact-h2 {
   font-family: var(--about-display);
-  font-size: clamp(36px, 4vw, 54px);
+  font-size: clamp(20px, 4vw, 40px);
   font-weight: 500;
   letter-spacing: -0.02em;
   margin: 16px 0 0;
@@ -726,8 +726,8 @@
   background: #0d0c0a;
 }
 .donatello-plate .donatello-img img {
-  width: 100%;
-  height: 100%;
+  width: 75%;
+  height: 75%;
   object-fit: contain;
   display: block;
 }
@@ -762,7 +762,7 @@
 }
 .sec-h2 {
   font-family: var(--about-display);
-  font-size: clamp(32px, 3.6vw, 46px);
+  font-size: clamp(20px, 3.6vw, 40px);
   font-weight: 500;
   letter-spacing: -0.02em;
   margin: 14px 0 0;
@@ -911,6 +911,13 @@
 .past-section {
   padding: 60px 0 100px;
   background: var(--about-bg);
+}
+/* Archive now renders Home-style EventCards in a stacked grid (matches the
+   Home "Upcoming Events" spacing). */
+.past-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
 }
 .past-list {
   display: flex;

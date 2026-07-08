@@ -12,6 +12,18 @@ function isPrivilegedViewer(req: Request): boolean {
   return req.user?.role === 'vendor' || req.user?.role === 'admin';
 }
 
+// Fair.galleryUrls is stored as a JSON-stringified array of image URLs (SQLite
+// has no native JSON type). Parse defensively into a clean string[].
+function parseGallery(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((u): u is string => typeof u === 'string' && u.length > 0) : [];
+  } catch {
+    return [];
+  }
+}
+
 // Get next upcoming fair for countdown
 router.get('/next-fair', async (_req: Request, res: Response): Promise<void> => {
   try {
@@ -104,6 +116,76 @@ router.get('/fairs', async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
+// Get a single fair by id (public info only). Archived/completed fairs ARE
+// readable so the public detail page can serve as a read-only archive; only a
+// truly missing id returns 404.
+router.get('/fairs/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const fair = await prisma.fair.findUnique({
+      where: { id: req.params.id },
+      select: {
+        id: true,
+        name: true,
+        descriptionAz: true,
+        descriptionEn: true,
+        startDate: true,
+        endDate: true,
+        locationAddress: true,
+        status: true,
+        bannerImageUrl: true,
+        galleryUrls: true,
+        archiveVideoUrl: true,
+        mapCenterLat: true,
+        mapCenterLng: true,
+        bookings: {
+          select: {
+            id: true,
+            vendorProfile: {
+              select: {
+                id: true,
+                companyName: true,
+                productCategory: true,
+                logoUrl: true,
+                user: { select: { firstName: true, lastName: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!fair) {
+      res.status(404).json({ error: 'Fair not found' });
+      return;
+    }
+
+    const isPast = fair.status === 'archived' || fair.status === 'completed';
+    const { bookings, galleryUrls, ...rest } = fair;
+
+    res.json({
+      fair: {
+        ...rest,
+        gallery: parseGallery(galleryUrls),
+        // Participating vendors are surfaced only on the read-only archive view.
+        vendors: isPast
+          ? bookings.map((b) => ({
+              id: b.vendorProfile.id,
+              companyName: b.vendorProfile.companyName,
+              productCategory: b.vendorProfile.productCategory,
+              logoUrl: b.vendorProfile.logoUrl,
+              ownerName: b.vendorProfile.user
+                ? `${b.vendorProfile.user.firstName || ''} ${b.vendorProfile.user.lastName || ''}`.trim()
+                : null,
+            }))
+          : [],
+      },
+    });
+  } catch (error) {
+    console.error('Get public fair error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get past events (archived/completed fairs) with vendor participation
 router.get('/past-events', async (_req: Request, res: Response): Promise<void> => {
   try {
@@ -120,6 +202,8 @@ router.get('/past-events', async (_req: Request, res: Response): Promise<void> =
         endDate: true,
         locationAddress: true,
         bannerImageUrl: true,
+        galleryUrls: true,
+        archiveVideoUrl: true,
         status: true,
         bookings: {
           select: {
@@ -154,6 +238,8 @@ router.get('/past-events', async (_req: Request, res: Response): Promise<void> =
       endDate: fair.endDate,
       locationAddress: fair.locationAddress,
       bannerImageUrl: fair.bannerImageUrl,
+      gallery: parseGallery(fair.galleryUrls),
+      archiveVideoUrl: fair.archiveVideoUrl,
       status: fair.status,
       vendorCount: fair.bookings.length,
       vendors: fair.bookings.map((booking) => ({

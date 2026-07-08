@@ -1,0 +1,212 @@
+.event-card {
+  display: grid;
+  grid-template-columns: minmax(280px, 40%) 1fr;
+  gap: 0;
+  background: var(--color-white);
+  border: 1.5px solid var(--color-mint);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(45, 55, 72, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: left;
+}
+
+.event-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(45, 55, 72, 0.12);
+}
+
+/* Scroll-reveal: card starts translated down and faded, transitions in when
+   it enters the viewport (IntersectionObserver toggles .is-visible). */
+.event-card-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease;
+  will-change: opacity, transform;
+}
+
+.event-card-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.event-card-reveal.is-visible:hover {
+  transform: translateY(-3px);
+}
+
+.event-card-media {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-background, #f7f4ed);
+}
+
+.event-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+  display: block;
+}
+
+.event-card-body {
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-card-badge {
+  align-self: flex-start;
+  padding: 4px 14px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.event-card-badge.active {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--color-coral);
+}
+
+.event-card-badge.upcoming {
+  background: rgba(255, 209, 102, 0.22);
+  color: #8a6a14;
+}
+
+.event-card-badge.archived,
+.event-card-badge.completed {
+  background: rgba(91, 100, 115, 0.14);
+  color: #5b6473;
+}
+
+.event-card-title {
+  font-family: var(--font-headings);
+  font-size: 1.6rem;
+  line-height: 1.15;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.event-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.event-card-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary, #5b6473);
+}
+
+.event-card-icon {
+  color: var(--color-coral);
+  font-size: 0.95rem;
+}
+
+.event-card-description {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary, #5b6473);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.event-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.event-card-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 9999px;
+  font-family: var(--font-headings);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+}
+
+.event-card-btn-primary {
+  background: var(--color-coral);
+  color: #fff;
+}
+
+.event-card-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(255, 107, 107, 0.35);
+}
+
+.event-card-btn-secondary {
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  border-color: var(--color-mint);
+}
+
+.event-card-btn-secondary:hover {
+  background: rgba(127, 205, 205, 0.12);
+}
+
+@media (max-width: 768px) {
+  .event-card {
+    grid-template-columns: 1fr;
+  }
+
+  .event-card-media img {
+    aspect-ratio: 16 / 9;
+  }
+
+  .event-card-body {
+    padding: 20px;
+  }
+
+  .event-card-title {
+    font-size: 1.35rem;
+  }
+
+  .event-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .event-card-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-card,
+  .event-card-btn,
+  .event-card-reveal {
+    transition: none;
+  }
+
+  .event-card-reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .event-card:hover,
+  .event-card-btn-primary:hover {
+    transform: none;
+  }
+}

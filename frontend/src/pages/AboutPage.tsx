@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { publicApi } from '../services/api';
 import FoxMascot from '../components/FoxMascot';
+import RevealText from '../components/RevealText';
+import Reveal from '../components/Reveal';
+import EventCard from '../components/EventCard';
 import './AboutPage.css';
 
 interface AboutContent {
@@ -90,9 +93,11 @@ const PinIcon = () => (
   </svg>
 );
 
-// Hero illustration: winter scene with snowman, city silhouette, snowflakes
+// Hero illustration: winter scene with snowman, city silhouette, snowflakes.
+// Reveals on mount so it eases in with the rest of the page rather than
+// popping in fully-formed.
 const HeroArt: React.FC = () => (
-  <div className="hero-art" aria-hidden="true">
+  <Reveal as="div" className="hero-art" aria-hidden="true">
     <div className="sky-bg" />
     <svg className="snowflakes" viewBox="0 0 600 380" preserveAspectRatio="none">
       <g stroke="#161513" strokeWidth="1" fill="none">
@@ -150,7 +155,7 @@ const HeroArt: React.FC = () => (
         <circle cx="143" cy="34" r="3" fill="#c4423a" stroke="none" />
       </g>
     </svg>
-  </div>
+  </Reveal>
 );
 
 // Hardcoded design content (no API source yet — see TODO in CSS file)
@@ -177,7 +182,6 @@ const AboutPage: React.FC = () => {
   const [content, setContent] = useState<ContentMap>({});
   const [pastEvents, setPastEvents] = useState<PastEvent[]>([]);
   const [upcomingFairs, setUpcomingFairs] = useState<UpcomingFair[]>([]);
-  const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [upcomingLoading, setUpcomingLoading] = useState(true);
@@ -266,15 +270,6 @@ const AboutPage: React.FC = () => {
     return `${t('about.status.upcoming', 'Upcoming')} · ${startStr}`;
   };
 
-  const toggleEventExpansion = (eventId: string) => {
-    setExpandedEventId(expandedEventId === eventId ? null : eventId);
-  };
-
-  const getCategoryLabel = (category: string | null) => {
-    if (!category) return t('categories.other', 'Other');
-    return t(`categories.${category}`, category);
-  };
-
   const getLocalizedContent = (section: AboutContent | undefined): string => {
     if (!section) return '';
     return i18n.language === 'en' ? (section.contentEn || '') : (section.contentAz || '');
@@ -315,11 +310,11 @@ const AboutPage: React.FC = () => {
                     : t('about.hero.fairUpcoming', 'Next fair · coming soon')}
                 </span>
               </div>
-              <p className="hero-h1">
+              <RevealText as="p" className="hero-h1">
                 {t('about.hero.headlineA', 'A marketplace')}<br />
                 {t('about.hero.headlineB', 'that ')}<em>{t('about.hero.headlineEm', 'travels')}</em><br />
                 {t('about.hero.headlineC', 'with the seasons.')}
-              </p>
+              </RevealText>
               <p className="hero-deck">
                 {t('about.hero.deck', "Family-friendly fairs across Azerbaijan — temporary villages of wooden houses, vendor stands, kids' workshops and warm food. We've been doing this since 2020.")}
               </p>
@@ -359,12 +354,12 @@ const AboutPage: React.FC = () => {
           <div className="mission-grid">
             <div>
               <div className="marker"><span className="marker-n">01</span>{t('about.mission', 'Our Mission')}</div>
-              <h2 className="mission-h2">
+              <RevealText as="h2" className="mission-h2">
                 {t('about.missionDesign.headlineA', 'Bring sellers')}<br />
                 {t('about.missionDesign.headlineB', 'and visitors')}<br />
                 {t('about.missionDesign.headlineC', 'into one ')}<em>{t('about.missionDesign.headlineEm', 'lively')}</em><br />
                 {t('about.missionDesign.headlineD', 'room.')}
-              </h2>
+              </RevealText>
               <div className="mission-tags">
                 {MISSION_TAGS.map((k) => (
                   <span className="tag" key={k}>{t(k, k.split('.').pop()!)}</span>
@@ -390,11 +385,11 @@ const AboutPage: React.FC = () => {
           <div className="history-head">
             <div>
               <div className="marker"><span className="marker-n">02</span>{t('about.history', 'Our History')}</div>
-              <h2 className="history-h2">
+              <RevealText as="h2" className="history-h2">
                 {t('about.historyDesign.headlineA', 'Five winters in.')}<br />
                 {t('about.historyDesign.headlineB', "And we're ")}<em>{t('about.historyDesign.headlineEm', 'just')}</em>{t('about.historyDesign.headlineC', ' getting')}<br />
                 {t('about.historyDesign.headlineD', 'started.')}
-              </h2>
+              </RevealText>
             </div>
             <div className="history-aside">
               {loading ? (
@@ -409,13 +404,13 @@ const AboutPage: React.FC = () => {
 
           <div className="timeline">
             <div className="timeline-row">
-              {TIMELINE.map((tl) => (
-                <div className={`tl ${tl.color}`} key={tl.yr}>
+              {TIMELINE.map((tl, idx) => (
+                <Reveal as="div" className={`tl ${tl.color}`} key={tl.yr} delay={idx * 90}>
                   <span className="tl-node" />
                   <div className="tl-yr">{tl.yr}</div>
                   <div className="tl-title">{t(tl.titleKey, tl.titleKey)}</div>
                   <div className="tl-body">{t(tl.bodyKey, tl.bodyKey)}</div>
-                </div>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -428,11 +423,11 @@ const AboutPage: React.FC = () => {
           <div className="team-grid">
             <div>
               <div className="marker"><span className="marker-n">03</span>{t('about.team', 'Our Team')}</div>
-              <h2 className="team-h2">
+              <RevealText as="h2" className="team-h2">
                 {t('about.teamDesign.headlineA', 'A small team,')}<br />
                 {t('about.teamDesign.headlineB', 'a ')}<em>{t('about.teamDesign.headlineEm', 'big')}</em>{t('about.teamDesign.headlineC', ' rolodex of')}<br />
                 {t('about.teamDesign.headlineD', 'makers.')}
-              </h2>
+              </RevealText>
               <div className="team-body">
                 {loading ? (
                   <p className="loading-text">{t('common.loading')}</p>
@@ -443,30 +438,35 @@ const AboutPage: React.FC = () => {
                 )}
               </div>
               <div className="team-stats">
-                <div className="team-stat">
+                <Reveal as="div" className="team-stat" delay={0}>
                   <div className="team-stat-v">8</div>
                   <div className="team-stat-l">{t('about.teamDesign.statFull', 'Full-time')}</div>
-                </div>
-                <div className="team-stat">
+                </Reveal>
+                <Reveal as="div" className="team-stat" delay={100}>
                   <div className="team-stat-v">42</div>
                   <div className="team-stat-l">{t('about.teamDesign.statSeasonal', 'Seasonal')}</div>
-                </div>
-                <div className="team-stat">
+                </Reveal>
+                <Reveal as="div" className="team-stat" delay={200}>
                   <div className="team-stat-v">160+</div>
                   <div className="team-stat-l">{t('about.teamDesign.statVolunteers', 'Volunteers')}</div>
-                </div>
+                </Reveal>
               </div>
             </div>
             <div className="roster">
-              {ROSTER.map((r) => (
-                <div className={`roster-row ${r.color}`} key={r.nameKey}>
+              {ROSTER.map((r, idx) => (
+                <Reveal
+                  as="div"
+                  className={`roster-row ${r.color}`}
+                  key={r.nameKey}
+                  delay={idx * 80}
+                >
                   <div className="roster-av">{r.initial}</div>
                   <div className="roster-info">
                     <b>{t(r.nameKey, r.nameKey)}</b>
                     <span>{t(r.roleKey, r.roleKey)}</span>
                   </div>
                   <div className="roster-meta">{r.city}<br />{r.since} →</div>
-                </div>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -482,10 +482,10 @@ const AboutPage: React.FC = () => {
                 <span className="marker-n marker-n-light">04</span>
                 {t('about.contact', 'Contact Us')}
               </div>
-              <h2 className="contact-h2">
+              <RevealText as="h2" className="contact-h2">
                 {t('about.contactDesign.headlineA', 'Say ')}<em>{t('about.contactDesign.headlineEm', 'hello')}</em>.<br />
                 {t('about.contactDesign.headlineB', 'We read every line.')}
-              </h2>
+              </RevealText>
               {contactText ? (
                 <p className="contact-lede">{contactText}</p>
               ) : (
@@ -497,24 +497,24 @@ const AboutPage: React.FC = () => {
               {(contactInfo?.phone || contactInfo?.email) && (
                 <div className="contact-rows">
                   {contactInfo?.phone && (
-                    <a className="contact-row" href={`tel:${contactInfo.phone}`}>
+                    <Reveal as="a" className="contact-row" href={`tel:${contactInfo.phone}`} delay={0}>
                       <span className="icob"><PhoneIcon /></span>
                       <div>
                         <span className="contact-row-l">{t('about.contactDesign.phone', 'Phone')}</span>
                         <span className="contact-row-v">{contactInfo.phone}</span>
                       </div>
                       <span className="arrow">↗</span>
-                    </a>
+                    </Reveal>
                   )}
                   {contactInfo?.email && (
-                    <a className="contact-row" href={`mailto:${contactInfo.email}`}>
+                    <Reveal as="a" className="contact-row" href={`mailto:${contactInfo.email}`} delay={120}>
                       <span className="icob"><EmailIcon /></span>
                       <div>
                         <span className="contact-row-l">{t('about.contactDesign.email', 'Email')}</span>
                         <span className="contact-row-v">{contactInfo.email}</span>
                       </div>
                       <span className="arrow">↗</span>
-                    </a>
+                    </Reveal>
                   )}
                 </div>
               )}
@@ -537,7 +537,7 @@ const AboutPage: React.FC = () => {
             </div>
 
             {/* Donatello plate */}
-            <div className="donatello-plate" aria-hidden="true">
+            <Reveal as="div" className="donatello-plate" aria-hidden="true" delay={200}>
               <span className="donatello-tag">
                 {t('about.contactDesign.mascotLabel', 'Mascot')} · <b>Donatello</b>
               </span>
@@ -551,7 +551,7 @@ const AboutPage: React.FC = () => {
                   loading="lazy"
                 />
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -563,9 +563,9 @@ const AboutPage: React.FC = () => {
             <div className="sec-head">
               <div>
                 <div className="marker"><span className="marker-n">05</span>{t('about.upcomingEvents', 'Upcoming Events')}</div>
-                <h2 className="sec-h2">
+                <RevealText as="h2" className="sec-h2">
                   {t('about.upcomingDesign.headlineA', "What's ")}<em>{t('about.upcomingDesign.headlineEm', 'next')}</em>{t('about.upcomingDesign.headlineB', ' on the calendar.')}
-                </h2>
+                </RevealText>
               </div>
               <div className="sec-right">
                 {upcomingFairs.length} {upcomingFairs.length === 1 ? t('about.fair', 'fair') : t('about.fairs', 'fairs')}
@@ -580,8 +580,8 @@ const AboutPage: React.FC = () => {
             </div>
 
             <div className="fairs-grid">
-              {upcomingFairs.map((fair) => (
-                <article className="fair-card" key={fair.id}>
+              {upcomingFairs.map((fair, idx) => (
+                <Reveal as="article" className="fair-card" key={fair.id} delay={idx * 80}>
                   <div
                     className="fair-cover"
                     style={fair.bannerImageUrl ? { backgroundImage: `url(${fair.bannerImageUrl})` } : undefined}
@@ -613,7 +613,7 @@ const AboutPage: React.FC = () => {
                       </Link>
                     </div>
                   </div>
-                </article>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -627,9 +627,9 @@ const AboutPage: React.FC = () => {
             <div className="sec-head">
               <div>
                 <div className="marker"><span className="marker-n">06</span>{t('about.pastDesign.label', 'Archive')}</div>
-                <h2 className="sec-h2">
+                <RevealText as="h2" className="sec-h2">
                   {t('about.pastDesign.headlineA', 'Past ')}<em>{t('about.pastDesign.headlineEm', 'fairs')}</em>{t('about.pastDesign.headlineB', '. And the makers who showed up.')}
-                </h2>
+                </RevealText>
               </div>
               <div className="sec-right">
                 {(() => {
@@ -642,78 +642,10 @@ const AboutPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="past-list">
-              {pastEvents.map((event) => {
-                const open = expandedEventId === event.id;
-                const yr = new Date(event.startDate).getFullYear().toString().slice(2);
-                return (
-                  <div className={`past-card ${open ? 'open' : ''}`} key={event.id}>
-                    <div
-                      className="past-head"
-                      onClick={() => toggleEventExpansion(event.id)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleEventExpansion(event.id); }}
-                    >
-                      <div className="past-yr">{`'${yr}`}</div>
-                      <div className="past-info">
-                        <h3 className="past-h3">{event.name}</h3>
-                        <div className="past-meta">
-                          <span><span className="past-meta-emoji" aria-hidden="true">📅</span> {formatShortDate(event.startDate)} → {formatShortDate(event.endDate)}</span>
-                          {event.locationAddress && (
-                            <span><span className="past-meta-emoji" aria-hidden="true">📍</span> {event.locationAddress}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="past-actions">
-                        <div className="past-vc-wrap">
-                          <div className="past-vc">{event.vendorCount}</div>
-                          <span className="past-vc-l">
-                            {event.vendorCount === 1 ? t('about.vendor', 'vendor') : t('about.vendors', 'vendors')}
-                          </span>
-                        </div>
-                        <button
-                          className="past-expand"
-                          aria-label={open ? t('about.collapse', 'Collapse') : t('about.expand', 'Expand')}
-                          onClick={(e) => { e.stopPropagation(); toggleEventExpansion(event.id); }}
-                        >
-                          ▼
-                        </button>
-                      </div>
-                    </div>
-                    {open && (
-                      <div className="past-body">
-                        {event.vendors.length > 0 ? (
-                          <>
-                            <h4 className="past-body-h4">{t('about.participatingVendors', 'Participating Vendors')}</h4>
-                            <div className="vendors-grid-new">
-                              {event.vendors.map((vendor) => {
-                                const name = vendor.companyName || vendor.ownerName || t('about.anonymousVendor', 'Vendor');
-                                const initial = name.charAt(0).toUpperCase();
-                                return (
-                                  <div className="vendor-new" key={vendor.id}>
-                                    {vendor.logoUrl ? (
-                                      <img className="vendor-new-logo-img" src={vendor.logoUrl} alt="" loading="lazy" />
-                                    ) : (
-                                      <div className="vendor-new-logo">{initial}</div>
-                                    )}
-                                    <div>
-                                      <b>{name}</b>
-                                      <span>{getCategoryLabel(vendor.productCategory)}</span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </>
-                        ) : (
-                          <p className="no-vendors-new">{t('about.noVendorsRecorded', 'No vendor records available for this event.')}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            <div className="past-cards-grid">
+              {pastEvents.map((event) => (
+                <EventCard key={event.id} fair={event} variant="archive" />
+              ))}
             </div>
           </div>
         </section>
