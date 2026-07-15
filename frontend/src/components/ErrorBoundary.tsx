@@ -1,4 +1,6 @@
 import React from 'react';
+// Class component — no hooks, so we call the i18n instance directly.
+import i18n from '../i18n/config';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -38,14 +40,14 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         <div className="error-boundary">
           <div className="error-boundary-content">
             <div className="error-boundary-icon">&#9888;</div>
-            <h1>Something went wrong</h1>
-            <p>We're sorry, but something unexpected happened. Please try again.</p>
+            <h1>{i18n.t('errorBoundary.title')}</h1>
+            <p>{i18n.t('errorBoundary.message')}</p>
             <div className="error-boundary-actions">
               <button onClick={this.handleRetry} className="btn btn-primary">
-                Try Again
+                {i18n.t('errorBoundary.tryAgain')}
               </button>
               <button onClick={this.handleGoHome} className="btn btn-secondary">
-                Go to Home Page
+                {i18n.t('errorBoundary.goHome')}
               </button>
             </div>
           </div>

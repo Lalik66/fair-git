@@ -130,7 +130,7 @@ const Navigation: React.FC = () => {
       <button
         className={`hamburger-btn ${mobileMenuOpen ? 'open' : ''}`}
         onClick={toggleMobileMenu}
-        aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+        aria-label={mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
         aria-expanded={mobileMenuOpen}
       >
         <span className="hamburger-line"></span>
@@ -214,8 +214,8 @@ const VendorDashboard: React.FC = () => {
     <div className="vendor-layout">
       <aside className={`vendor-sidebar${navOpen ? ' is-open' : ''}`}>
         <div className="vendor-sidebar-header">
-          <h2>Vendor Portal</h2>
-          <Link to="/" className="back-link" onClick={closeNav}>← Back to Home</Link>
+          <h2>{t('vendor.portal')}</h2>
+          <Link to="/" className="back-link" onClick={closeNav}>← {t('vendor.backToHome')}</Link>
         </div>
         <nav className="vendor-nav">
           <Link
@@ -223,28 +223,28 @@ const VendorDashboard: React.FC = () => {
             onClick={closeNav}
             className={`vendor-nav-link ${location.pathname === '/vendor' ? 'active' : ''}`}
           >
-            Dashboard
+            {t('nav.dashboard')}
           </Link>
           <Link
             to="/vendor/bookings"
             onClick={closeNav}
             className={`vendor-nav-link ${location.pathname.includes('/vendor/bookings') ? 'active' : ''}`}
           >
-            My Bookings
+            {t('vendor.myBookings')}
           </Link>
           <Link
             to="/vendor/applications"
             onClick={closeNav}
             className={`vendor-nav-link ${location.pathname.includes('/vendor/applications') ? 'active' : ''}`}
           >
-            My Applications
+            {t('vendor.myApplications')}
           </Link>
           <Link
             to="/vendor/profile"
             onClick={closeNav}
             className={`vendor-nav-link ${location.pathname.includes('/vendor/profile') ? 'active' : ''}`}
           >
-            My Profile
+            {t('vendor.myProfile')}
           </Link>
         </nav>
         <div className="vendor-sidebar-footer">
@@ -269,7 +269,7 @@ const VendorDashboard: React.FC = () => {
           <button
             type="button"
             className="vendor-nav-toggle"
-            aria-label="Open navigation"
+            aria-label={t('nav.openNavigation')}
             onClick={() => setNavOpen(true)}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -278,14 +278,14 @@ const VendorDashboard: React.FC = () => {
               <line x1="4" y1="17" x2="20" y2="17" />
             </svg>
           </button>
-          <span className="brand">Vendor Portal</span>
+          <span className="brand">{t('vendor.portal')}</span>
         </div>
         <Routes>
           <Route
             index
             element={
               <div className="vendor-dashboard-home">
-                <p className="eyebrow">Vendor Portal</p>
+                <p className="eyebrow">{t('vendor.portal')}</p>
                 <h1>{t('vendor.dashboard', 'Vendor Dashboard')}</h1>
                 <p>Welcome back, {user?.firstName || user?.email}!</p>
                 <div className="dashboard-cards">
@@ -294,16 +294,16 @@ const VendorDashboard: React.FC = () => {
                     <p>{t('vendor.applyHint', 'Fill in the application form to apply for a vendor house')}</p>
                   </Link>
                   <Link to="/vendor/bookings" className="dashboard-card">
-                    <h3>My Bookings</h3>
-                    <p>View your approved fair bookings</p>
+                    <h3>{t('vendor.myBookings')}</h3>
+                    <p>{t('vendor.bookingsDesc')}</p>
                   </Link>
                   <Link to="/vendor/applications" className="dashboard-card">
-                    <h3>My Applications</h3>
-                    <p>Track your application status</p>
+                    <h3>{t('vendor.myApplications')}</h3>
+                    <p>{t('application.trackStatus')}</p>
                   </Link>
                   <Link to="/vendor/profile" className="dashboard-card">
-                    <h3>My Profile</h3>
-                    <p>Update your contact and business info</p>
+                    <h3>{t('vendor.myProfile')}</h3>
+                    <p>{t('vendor.profileDesc')}</p>
                   </Link>
                 </div>
               </div>
@@ -326,29 +326,34 @@ const UserDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
+  const closeNav = () => setNavOpen(false);
 
   return (
     <div className="vendor-layout">
-      <aside className="vendor-sidebar">
+      <aside className={`vendor-sidebar${navOpen ? ' is-open' : ''}`}>
         <div className="vendor-sidebar-header">
           <h2>{t('nav.dashboard', 'Dashboard')}</h2>
-          <Link to="/" className="back-link">← {t('nav.home', 'Home')}</Link>
+          <Link to="/" className="back-link" onClick={closeNav}>← {t('nav.home', 'Home')}</Link>
         </div>
         <nav className="vendor-nav">
           <Link
             to="/profile"
+            onClick={closeNav}
             className={`vendor-nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
           >
             {t('nav.dashboard', 'Dashboard')}
           </Link>
           <Link
             to="/profile/applications"
+            onClick={closeNav}
             className={`vendor-nav-link ${location.pathname.includes('/profile/applications') ? 'active' : ''}`}
           >
             {t('vendor.myApplications', 'My Applications')}
           </Link>
           <Link
             to="/profile/account"
+            onClick={closeNav}
             className={`vendor-nav-link ${location.pathname.includes('/profile/account') ? 'active' : ''}`}
           >
             {t('nav.profile', 'Profile')}
@@ -364,7 +369,29 @@ const UserDashboard: React.FC = () => {
           </button>
         </div>
       </aside>
+      {navOpen && (
+        <div
+          className="vendor-sidebar-backdrop is-open"
+          onClick={closeNav}
+          aria-hidden="true"
+        />
+      )}
       <main className="vendor-main">
+        <div className="vendor-mobile-bar">
+          <button
+            type="button"
+            className="vendor-nav-toggle"
+            aria-label={t('nav.openNavigation')}
+            onClick={() => setNavOpen(true)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="4" y1="7" x2="20" y2="7" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="17" x2="20" y2="17" />
+            </svg>
+          </button>
+          <span className="brand">{t('nav.dashboard', 'Dashboard')}</span>
+        </div>
         <Routes>
           <Route
             index
@@ -404,7 +431,7 @@ const NotFoundPage: React.FC = () => {
       <h1>404</h1>
       <p>{t('errors.notFound', 'Page not found')}</p>
       <Link to="/" className="btn btn-primary">
-        Go Home
+        {t('nav.goHome')}
       </Link>
     </div>
   );
