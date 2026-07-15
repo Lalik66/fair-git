@@ -47,14 +47,69 @@
   margin-top: 4px;
 }
 
+/* Mobile sidebar toggle — sits as leftmost item in the top bar at <=900px */
+.ad-mobile-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin-right: 4px;
+  background: transparent;
+  border: 1px solid var(--fk-rule);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--fk-ink);
+  flex-shrink: 0;
+}
+
+.ad-mobile-toggle:hover {
+  background: var(--fk-bg);
+}
+
+/* Backdrop behind the sliding sidebar on mobile */
+.ad-side-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 14, 0.45);
+  z-index: 199;
+}
+
+.ad-side-backdrop.is-open {
+  display: block;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .ad-shell {
     grid-template-columns: 1fr;
   }
 
-  .ad-side {
-    display: none;
+  /* Override admin-design-system.css which hides the sidebar entirely.
+     Higher specificity (.ad-shell .ad-side) is required because multiple
+     page CSS files @import admin-design-system.css, so its display:none
+     rule re-appears later in the bundle and would otherwise win. */
+  .ad-shell .ad-side {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 0 30px 60px -20px rgba(20, 18, 14, 0.4);
+  }
+
+  .ad-shell .ad-side.is-open {
+    transform: translateX(0);
+  }
+
+  .ad-mobile-toggle {
+    display: inline-flex;
   }
 
   .ad-top .search {

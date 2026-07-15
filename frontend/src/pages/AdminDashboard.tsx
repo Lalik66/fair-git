@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { adminApi } from '../services/api';
+import AdminSearchBox from '../components/admin/AdminSearchBox';
 import UserManagement from './UserManagement';
 import AdminLogs from './AdminLogs';
 import FairManagement from './FairManagement';
@@ -17,25 +18,29 @@ import BannerManagement from './BannerManagement';
 import '../styles/admin-design-system.css';
 import './AdminDashboard.css';
 
-// Navigation items configuration
+// Navigation items configuration. Labels are i18n keys resolved at render
+// time (module-level const, so t() can't run here).
 const NAV_ITEMS = [
   {
-    group: 'Operate',
+    groupKey: 'adminDashboard.groupOperate',
     items: [
-      { path: '/admin', label: 'Dashboard', icon: '\u25A6', exact: true },
-      { path: '/admin/users', label: 'Users', icon: '\u2399' },
-      { path: '/admin/applications', label: 'Applications', icon: '\u2605' },
-      { path: '/admin/fairs', label: 'Fairs', icon: '\u229E' },
-      { path: '/admin/map', label: 'Map editor', icon: '\u2295' },
-      { path: '/admin/zones', label: 'Zones', icon: '\u25ca' },
-      { path: '/admin/analytics', label: 'Analytics', icon: '\u25eb' },
+      { path: '/admin', labelKey: 'adminDashboard.nav.dashboard', icon: '\u25a6', exact: true },
+      { path: '/admin/users', labelKey: 'adminDashboard.nav.users', icon: '\u2399' },
+      { path: '/admin/applications', labelKey: 'adminDashboard.nav.applications', icon: '\u2605' },
+      { path: '/admin/fairs', labelKey: 'adminDashboard.nav.fairs', icon: '\u229E' },
+      { path: '/admin/map', labelKey: 'adminDashboard.nav.mapEditor', icon: '\u2295' },
+      { path: '/admin/zones', labelKey: 'adminDashboard.nav.zones', icon: '\u25ca' },
+      { path: '/admin/events', labelKey: 'adminDashboard.nav.events', icon: '\u2691' },
+      { path: '/admin/qr', labelKey: 'adminDashboard.nav.qr', icon: '\u25a6' },
+      { path: '/admin/banners', labelKey: 'adminDashboard.nav.banners', icon: '\u25e8' },
+      { path: '/admin/analytics', labelKey: 'adminDashboard.nav.analytics', icon: '\u25eb' },
     ],
   },
   {
-    group: 'Content',
+    groupKey: 'adminDashboard.groupContent',
     items: [
-      { path: '/admin/about-us', label: 'About page', icon: '\u00B6' },
-      { path: '/admin/logs', label: 'Audit log', icon: '\u2318' },
+      { path: '/admin/about-us', labelKey: 'adminDashboard.nav.aboutPage', icon: '\u00B6' },
+      { path: '/admin/logs', labelKey: 'adminDashboard.nav.auditLog', icon: '\u2318' },
     ],
   },
 ];
@@ -55,9 +60,9 @@ const AdminHome: React.FC = () => {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return t('adminDashboard.greetingMorning');
+    if (hour < 18) return t('adminDashboard.greetingAfternoon');
+    return t('adminDashboard.greetingEvening');
   };
 
   return (
@@ -72,24 +77,24 @@ const AdminHome: React.FC = () => {
       {/* Quick stats */}
       <div className="stats-fk">
         <div className="stat-fk">
-          <div className="k">Active Fairs</div>
+          <div className="k">{t('adminDashboard.statActiveFairs')}</div>
           <div className="v">2</div>
-          <div className="d">Winter &amp; Spring</div>
+          <div className="d">{t('adminDashboard.statActiveFairsDesc')}</div>
         </div>
         <div className="stat-fk">
-          <div className="k">Vendors</div>
+          <div className="k">{t('adminDashboard.statVendors')}</div>
           <div className="v">48</div>
-          <div className="d"><span className="up">+12%</span> from last month</div>
+          <div className="d"><span className="up">+12%</span> {t('adminDashboard.statVendorsDesc')}</div>
         </div>
         <div className="stat-fk">
-          <div className="k">Pending</div>
+          <div className="k">{t('adminDashboard.statPending')}</div>
           <div className="v">{pendingCount ?? '—'}</div>
-          <div className="d">Applications</div>
+          <div className="d">{t('adminDashboard.statPendingDesc')}</div>
         </div>
         <div className="stat-fk">
-          <div className="k">Users</div>
+          <div className="k">{t('adminDashboard.statUsers')}</div>
           <div className="v">156</div>
-          <div className="d"><span className="up">+8%</span> growth</div>
+          <div className="d"><span className="up">+8%</span> {t('adminDashboard.statUsersDesc')}</div>
         </div>
       </div>
 
@@ -172,6 +177,12 @@ const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
+  const closeNav = () => setNavOpen(false);
+
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -208,18 +219,55 @@ const AdminDashboard: React.FC = () => {
       'about-us': t('admin.aboutUsEditor', { defaultValue: 'About page' }),
       'map': t('admin.mapManagement', { defaultValue: 'Map editor' }),
       'zones': t('admin.zones', { defaultValue: 'Zones' }),
+      'events': t('admin.events', { defaultValue: 'Events' }),
+      'qr': t('admin.qrCodes', { defaultValue: 'QR codes' }),
+      'banners': t('admin.banners', { defaultValue: 'Banners' }),
       'analytics': t('admin.analytics', { defaultValue: 'Analytics' }),
     };
     const subPath = location.pathname.replace(/^\/admin\/?/, '').split('/')[0];
-    return routeLabels[subPath] || 'Dashboard';
+    return routeLabels[subPath] || t('adminDashboard.nav.dashboard');
   };
 
   const isSubRoute = location.pathname !== '/admin' && location.pathname !== '/admin/';
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        const active = document.activeElement;
+        const inEditable =
+          active instanceof HTMLElement &&
+          (active.tagName === 'INPUT' ||
+            active.tagName === 'TEXTAREA' ||
+            active.isContentEditable);
+        if (inEditable && active !== searchInputRef.current) return;
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const getSearchPlaceholder = () => {
+    const subPath = location.pathname.replace(/^\/admin\/?/, '').split('/')[0];
+    const map: Record<string, string> = {
+      map: t('adminSearch.placeholder.map', { defaultValue: 'Search houses and facilities…' }),
+      events: t('adminSearch.placeholder.events', { defaultValue: 'Search events…' }),
+      banners: t('adminSearch.placeholder.banners', { defaultValue: 'Search banners…' }),
+      applications: t('adminSearch.placeholder.applications', { defaultValue: 'Search applicants…' }),
+      users: t('adminSearch.placeholder.users', { defaultValue: 'Search users…' }),
+      fairs: t('adminSearch.placeholder.fairs', { defaultValue: 'Search fairs…' }),
+    };
+    return map[subPath] ?? t('common.search', 'Search...');
+  };
+
   return (
     <div className="ad-shell">
       {/* Sidebar */}
-      <aside className="ad-side">
+      <aside className={`ad-side${navOpen ? ' is-open' : ''}`}>
         <div className="brand">
           <span className="dot"></span>
           FestivKids
@@ -229,31 +277,32 @@ const AdminDashboard: React.FC = () => {
           <div className="av">{getUserInitials()}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <b>{user?.firstName || user?.email?.split('@')[0] || 'Admin'}</b>
-            <span>Administrator</span>
+            <span>{t('adminDashboard.administrator')}</span>
           </div>
         </div>
 
         <nav className="ad-nav">
           {NAV_ITEMS.map((group) => (
-            <React.Fragment key={group.group}>
-              <div className="grp">{group.group}</div>
+            <React.Fragment key={group.groupKey}>
+              <div className="grp">{t(group.groupKey)}</div>
               {group.items.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={closeNav}
                   className={isActive(item.path, item.exact) ? 'active' : ''}
                 >
                   <span className="ico">{item.icon}</span>
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               ))}
             </React.Fragment>
           ))}
 
-          <div className="grp">Account</div>
-          <Link to="/">
+          <div className="grp">{t('adminDashboard.account')}</div>
+          <Link to="/" onClick={closeNav}>
             <span className="ico">{'\u2190'}</span>
-            Back to site
+            {t('adminDashboard.backToSite')}
           </Link>
           <button onClick={handleLogout}>
             <span className="ico">{'\u23FB'}</span>
@@ -262,12 +311,32 @@ const AdminDashboard: React.FC = () => {
         </nav>
       </aside>
 
+      {navOpen && (
+        <div
+          className="ad-side-backdrop is-open"
+          onClick={closeNav}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Main content */}
       <div className="ad-main">
         {/* Top bar */}
         <div className="ad-top">
+          <button
+            type="button"
+            className="ad-mobile-toggle"
+            aria-label={t('nav.openNavigation')}
+            onClick={() => setNavOpen(true)}
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="4" y1="7" x2="20" y2="7" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="17" x2="20" y2="17" />
+            </svg>
+          </button>
           <div className="crumbs">
-            <Link to="/admin">Admin</Link>
+            <Link to="/admin">{t('adminDashboard.breadcrumbAdmin')}</Link>
             {isSubRoute && (
               <>
                 {' / '}
@@ -276,16 +345,12 @@ const AdminDashboard: React.FC = () => {
             )}
           </div>
 
-          <div className="search">
-            <span style={{ fontSize: '14px' }}>{'\u2315'}</span>
-            <input placeholder={t('common.search', 'Search...')} />
-            <span className="kbd">{'\u2318'}K</span>
-          </div>
+          <AdminSearchBox ref={searchInputRef} placeholder={getSearchPlaceholder()} />
 
           <div className="right">
             <span className="pill ok">
               <span className="dot"></span>
-              System nominal
+              {t('adminDashboard.systemNominal')}
             </span>
           </div>
         </div>

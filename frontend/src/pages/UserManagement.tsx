@@ -2,6 +2,7 @@ import React, { useState, useEffect, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useAdminSearchQuery, matchesQuery } from '../hooks/useAdminSearch';
 import './UserManagement.css';
 
 interface User {
@@ -46,7 +47,7 @@ const UserManagement: React.FC = () => {
       setUsers(data.users);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load users');
+      setError(err.response?.data?.error || t('userAdmin.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -66,7 +67,7 @@ const UserManagement: React.FC = () => {
       });
 
       setTemporaryPassword(data.temporaryPassword);
-      setSuccessMessage(`Admin account created for ${email}`);
+      setSuccessMessage(t('userAdmin.createdFor', { email }));
       setShowCreateModal(false);
       setEmail('');
       setFirstName('');
@@ -74,7 +75,7 @@ const UserManagement: React.FC = () => {
       setCurrentPassword('');
       loadUsers();
     } catch (err: any) {
-      setFormError(err.response?.data?.error || 'Failed to create admin');
+      setFormError(err.response?.data?.error || t('userAdmin.createFailed'));
     } finally {
       setFormLoading(false);
     }
@@ -85,7 +86,7 @@ const UserManagement: React.FC = () => {
       await adminApi.updateUserStatus(userId, !currentStatus);
       loadUsers();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update user status');
+      setError(err.response?.data?.error || t('userAdmin.statusUpdateFailed'));
     }
   };
 
@@ -103,10 +104,21 @@ const UserManagement: React.FC = () => {
     setTemporaryPassword(null);
   };
 
+  const searchQuery = useAdminSearchQuery();
+
   // Get filtered users
   const filteredUsers = users.filter(user => {
-    if (filterRole === 'all') return true;
-    return user.role === filterRole;
+    if (filterRole !== 'all' && user.role !== filterRole) return false;
+    if (!searchQuery) return true;
+    return (
+      matchesQuery(user.firstName, searchQuery) ||
+      matchesQuery(user.lastName, searchQuery) ||
+      matchesQuery(user.email, searchQuery) ||
+      matchesQuery(
+        [user.firstName, user.lastName].filter(Boolean).join(' '),
+        searchQuery
+      )
+    );
   });
 
   // Count stats
@@ -182,15 +194,15 @@ const UserManagement: React.FC = () => {
       {/* Page header */}
       <div className="hdr">
         <div>
-          <h2>Users</h2>
-          <div className="lede">{stats.total} registered · {stats.admins} admins</div>
+          <h2>{t('userAdmin.title')}</h2>
+          <div className="lede">{t('userAdmin.subtitle', { total: stats.total, admins: stats.admins })}</div>
         </div>
         <div className="actions">
           <button className="btn-fk ghost" onClick={loadUsers}>
-            {'\u21BB'} Refresh
+            {'\u21BB'} {t('common.refresh')}
           </button>
           <button className="btn-fk primary" onClick={() => setShowCreateModal(true)}>
-            + Create Admin
+            + {t('userAdmin.createAdmin')}
           </button>
         </div>
       </div>
@@ -205,24 +217,24 @@ const UserManagement: React.FC = () => {
       {/* Stats row */}
       <div className="stats-fk">
         <div className="stat-fk">
-          <div className="k">Total Users</div>
+          <div className="k">{t('userAdmin.statTotal')}</div>
           <div className="v">{stats.total}</div>
-          <div className="d"><span className="up">{stats.active}</span> active</div>
+          <div className="d"><span className="up">{stats.active}</span> {t('userAdmin.statActiveSuffix')}</div>
         </div>
         <div className="stat-fk">
-          <div className="k">Admins</div>
+          <div className="k">{t('userAdmin.statAdmins')}</div>
           <div className="v">{stats.admins}</div>
-          <div className="d">System access</div>
+          <div className="d">{t('userAdmin.statSystemAccess')}</div>
         </div>
         <div className="stat-fk">
-          <div className="k">Vendors</div>
+          <div className="k">{t('userAdmin.statVendors')}</div>
           <div className="v">{stats.vendors}</div>
-          <div className="d">Registered sellers</div>
+          <div className="d">{t('userAdmin.statRegisteredSellers')}</div>
         </div>
         <div className="stat-fk">
-          <div className="k">Visitors</div>
+          <div className="k">{t('userAdmin.statVisitors')}</div>
           <div className="v">{stats.visitors}</div>
-          <div className="d">Regular users</div>
+          <div className="d">{t('userAdmin.statRegularUsers')}</div>
         </div>
       </div>
 
@@ -233,31 +245,31 @@ const UserManagement: React.FC = () => {
             className={filterRole === 'all' ? 'on' : ''}
             onClick={() => setFilterRole('all')}
           >
-            All
+            {t('userAdmin.filterAll')}
           </button>
           <button
             className={filterRole === 'admin' ? 'on' : ''}
             onClick={() => setFilterRole('admin')}
           >
-            Admins
+            {t('userAdmin.filterAdmins')}
           </button>
           <button
             className={filterRole === 'vendor' ? 'on' : ''}
             onClick={() => setFilterRole('vendor')}
           >
-            Vendors
+            {t('userAdmin.filterVendors')}
           </button>
           <button
             className={filterRole === 'user' ? 'on' : ''}
             onClick={() => setFilterRole('user')}
           >
-            Visitors
+            {t('userAdmin.filterVisitors')}
           </button>
         </div>
         <div className="spacer"></div>
         {selectedUsers.size > 0 && (
           <span className="chip">
-            {selectedUsers.size} selected
+            {t('userAdmin.selected', { count: selectedUsers.size })}
             <span className="x" onClick={() => setSelectedUsers(new Set())}>{'\u2715'}</span>
           </span>
         )}
@@ -275,12 +287,12 @@ const UserManagement: React.FC = () => {
                   onChange={toggleSelectAll}
                 />
               </th>
-              <th>User</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Registered</th>
-              <th>Last Login</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
+              <th>{t('userAdmin.thUser')}</th>
+              <th>{t('userAdmin.thRole')}</th>
+              <th>{t('userAdmin.thStatus')}</th>
+              <th>{t('userAdmin.thRegistered')}</th>
+              <th>{t('userAdmin.thLastLogin')}</th>
+              <th style={{ textAlign: 'right' }}>{t('userAdmin.thActions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -305,13 +317,13 @@ const UserManagement: React.FC = () => {
                 <td>
                   <span className={`pill ${user.role === 'admin' ? 'live' : user.role === 'vendor' ? 'ok' : 'muted'}`}>
                     <span className="dot"></span>
-                    {user.role}
+                    {t(`userAdmin.roles.${user.role}`, user.role)}
                   </span>
                 </td>
                 <td>
                   <span className={`pill ${user.isActive ? 'ok' : 'warn'}`}>
                     <span className="dot"></span>
-                    {user.isActive ? 'Active' : 'Inactive'}
+                    {user.isActive ? t('userAdmin.active') : t('userAdmin.inactive')}
                   </span>
                 </td>
                 <td style={{ fontFamily: 'var(--fk-font-mono)', fontSize: '11px', color: 'var(--fk-soft)' }}>
@@ -325,15 +337,15 @@ const UserManagement: React.FC = () => {
                 <td>
                   <div className="actions">
                     {user.id === currentUser?.id && user.isActive ? (
-                      <span className="pill muted" title="You cannot deactivate your own account">
-                        You
+                      <span className="pill muted" title={t('userAdmin.youTooltip')}>
+                        {t('userAdmin.you')}
                       </span>
                     ) : (
                       <button
                         className={`btn-fk sm ${user.isActive ? '' : 'accent'}`}
                         onClick={() => handleToggleStatus(user.id, user.isActive)}
                       >
-                        {user.isActive ? 'Deactivate' : 'Activate'}
+                        {user.isActive ? t('userAdmin.deactivate') : t('userAdmin.activate')}
                       </button>
                     )}
                   </div>
@@ -343,7 +355,7 @@ const UserManagement: React.FC = () => {
           </tbody>
         </table>
         <div className="pager">
-          <span>Showing {filteredUsers.length} of {users.length} users</span>
+          <span>{t('userAdmin.showing', { count: filteredUsers.length, total: users.length })}</span>
           <div className="pages">
             <button className="on">1</button>
           </div>
@@ -355,7 +367,7 @@ const UserManagement: React.FC = () => {
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-fk" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Create Admin</h3>
+              <h3>{t('userAdmin.createAdmin')}</h3>
               <button className="btn-fk icon" onClick={closeModal}>
                 {'\u2715'}
               </button>
@@ -377,7 +389,7 @@ const UserManagement: React.FC = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="field-fk">
-                  <label>First Name *</label>
+                  <label>{t('userAdmin.firstName')} *</label>
                   <input
                     type="text"
                     value={firstName}
@@ -388,7 +400,7 @@ const UserManagement: React.FC = () => {
                 </div>
 
                 <div className="field-fk">
-                  <label>Last Name *</label>
+                  <label>{t('userAdmin.lastName')} *</label>
                   <input
                     type="text"
                     value={lastName}
@@ -400,14 +412,14 @@ const UserManagement: React.FC = () => {
               </div>
 
               <div className="field-fk">
-                <label>Your Password *</label>
+                <label>{t('userAdmin.yourPassword')} *</label>
                 <input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   required
                   disabled={formLoading}
-                  placeholder="Enter your password to confirm"
+                  placeholder={t('userAdmin.passwordConfirmPlaceholder')}
                 />
               </div>
 
@@ -418,14 +430,14 @@ const UserManagement: React.FC = () => {
                   onClick={closeModal}
                   disabled={formLoading}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="btn-fk primary"
                   disabled={formLoading}
                 >
-                  {formLoading ? 'Creating...' : 'Create Admin'}
+                  {formLoading ? t('common.creating') : t('userAdmin.createAdmin')}
                 </button>
               </div>
             </form>
@@ -438,7 +450,7 @@ const UserManagement: React.FC = () => {
         <div className="modal-overlay" onClick={closeSuccessModal}>
           <div className="modal-fk" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Admin Created</h3>
+              <h3>{t('userAdmin.createdTitle')}</h3>
               <button className="btn-fk icon" onClick={closeSuccessModal}>
                 {'\u2715'}
               </button>
@@ -449,14 +461,14 @@ const UserManagement: React.FC = () => {
                 {successMessage}
               </div>
               <div className="um-temp-password">
-                <label>Temporary Password</label>
+                <label>{t('userAdmin.tempPassword')}</label>
                 <code>{temporaryPassword}</code>
-                <p>Please share this password securely with the new admin. They will be required to change it on first login.</p>
+                <p>{t('userAdmin.tempPasswordNote')}</p>
               </div>
             </div>
             <div className="modal-actions">
               <button className="btn-fk primary" onClick={closeSuccessModal}>
-                Done
+                {t('common.done')}
               </button>
             </div>
           </div>

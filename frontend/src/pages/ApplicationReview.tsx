@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { adminApi } from '../services/api';
+import { useAdminSearchQuery, useAdminSearchSetter } from '../hooks/useAdminSearch';
 import './ApplicationReview.css';
 
 interface Application {
@@ -99,7 +100,20 @@ const ApplicationReview: React.FC = () => {
   const [filterDateTo, setFilterDateTo] = useState<string>(searchParams.get('dateTo') || '');
   const [filterHouse, setFilterHouse] = useState<string>(searchParams.get('house') || 'all');
   const [filterFair, setFilterFair] = useState<string>(searchParams.get('fair') || 'all');
-  const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || '');
+  // searchQuery is mirrored locally for instant input feedback, but the URL
+  // (?q=) is the source of truth — written debounced to avoid a write-loop
+  // with the rest of updateUrlParams. Both the in-page search input and the
+  // top-bar AdminSearchBox read/write the same param via useAdminSearch.
+  const urlSearchQuery = useAdminSearchQuery();
+  const setUrlSearchQuery = useAdminSearchSetter();
+  const [searchQuery, setSearchQueryLocal] = useState<string>(urlSearchQuery);
+  useEffect(() => {
+    setSearchQueryLocal(prev => (prev === urlSearchQuery ? prev : urlSearchQuery));
+  }, [urlSearchQuery]);
+  const setSearchQuery = useCallback((v: string) => {
+    setSearchQueryLocal(v);
+    setUrlSearchQuery(v);
+  }, [setUrlSearchQuery]);
   const [sortField, setSortField] = useState<SortField>((searchParams.get('sortField') as SortField) || 'submittedAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>((searchParams.get('sortOrder') as SortOrder) || 'desc');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -125,24 +139,28 @@ const ApplicationReview: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10));
   const [itemsPerPage, setItemsPerPage] = useState(parseInt(searchParams.get('perPage') || '10', 10));
 
-  // Sync filter state to URL
+  // Sync filter state to URL. Uses the functional setSearchParams so the
+  // existing ?q= written by useAdminSearchSetter is preserved without us
+  // having to depend on `searchParams` (which would re-create this callback
+  // on every URL change and cause a write-loop with the search debounce).
   const updateUrlParams = useCallback(() => {
-    const params = new URLSearchParams();
-
-    if (filterStatus !== 'all') params.set('status', filterStatus);
-    if (filterCategory !== 'all') params.set('category', filterCategory);
-    if (filterDateFrom) params.set('dateFrom', filterDateFrom);
-    if (filterDateTo) params.set('dateTo', filterDateTo);
-    if (filterHouse !== 'all') params.set('house', filterHouse);
-    if (filterFair !== 'all') params.set('fair', filterFair);
-    if (searchQuery) params.set('search', searchQuery);
-    if (sortField !== 'submittedAt') params.set('sortField', sortField);
-    if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
-    if (currentPage !== 1) params.set('page', currentPage.toString());
-    if (itemsPerPage !== 10) params.set('perPage', itemsPerPage.toString());
-
-    setSearchParams(params, { replace: true });
-  }, [filterStatus, filterCategory, filterDateFrom, filterDateTo, filterHouse, filterFair, searchQuery, sortField, sortOrder, currentPage, itemsPerPage, setSearchParams]);
+    setSearchParams(prev => {
+      const params = new URLSearchParams();
+      if (filterStatus !== 'all') params.set('status', filterStatus);
+      if (filterCategory !== 'all') params.set('category', filterCategory);
+      if (filterDateFrom) params.set('dateFrom', filterDateFrom);
+      if (filterDateTo) params.set('dateTo', filterDateTo);
+      if (filterHouse !== 'all') params.set('house', filterHouse);
+      if (filterFair !== 'all') params.set('fair', filterFair);
+      const q = prev.get('q');
+      if (q) params.set('q', q);
+      if (sortField !== 'submittedAt') params.set('sortField', sortField);
+      if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
+      if (currentPage !== 1) params.set('page', currentPage.toString());
+      if (itemsPerPage !== 10) params.set('perPage', itemsPerPage.toString());
+      return params;
+    }, { replace: true });
+  }, [filterStatus, filterCategory, filterDateFrom, filterDateTo, filterHouse, filterFair, sortField, sortOrder, currentPage, itemsPerPage, setSearchParams]);
 
   // Update URL when filters change
   useEffect(() => {
@@ -1076,7 +1094,7 @@ const ApplicationReview: React.FC = () => {
                       <label>{t('applicationReview.companyLogo')}</label>
                       <img
                         src={applicationDetails.logoUrl}
-                        alt="Company Logo"
+                        alt={t('applicationReview.companyLogo')}
                         className="vendor-logo"
                         loading="lazy"
                       />

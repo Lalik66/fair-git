@@ -51,7 +51,7 @@ const AdminLogs: React.FC = () => {
       }
       setError(null);
     } catch (err) {
-      setError('Failed to load admin logs');
+      setError(t('adminLogs.loadFailed'));
       console.error('Error fetching logs:', err);
     } finally {
       setLoading(false);
@@ -76,21 +76,8 @@ const AdminLogs: React.FC = () => {
   };
 
   const formatAction = (action: string): string => {
-    const actionMap: Record<string, string> = {
-      'create_admin': 'Create Admin',
-      'activate_user': 'Activate User',
-      'deactivate_user': 'Deactivate User',
-      'login': 'Login',
-      'logout': 'Logout',
-      'create_fair': 'Create Fair',
-      'update_fair': 'Update Fair',
-      'delete_fair': 'Delete Fair',
-      'archive_fair': 'Archive Fair',
-      'approve_application': 'Approve Application',
-      'reject_application': 'Reject Application',
-      'update_about_us': 'Update About Us',
-    };
-    return actionMap[action] || action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const fallback = action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return t(`adminLogs.actions.${action}`, fallback);
   };
 
   const getActionBadgeClass = (action: string): string => {
@@ -115,7 +102,7 @@ const AdminLogs: React.FC = () => {
     return (
       <div className="admin-logs-container">
         <div className="loading-spinner">
-          {t('Loading...', { defaultValue: 'Loading...' })}
+          {t('common.loading')}
         </div>
       </div>
     );
@@ -127,7 +114,7 @@ const AdminLogs: React.FC = () => {
         <div className="error-message">
           {error}
           <button onClick={fetchLogs} className="btn btn-primary btn-sm" style={{ marginLeft: '10px' }}>
-            {t('Retry', { defaultValue: 'Retry' })}
+            {t('common.retry')}
           </button>
         </div>
       </div>
@@ -137,23 +124,23 @@ const AdminLogs: React.FC = () => {
   return (
     <div className="admin-logs-container">
       <div className="logs-header">
-        <h1>{t('admin.activityLogs', { defaultValue: 'Admin Activity Logs' })}</h1>
+        <h1>{t('admin.activityLogs')}</h1>
         <button onClick={fetchLogs} className="btn btn-secondary btn-sm">
-          {t('Refresh', { defaultValue: 'Refresh' })}
+          {t('common.refresh')}
         </button>
       </div>
 
       {/* Filter Controls */}
       <div className="logs-filters">
         <div className="filter-group">
-          <label htmlFor="actionFilter">{t('Filter by Action:', { defaultValue: 'Filter by Action:' })}</label>
+          <label htmlFor="actionFilter">{t('adminLogs.filterByAction')}</label>
           <select
             id="actionFilter"
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
             className="filter-select"
           >
-            <option value="all">{t('All Actions', { defaultValue: 'All Actions' })}</option>
+            <option value="all">{t('adminLogs.allActions')}</option>
             {actionTypes.map((action) => (
               <option key={action} value={action}>
                 {formatAction(action)}
@@ -163,7 +150,7 @@ const AdminLogs: React.FC = () => {
         </div>
 
         <div className="filter-group">
-          <label htmlFor="fromDate">{t('From:', { defaultValue: 'From:' })}</label>
+          <label htmlFor="fromDate">{t('adminLogs.from')}</label>
           <input
             type="date"
             id="fromDate"
@@ -174,7 +161,7 @@ const AdminLogs: React.FC = () => {
         </div>
 
         <div className="filter-group">
-          <label htmlFor="toDate">{t('To:', { defaultValue: 'To:' })}</label>
+          <label htmlFor="toDate">{t('adminLogs.to')}</label>
           <input
             type="date"
             id="toDate"
@@ -186,23 +173,23 @@ const AdminLogs: React.FC = () => {
 
         {hasFilters && (
           <button onClick={handleClearFilters} className="btn btn-outline btn-sm clear-filters-btn">
-            {t('Clear Filters', { defaultValue: 'Clear Filters' })}
+            {t('common.clearFilters')}
           </button>
         )}
       </div>
 
       {/* Results count */}
       <div className="logs-count">
-        {t('Showing {{count}} log entries', { defaultValue: `Showing ${logs.length} log entries`, count: logs.length })}
-        {loading && <span className="loading-indicator"> ({t('Loading...', { defaultValue: 'Loading...' })})</span>}
+        {t('adminLogs.showing', { count: logs.length })}
+        {loading && <span className="loading-indicator"> ({t('common.loading')})</span>}
       </div>
 
       {logs.length === 0 ? (
         <div className="no-logs">
-          <p>{t('No activity logs found', { defaultValue: 'No activity logs found' })}</p>
+          <p>{t('adminLogs.noLogs')}</p>
           {hasFilters && (
             <p className="no-logs-hint">
-              {t('Try adjusting your filters', { defaultValue: 'Try adjusting your filters' })}
+              {t('adminLogs.adjustFilters')}
             </p>
           )}
         </div>
@@ -211,11 +198,11 @@ const AdminLogs: React.FC = () => {
           <table className="logs-table">
             <thead>
               <tr>
-                <th>{t('Timestamp', { defaultValue: 'Timestamp' })}</th>
-                <th>{t('Admin', { defaultValue: 'Admin' })}</th>
-                <th>{t('Action', { defaultValue: 'Action' })}</th>
-                <th>{t('Details', { defaultValue: 'Details' })}</th>
-                <th>{t('IP Address', { defaultValue: 'IP Address' })}</th>
+                <th>{t('adminLogs.thTimestamp')}</th>
+                <th>{t('adminLogs.thAdmin')}</th>
+                <th>{t('adminLogs.thAction')}</th>
+                <th>{t('adminLogs.thDetails')}</th>
+                <th>{t('adminLogs.thIp')}</th>
               </tr>
             </thead>
             <tbody>

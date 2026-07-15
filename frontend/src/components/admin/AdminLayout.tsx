@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import AdminSearchBox from './AdminSearchBox';
 import './AdminLayout.css';
 
 interface AdminLayoutProps {
@@ -102,6 +103,40 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
 
   const crumbs = getBreadcrumbPath();
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        const active = document.activeElement;
+        const inEditable =
+          active instanceof HTMLElement &&
+          (active.tagName === 'INPUT' ||
+            active.tagName === 'TEXTAREA' ||
+            active.isContentEditable);
+        if (inEditable && active !== searchInputRef.current) return;
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const getSearchPlaceholder = () => {
+    const subPath = location.pathname.replace(/^\/admin\/?/, '').split('/')[0];
+    const map: Record<string, string> = {
+      map: t('adminSearch.placeholder.map', { defaultValue: 'Search houses and facilities…' }),
+      events: t('adminSearch.placeholder.events', { defaultValue: 'Search events…' }),
+      banners: t('adminSearch.placeholder.banners', { defaultValue: 'Search banners…' }),
+      applications: t('adminSearch.placeholder.applications', { defaultValue: 'Search applicants…' }),
+      users: t('adminSearch.placeholder.users', { defaultValue: 'Search users…' }),
+      fairs: t('adminSearch.placeholder.fairs', { defaultValue: 'Search fairs…' }),
+    };
+    return map[subPath] ?? t('common.search', 'Search...');
+  };
+
   return (
     <div className="ad-shell">
       {/* Sidebar */}
@@ -166,11 +201,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
             ))}
           </div>
 
-          <div className="search">
-            <span style={{ fontSize: '14px' }}>{'\u2315'}</span>
-            <input placeholder={t('common.search', 'Search...')} />
-            <span className="kbd">{'\u2318'}K</span>
-          </div>
+          <AdminSearchBox ref={searchInputRef} placeholder={getSearchPlaceholder()} />
 
           <div className="right">
             <span className="pill">

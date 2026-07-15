@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { adminApi } from '../services/api';
+import { useAdminSearchQuery, matchesQuery } from '../hooks/useAdminSearch';
 import './MapManagement.css';
 
 // Set Mapbox access token
@@ -144,6 +145,16 @@ const MapManagement: React.FC = () => {
   const tempMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [addFacilityMode, setAddFacilityMode] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
+
+  const searchQuery = useAdminSearchQuery();
+  const visibleHouses = useMemo(
+    () => houses.filter(h => matchesQuery(h.houseNumber, searchQuery) || matchesQuery(h.description, searchQuery)),
+    [houses, searchQuery]
+  );
+  const visibleFacilities = useMemo(
+    () => facilities.filter(f => matchesQuery(f.name, searchQuery) || matchesQuery(f.description, searchQuery)),
+    [facilities, searchQuery]
+  );
 
   const fetchHouses = useCallback(async () => {
     try {
@@ -1080,7 +1091,7 @@ const MapManagement: React.FC = () => {
               <button
                 className="btn-close"
                 onClick={handleCancelEdit}
-                aria-label="Close"
+                aria-label={t('common.close')}
               >
                 &times;
               </button>
@@ -1201,7 +1212,7 @@ const MapManagement: React.FC = () => {
               <button
                 className="btn-close"
                 onClick={handleCancelDelete}
-                aria-label="Close"
+                aria-label={t('common.close')}
               >
                 &times;
               </button>
@@ -1243,7 +1254,7 @@ const MapManagement: React.FC = () => {
               <button
                 className="btn-close"
                 onClick={handleCancelCreateHouseForm}
-                aria-label="Close"
+                aria-label={t('common.close')}
               >
                 &times;
               </button>
@@ -1388,6 +1399,10 @@ const MapManagement: React.FC = () => {
           <p>{t('mapManagement.noHousesFound')}</p>
           <p>{t('mapManagement.addHouseHint')}</p>
         </div>
+      ) : visibleHouses.length === 0 ? (
+        <div className="no-houses">
+          <p>{t('common.noResults', { defaultValue: 'No results found.' })}</p>
+        </div>
       ) : (
         <div className="houses-table-container">
           <table className="houses-table">
@@ -1397,13 +1412,13 @@ const MapManagement: React.FC = () => {
                 <th>{t('mapManagement.areaLabel')}</th>
                 <th>{t('mapManagement.priceLabel')}</th>
                 <th>{t('mapManagement.description')}</th>
-                <th>Panorama</th>
+                <th>{t('mapManagement.panorama')}</th>
                 <th>{t('applicationReview.status')}</th>
                 <th>{t('applicationReview.actions')}</th>
               </tr>
             </thead>
             <tbody>
-              {houses.map((house) => (
+              {visibleHouses.map((house) => (
                 <tr key={house.id} className={!house.isEnabled ? 'house-disabled' : ''}>
                   <td className="house-number-cell">
                     <strong>{house.houseNumber}</strong>
@@ -1478,11 +1493,11 @@ const MapManagement: React.FC = () => {
           <div className="edit-modal-overlay" onClick={handleCancelFacilityForm}>
             <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
               <div className="edit-modal-header">
-                <h3>Add New Facility</h3>
+                <h3>{t('mapManagement.addNewFacility')}</h3>
                 <button
                   className="btn-close"
                   onClick={handleCancelFacilityForm}
-                  aria-label="Close"
+                  aria-label={t('common.close')}
                 >
                   &times;
                 </button>
@@ -1490,14 +1505,14 @@ const MapManagement: React.FC = () => {
 
               <div className="edit-modal-body">
                 <div className={`form-group ${facilityFormErrors.name ? 'has-error' : ''}`}>
-                  <label htmlFor="facilityName">Facility Name *</label>
+                  <label htmlFor="facilityName">{t('mapManagement.facilityNameLabel')}</label>
                   <input
                     id="facilityName"
                     type="text"
                     value={facilityFormData.name}
                     onChange={(e) => handleFacilityFormChange('name', e.target.value)}
                     className={facilityFormErrors.name ? 'input-error' : ''}
-                    placeholder="e.g. Main Restaurant"
+                    placeholder={t('mapManagement.facilityNamePlaceholder')}
                   />
                   {facilityFormErrors.name && (
                     <span className="field-error">{facilityFormErrors.name}</span>
@@ -1505,7 +1520,7 @@ const MapManagement: React.FC = () => {
                 </div>
 
                 <div className={`form-group ${facilityFormErrors.type ? 'has-error' : ''}`}>
-                  <label htmlFor="facilityType">Type *</label>
+                  <label htmlFor="facilityType">{t('mapManagement.typeLabel')}</label>
                   <select
                     id="facilityType"
                     value={facilityFormData.type}
@@ -1514,7 +1529,7 @@ const MapManagement: React.FC = () => {
                   >
                     {FACILITY_TYPES.map((ft) => (
                       <option key={ft.value} value={ft.value}>
-                        {ft.icon} {ft.label}
+                        {ft.icon} {t(`facilities.${ft.value}`, ft.label)}
                       </option>
                     ))}
                   </select>
@@ -1524,19 +1539,19 @@ const MapManagement: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="facilityDescription">Description</label>
+                  <label htmlFor="facilityDescription">{t('common.description')}</label>
                   <textarea
                     id="facilityDescription"
                     rows={2}
                     value={facilityFormData.description}
                     onChange={(e) => handleFacilityFormChange('description', e.target.value)}
-                    placeholder="Optional description"
+                    placeholder={t('mapManagement.optionalDescription')}
                   />
                 </div>
 
                 <div className="form-row">
                   <div className={`form-group ${facilityFormErrors.latitude ? 'has-error' : ''}`}>
-                    <label htmlFor="facilityLatitude">Latitude *</label>
+                    <label htmlFor="facilityLatitude">{t('mapManagement.latitudeLabel')}</label>
                     <input
                       id="facilityLatitude"
                       type="number"
@@ -1551,7 +1566,7 @@ const MapManagement: React.FC = () => {
                     )}
                   </div>
                   <div className={`form-group ${facilityFormErrors.longitude ? 'has-error' : ''}`}>
-                    <label htmlFor="facilityLongitude">Longitude *</label>
+                    <label htmlFor="facilityLongitude">{t('mapManagement.longitudeLabel')}</label>
                     <input
                       id="facilityLongitude"
                       type="number"
@@ -1569,7 +1584,7 @@ const MapManagement: React.FC = () => {
 
                 {addFacilityMode && (
                   <div className="location-hint">
-                    <span>📍</span> Location selected from map click
+                    <span>📍</span> {t('mapManagement.locationFromMap')}
                   </div>
                 )}
               </div>
@@ -1580,14 +1595,14 @@ const MapManagement: React.FC = () => {
                   onClick={handleCancelFacilityForm}
                   disabled={savingFacility}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   className="btn btn-primary"
                   onClick={handleCreateFacility}
                   disabled={savingFacility}
                 >
-                  {savingFacility ? 'Creating...' : 'Create Facility'}
+                  {savingFacility ? t('common.creating') : t('mapManagement.createFacility')}
                 </button>
               </div>
             </div>
@@ -1599,11 +1614,11 @@ const MapManagement: React.FC = () => {
           <div className="edit-modal-overlay" onClick={handleCancelEditFacility}>
             <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
               <div className="edit-modal-header">
-                <h3>Edit Facility: {editingFacility.name}</h3>
+                <h3>{t('mapManagement.editFacility', { name: editingFacility.name })}</h3>
                 <button
                   className="btn-close"
                   onClick={handleCancelEditFacility}
-                  aria-label="Close"
+                  aria-label={t('common.close')}
                 >
                   &times;
                 </button>
@@ -1611,14 +1626,14 @@ const MapManagement: React.FC = () => {
 
               <div className="edit-modal-body">
                 <div className={`form-group ${editFacilityFormErrors.name ? 'has-error' : ''}`}>
-                  <label htmlFor="editFacilityName">Facility Name *</label>
+                  <label htmlFor="editFacilityName">{t('mapManagement.facilityNameLabel')}</label>
                   <input
                     id="editFacilityName"
                     type="text"
                     value={editFacilityFormData.name}
                     onChange={(e) => handleEditFacilityFormChange('name', e.target.value)}
                     className={editFacilityFormErrors.name ? 'input-error' : ''}
-                    placeholder="e.g. Main Restaurant"
+                    placeholder={t('mapManagement.facilityNamePlaceholder')}
                   />
                   {editFacilityFormErrors.name && (
                     <span className="field-error">{editFacilityFormErrors.name}</span>
@@ -1626,7 +1641,7 @@ const MapManagement: React.FC = () => {
                 </div>
 
                 <div className={`form-group ${editFacilityFormErrors.type ? 'has-error' : ''}`}>
-                  <label htmlFor="editFacilityType">Type *</label>
+                  <label htmlFor="editFacilityType">{t('mapManagement.typeLabel')}</label>
                   <select
                     id="editFacilityType"
                     value={editFacilityFormData.type}
@@ -1635,7 +1650,7 @@ const MapManagement: React.FC = () => {
                   >
                     {FACILITY_TYPES.map((ft) => (
                       <option key={ft.value} value={ft.value}>
-                        {ft.icon} {ft.label}
+                        {ft.icon} {t(`facilities.${ft.value}`, ft.label)}
                       </option>
                     ))}
                   </select>
@@ -1645,19 +1660,19 @@ const MapManagement: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="editFacilityDescription">Description</label>
+                  <label htmlFor="editFacilityDescription">{t('common.description')}</label>
                   <textarea
                     id="editFacilityDescription"
                     rows={2}
                     value={editFacilityFormData.description}
                     onChange={(e) => handleEditFacilityFormChange('description', e.target.value)}
-                    placeholder="Optional description"
+                    placeholder={t('mapManagement.optionalDescription')}
                   />
                 </div>
 
                 <div className="form-row">
                   <div className={`form-group ${editFacilityFormErrors.latitude ? 'has-error' : ''}`}>
-                    <label htmlFor="editFacilityLatitude">Latitude *</label>
+                    <label htmlFor="editFacilityLatitude">{t('mapManagement.latitudeLabel')}</label>
                     <input
                       id="editFacilityLatitude"
                       type="number"
@@ -1672,7 +1687,7 @@ const MapManagement: React.FC = () => {
                     )}
                   </div>
                   <div className={`form-group ${editFacilityFormErrors.longitude ? 'has-error' : ''}`}>
-                    <label htmlFor="editFacilityLongitude">Longitude *</label>
+                    <label htmlFor="editFacilityLongitude">{t('mapManagement.longitudeLabel')}</label>
                     <input
                       id="editFacilityLongitude"
                       type="number"
@@ -1695,14 +1710,14 @@ const MapManagement: React.FC = () => {
                   onClick={handleCancelEditFacility}
                   disabled={savingEditFacility}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   className="btn btn-primary"
                   onClick={handleSaveEditFacility}
                   disabled={savingEditFacility}
                 >
-                  {savingEditFacility ? 'Saving...' : 'Save Changes'}
+                  {savingEditFacility ? t('common.saving') : t('mapManagement.saveChanges')}
                 </button>
               </div>
             </div>
@@ -1714,16 +1729,16 @@ const MapManagement: React.FC = () => {
           <div className="edit-modal-overlay" onClick={() => setDeletingFacility(null)}>
             <div className="edit-modal delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
               <div className="edit-modal-header">
-                <h3>Delete Facility</h3>
-                <button className="btn-close" onClick={() => setDeletingFacility(null)} aria-label="Close">
+                <h3>{t('mapManagement.deleteFacility')}</h3>
+                <button className="btn-close" onClick={() => setDeletingFacility(null)} aria-label={t('common.close')}>
                   &times;
                 </button>
               </div>
               <div className="edit-modal-body">
                 <p className="delete-warning">
-                  Are you sure you want to delete facility <strong>{deletingFacility.name}</strong>?
+                  {t('mapManagement.deleteFacilityConfirm', { name: deletingFacility.name })}
                 </p>
-                <p className="delete-note">This action cannot be undone.</p>
+                <p className="delete-note">{t('mapManagement.deleteFacilityNote')}</p>
               </div>
               <div className="edit-modal-footer">
                 <button
@@ -1731,14 +1746,14 @@ const MapManagement: React.FC = () => {
                   onClick={() => setDeletingFacility(null)}
                   disabled={deletingFacilityInProgress}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   className="btn btn-danger"
                   onClick={handleDeleteFacility}
                   disabled={deletingFacilityInProgress}
                 >
-                  {deletingFacilityInProgress ? 'Deleting...' : 'Delete Facility'}
+                  {deletingFacilityInProgress ? t('common.deleting') : t('mapManagement.deleteFacility')}
                 </button>
               </div>
             </div>
@@ -1748,23 +1763,27 @@ const MapManagement: React.FC = () => {
         {/* Facilities Table */}
         {facilities.length === 0 ? (
           <div className="no-houses">
-            <p>No facilities found.</p>
-            <p>Click "Add Facility" to create one, or use the map above to place facilities.</p>
+            <p>{t('mapManagement.noFacilitiesFound')}</p>
+            <p>{t('mapManagement.addFacilityHint')}</p>
+          </div>
+        ) : visibleFacilities.length === 0 ? (
+          <div className="no-houses">
+            <p>{t('common.noResults', { defaultValue: 'No results found.' })}</p>
           </div>
         ) : (
           <div className="houses-table-container">
             <table className="houses-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Description</th>
-                  <th>Location</th>
-                  <th>Actions</th>
+                  <th>{t('common.name')}</th>
+                  <th>{t('common.type')}</th>
+                  <th>{t('common.description')}</th>
+                  <th>{t('common.location')}</th>
+                  <th>{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
-                {facilities.map((facility) => {
+                {visibleFacilities.map((facility) => {
                   const typeInfo = FACILITY_TYPES.find((ft) => ft.value === facility.type);
                   return (
                     <tr key={facility.id}>
@@ -1773,7 +1792,7 @@ const MapManagement: React.FC = () => {
                       </td>
                       <td>
                         <span className="facility-type-badge" style={{ backgroundColor: typeInfo?.color || '#6B7280' }}>
-                          {typeInfo?.icon || '?'} {typeInfo?.label || facility.type}
+                          {typeInfo?.icon || '?'} {typeInfo ? t(`facilities.${typeInfo.value}`, typeInfo.label) : facility.type}
                         </span>
                       </td>
                       <td className="description-cell">{facility.description || '—'}</td>
@@ -1785,7 +1804,7 @@ const MapManagement: React.FC = () => {
                           className="btn btn-sm btn-primary"
                           onClick={() => handleEditFacility(facility)}
                         >
-                          Edit
+                          {t('common.edit')}
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
@@ -1795,7 +1814,7 @@ const MapManagement: React.FC = () => {
                             setError('');
                           }}
                         >
-                          Delete
+                          {t('common.delete')}
                         </button>
                       </td>
                     </tr>

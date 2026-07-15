@@ -109,7 +109,7 @@ const AnalyticsDashboard: React.FC = () => {
 
           <section className="analytics-section">
             <h3>{t('analytics.hourly', 'Activity by hour of day')}</h3>
-            <div className="hour-chart" role="img" aria-label="Hour-of-day histogram">
+            <div className="hour-chart" role="img" aria-label={t('analytics.hourHistogram')}>
               {data.hourBuckets.map((count, hour) => {
                 const pct = Math.round((count / maxBucket) * 100);
                 return (

@@ -171,3 +171,62 @@
   background: #fef2f2;
   color: #b91c1c;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .analytics-section {
+    padding: 16px;
+  }
+
+  .hour-chart {
+    gap: 2px;
+    height: 140px;
+  }
+
+  .hour-col .hour-label {
+    font-size: 9px;
+  }
+
+  /* Show every other hour label so the axis doesn't crush below 24 cols */
+  .hour-col:nth-child(odd) .hour-label {
+    visibility: hidden;
+  }
+
+  /* Tables overflow horizontally rather than crushing columns */
+  .analytics-section .analytics-table-wrap,
+  .analytics-section {
+    overflow-x: auto;
+  }
+
+  .analytics-table {
+    min-width: 480px;
+  }
+}
+
+@media (max-width: 480px) {
+  .analytics-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .analytics-header h2 {
+    font-size: 20px;
+  }
+
+  .analytics-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analytics-kpis .kpi {
+    padding: 12px;
+  }
+
+  .analytics-kpis .kpi .v {
+    font-size: 22px;
+  }
+
+  .range-switch button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
