@@ -12,6 +12,7 @@ import MapManagement from './MapManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ZoneManagement from './ZoneManagement';
 import EventManagement from './EventManagement';
+import QRGenerator from './QRGenerator';
 import BannerManagement from './BannerManagement';
 import '../styles/admin-design-system.css';
 import './AdminDashboard.css';
@@ -301,6 +302,7 @@ const AdminDashboard: React.FC = () => {
             <Route path="/map" element={<MapManagement />} />
             <Route path="/zones" element={<ZoneManagement />} />
             <Route path="/events" element={<EventManagement />} />
+            <Route path="/qr" element={<QRGenerator />} />
             <Route path="/banners" element={<BannerManagement />} />
             <Route path="/analytics" element={<AnalyticsDashboard />} />
           </Routes>

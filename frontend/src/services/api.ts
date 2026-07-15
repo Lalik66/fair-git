@@ -347,6 +347,19 @@ export const adminApi = {
     const response = await api.delete(`/admin/facilities/${facilityId}`);
     return response.data;
   },
+
+  // QR code generation (admin-only). Returns { url, dataUrl } for png or
+  // { url, svg } for svg.
+  generateQr: async (input: {
+    target: 'map' | 'fair' | 'house' | 'event' | 'schedule' | 'whatsOn';
+    id?: string;
+    source?: string;
+    format?: 'png' | 'svg';
+    size?: number;
+  }) => {
+    const response = await api.post('/qr', input);
+    return response.data as { url: string; dataUrl?: string; svg?: string };
+  },
 };
 
 // Vendor API

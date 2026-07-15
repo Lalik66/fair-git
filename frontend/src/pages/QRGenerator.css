@@ -1,0 +1,118 @@
+.qr-page { display: flex; flex-direction: column; gap: 16px; }
+.qr-page h2 { margin: 0 0 4px 0; font-size: 24px; }
+.qr-page .lede { color: #6b7280; font-size: 14px; max-width: 720px; margin: 0; }
+
+.qr-form {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 520px;
+}
+
+.qr-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.qr-form input, .qr-form select {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.qr-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.qr-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.qr-btn.primary { background: #111827; color: #fff; }
+.qr-btn.primary:hover:not(:disabled) { background: #000; }
+.qr-btn.primary:disabled { background: #d1d5db; cursor: not-allowed; }
+.qr-btn.ghost { background: #fff; color: #374151; border-color: #e5e7eb; }
+
+.qr-preview {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.qr-preview img,
+.qr-preview svg { width: 260px; height: 260px; }
+
+.qr-preview .meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.qr-preview .meta code {
+  background: #f3f4f6;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.qr-msg {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.qr-msg.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .qr-page h2 { font-size: 20px; }
+
+  .qr-form {
+    max-width: none;
+  }
+
+  .qr-actions {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+
+  .qr-actions .qr-btn {
+    flex: 1 1 140px;
+  }
+
+  .qr-preview {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+  }
+
+  .qr-preview img,
+  .qr-preview svg {
+    width: 100%;
+    height: auto;
+    max-width: 320px;
+    aspect-ratio: 1 / 1;
+    align-self: center;
+  }
+}
