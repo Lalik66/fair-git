@@ -8,6 +8,7 @@ import { useLocationTracking } from '../../hooks/useLocationTracking';
 import { useFriendsLocationsLive } from '../../hooks/useFriendsLocationsLive';
 import { useUserPins } from '../../hooks/useUserPins';
 import { getZones, MapZone } from '../../services/zonesService';
+import { listEvents, getEvent, FairEvent } from '../../services/eventsService';
 import { useRouteToFriend } from '../../hooks/useRouteToFriend';
 import { emitLiveLocation } from '../../services/locationSocketService';
 import { getFollowing } from '../../services/friendsService';
@@ -18,6 +19,8 @@ import GeocoderSearch from './GeocoderSearch';
 import PanoramaViewer from '../PanoramaViewer';
 import FriendsPanel from './FriendsPanel';
 import FoxMapPeek from '../FoxMapPeek';
+import WhatsOnNowPanel from '../WhatsOnNowPanel';
+import SponsorSlot from '../SponsorSlot';
 import RouteInstructionsPanel from './RouteInstructionsPanel';
 import ReactionPicker from '../ReactionPicker';
 import '../ReactionPicker.css';
@@ -119,6 +122,15 @@ const SplitViewMapLayout: React.FC = () => {
   // works for anonymous visitors. Refetches when the fair selection changes.
   const [zones, setZones] = useState<MapZone[]>([]);
 
+  // Scheduled events for the active fair, grouped by their location id. The
+  // map popups read from this Map to render the "Today's program" block, and
+  // the eventId deep-link below flies to the matching location.
+  const [eventsByLocation, setEventsByLocation] = useState<Map<string, FairEvent[]>>(new Map());
+
+  // "What's On Now" panel. Auto-opens when the URL carries ?whatsOn=1, which
+  // is how the Schedule page hands visitors off; closing it strips the param.
+  const [whatsOnOpen, setWhatsOnOpen] = useState(searchParams.get('whatsOn') === '1');
+
   // Get map instance when MapPanel signals it's ready (reliable vs. arbitrary delay)
   const handleMapReady = useCallback((map: MapboxMap) => {
     setMapInstance(map);
@@ -170,20 +182,22 @@ const SplitViewMapLayout: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Sync fair ID to URL
+  // Sync fair ID to URL. Replace instead of push: this is internal state
+  // reflected into the URL, not a user navigation, so it must not stack
+  // history entries (otherwise Back appears to do nothing on /map).
   useEffect(() => {
     if (selectedFairId) {
       setSearchParams((prev) => {
         const params = new URLSearchParams(prev);
         params.set('fairId', selectedFairId);
         return params;
-      });
+      }, { replace: true });
     } else {
       setSearchParams((prev) => {
         const params = new URLSearchParams(prev);
         params.delete('fairId');
         return params;
-      });
+      }, { replace: true });
     }
   }, [selectedFairId, setSearchParams]);
 
@@ -206,6 +220,97 @@ const SplitViewMapLayout: React.FC = () => {
       cancelled = true;
     };
   }, [selectedFairId]);
+
+  // Fetch all events for the active fair and bucket them by location id. We
+  // fetch once per fair instead of per-popup so popups stay synchronous and
+  // a busy festival doesn't N+1 the API every time a marker is tapped.
+  useEffect(() => {
+    let cancelled = false;
+    if (!selectedFairId) {
+      setEventsByLocation(new Map());
+      return;
+    }
+    listEvents({ fairId: selectedFairId })
+      .then((events) => {
+        if (cancelled) return;
+        const map = new Map<string, FairEvent[]>();
+        for (const e of events) {
+          const arr = map.get(e.locationId) ?? [];
+          arr.push(e);
+          map.set(e.locationId, arr);
+        }
+        setEventsByLocation(map);
+      })
+      .catch(() => {
+        if (!cancelled) setEventsByLocation(new Map());
+      });
+    return () => { cancelled = true; };
+  }, [selectedFairId]);
+
+  // Open the panel when an external link sets ?whatsOn=1 mid-session (the
+  // mount path is covered by the useState initialiser).
+  useEffect(() => {
+    if (searchParams.get('whatsOn') === '1' && !whatsOnOpen) setWhatsOnOpen(true);
+  }, [searchParams, whatsOnOpen]);
+
+  const closeWhatsOn = useCallback(() => {
+    setWhatsOnOpen(false);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.delete('whatsOn');
+      return params;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  // Deep link: /map?houseId=… flies to and opens a vendor-house popup.
+  // Waits for the matching object to appear in filteredObjects (the public
+  // map-objects load is async). Param is consumed on success so panning
+  // around afterward doesn't re-trigger the fly.
+  const houseIdParam = searchParams.get('houseId');
+  useEffect(() => {
+    if (!houseIdParam) return;
+    const obj = filteredObjects.find((o) => o.id === houseIdParam);
+    if (!obj) return;
+    mapRef.current?.flyTo(obj.longitude, obj.latitude, 18);
+    setSelectedObjectId(obj.id);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.delete('houseId');
+      return params;
+    }, { replace: true });
+  }, [houseIdParam, filteredObjects, setSelectedObjectId, setSearchParams]);
+
+  // Deep link: /map?eventId=… opens the matching event's location popup.
+  // Used by the QR codes, the Schedule page, and the "What's On Now" list.
+  // Runs whenever the eventId param shows up so re-clicks re-fly.
+  const eventIdParam = searchParams.get('eventId');
+  useEffect(() => {
+    if (!eventIdParam) return;
+    let cancelled = false;
+    getEvent(eventIdParam)
+      .then((evt) => {
+        if (cancelled) return;
+        const lat = evt.locationLatitude;
+        const lng = evt.locationLongitude;
+        if (lat == null || lng == null) return;
+        mapRef.current?.flyTo(lng, lat, 18);
+        // The popup is wired to the underlying MapObject by id; only houses
+        // and facilities have markers (zones don't), so this no-ops cleanly
+        // for zone events — the fly still happens, which is the useful bit.
+        if (evt.locationType === 'house' || evt.locationType === 'facility') {
+          setSelectedObjectId(evt.locationId);
+        }
+        // Strip the param so a later interaction can re-trigger by setting it.
+        setSearchParams((prev) => {
+          const params = new URLSearchParams(prev);
+          params.delete('eventId');
+          return params;
+        }, { replace: true });
+      })
+      .catch(() => { /* event gone or never existed — silently ignore */ });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventIdParam]);
 
   // Listen for panorama open events from popup buttons
   useEffect(() => {
@@ -464,6 +569,7 @@ const SplitViewMapLayout: React.FC = () => {
           isPrivileged={isPrivileged}
           userPins={userPins}
           zones={zones}
+          eventsByLocation={eventsByLocation}
         />
 
         {/* Personal car pin control — only visible to logged-in users.
@@ -505,7 +611,42 @@ const SplitViewMapLayout: React.FC = () => {
             {pinMessage.text}
           </div>
         )}
+        {/* Map-top sponsor strip. Hidden when no active banner; uses the
+            compact variant so it doesn't steal map estate on mobile. */}
+        <div className="map-sponsor-strip">
+          <SponsorSlot placement="map_top" fairId={selectedFairId ?? undefined} variant="compact" hideLabel />
+        </div>
+
         <FoxMapPeek />
+
+        {/* "What's On Now" launcher + slide-up panel. Launcher hides while
+            the panel is open so we don't double up the UI. */}
+        {!whatsOnOpen && selectedFairId && (
+          <button
+            className="whats-on-launcher"
+            onClick={() => setWhatsOnOpen(true)}
+            aria-label={t('whatsOn.title', "What's on now")}
+          >
+            <span className="dot" aria-hidden="true" />
+            {t('whatsOn.title', "What's on now")}
+          </button>
+        )}
+        {whatsOnOpen && selectedFairId && (
+          <WhatsOnNowPanel
+            fairId={selectedFairId}
+            onClose={closeWhatsOn}
+            onPick={(e) => {
+              // Reuse the same fly+select path the eventId deep-link uses,
+              // but without a route change — we're already on /map.
+              if (e.locationLatitude != null && e.locationLongitude != null) {
+                mapRef.current?.flyTo(e.locationLongitude, e.locationLatitude, 18);
+                if (e.locationType === 'house' || e.locationType === 'facility') {
+                  setSelectedObjectId(e.locationId);
+                }
+              }
+            }}
+          />
+        )}
 
         {/* Screen reader announcement for route status */}
         <div aria-live="polite" aria-atomic="true" className="sr-only">

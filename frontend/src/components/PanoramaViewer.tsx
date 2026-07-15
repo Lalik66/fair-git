@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Viewer } from '@photo-sphere-viewer/core';
 import '@photo-sphere-viewer/core/index.css';
 import './PanoramaViewer.css';
+// i18n instance imported directly for use inside the init effect, so the
+// effect's dependency list (and thus viewer lifecycle) stays unchanged.
+import i18n from '../i18n/config';
 import { DEMO_PANORAMA_URL } from '../types/map';
 
 interface PanoramaViewerProps {
@@ -11,6 +15,7 @@ interface PanoramaViewerProps {
 }
 
 const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramaUrl, onClose, houseNumber }) => {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const initializedUrlRef = useRef<string | null>(null);
@@ -58,7 +63,7 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramaUrl, onClose, h
             'fullscreen',
           ],
           defaultZoomLvl: 50,
-          loadingTxt: 'Loading 360° panorama...',
+          loadingTxt: i18n.t('panorama.loading'),
           touchmoveTwoFingers: true,
           mousewheelCtrlKey: false,
         });
@@ -84,19 +89,19 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramaUrl, onClose, h
             viewerRef.current.setPanorama(DEMO_PANORAMA_URL).catch((fallbackErr) => {
               if (cancelled) return;
               console.error('[PanoramaViewer] Fallback also failed:', fallbackErr);
-              setError('Failed to load 360° panorama. The image may not be available.');
+              setError(i18n.t('panorama.loadError'));
               setLoading(false);
             });
           } else {
             if (cancelled) return;
-            setError('Failed to load 360° panorama. The image may not be available.');
+            setError(i18n.t('panorama.loadError'));
             setLoading(false);
           }
         });
       } catch (err) {
         if (cancelled) return;
         console.error('[PanoramaViewer] Error initializing viewer:', err);
-        setError('Failed to initialize 360° viewer.');
+        setError(i18n.t('panorama.initError'));
         setLoading(false);
       }
     };
@@ -134,8 +139,8 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramaUrl, onClose, h
     <div className="panorama-overlay" onClick={onClose}>
       <div className="panorama-modal" onClick={(e) => e.stopPropagation()}>
         <div className="panorama-header">
-          <h2>360° Tour - House {houseNumber}{usingDemo ? ' (Demo)' : ''}</h2>
-          <button className="panorama-close-btn" onClick={onClose} aria-label="Close">
+          <h2>{t('panorama.title', { number: houseNumber })}{usingDemo ? t('panorama.demoSuffix') : ''}</h2>
+          <button className="panorama-close-btn" onClick={onClose} aria-label={t('common.close')}>
             &times;
           </button>
         </div>
@@ -144,19 +149,19 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramaUrl, onClose, h
           {loading && (
             <div className="panorama-loading">
               <div className="panorama-spinner"></div>
-              <p>Loading 360° panorama...</p>
+              <p>{t('panorama.loading')}</p>
             </div>
           )}
           {error && (
             <div className="panorama-error">
               <p>{error}</p>
-              <button onClick={onClose}>Close</button>
+              <button onClick={onClose}>{t('common.close')}</button>
             </div>
           )}
         </div>
 
         <div className="panorama-instructions">
-          <p>Drag to look around • Scroll to zoom • Press ESC to close</p>
+          <p>{t('panorama.instructions')}</p>
         </div>
       </div>
     </div>

@@ -57,7 +57,7 @@ const RouteInstructionsPanel: React.FC<RouteInstructionsPanelProps> = ({
     if (minutesAgo > 30) {
       return (
         <div className="route-stale-warning" role="alert">
-          <span aria-hidden="true">Warning</span>
+          <span aria-hidden="true">{t('route.warning')}</span>
           <span>{t('route.staleWarning', { minutes: minutesAgo })}</span>
         </div>
       );
@@ -92,7 +92,7 @@ const RouteInstructionsPanel: React.FC<RouteInstructionsPanelProps> = ({
       {getStaleWarning()}
 
       {/* Steps List */}
-      <ol className="route-instructions-steps" role="list" aria-label="Walking directions">
+      <ol className="route-instructions-steps" role="list" aria-label={t('route.walkingDirections')}>
         {steps.map((step, index) => (
           <li key={index} className="route-step" role="listitem">
             <div

@@ -121,6 +121,13 @@ export function useMapInteraction(initialFairId?: string | null) {
     return fairs.find(f => f.id === selectedFairId) || null;
   }, [fairs, selectedFairId]);
 
+  const setActiveFilterAndClearSelection = useCallback((filter: FilterType) => {
+    if (filter !== activeFilter) {
+      setSelectedObjectId(null);
+    }
+    setActiveFilter(filter);
+  }, [activeFilter]);
+
   return {
     // State
     selectedObjectId,
@@ -137,7 +144,7 @@ export function useMapInteraction(initialFairId?: string | null) {
 
     // Actions
     setSelectedObjectId,
-    setActiveFilter,
+    setActiveFilter: setActiveFilterAndClearSelection,
     setSearchQuery,
     setSelectedFairId,
     refreshMapObjects: loadMapObjects,

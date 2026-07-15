@@ -1,6 +1,5 @@
 /* ========================================
-   Friend Chat Panel Styles
-   Fair Marketplace Design System
+   Friend Chat Panel Styles (FestivKids map chrome)
 ======================================== */
 
 /* Backdrop */
@@ -10,7 +9,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(45, 55, 72, 0.4);
+  background: rgba(22, 21, 19, 0.4);
   z-index: 99;
   animation: fadeIn 0.2s ease;
 }
@@ -28,8 +27,8 @@
   width: 400px;
   max-width: 100%;
   height: calc(100vh - 60px);
-  background: var(--color-white, #FFFFFF);
-  box-shadow: -4px 0 24px rgba(45, 55, 72, 0.15);
+  background: var(--fk-paper, #fffaf0);
+  box-shadow: -4px 0 24px rgba(22, 21, 19, 0.12);
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -44,9 +43,9 @@
   right: 0;
   height: 85vh;
   max-height: 85vh;
-  background: var(--color-white, #FFFFFF);
+  background: var(--fk-paper, #fffaf0);
   border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 24px rgba(45, 55, 72, 0.2);
+  box-shadow: 0 -4px 24px rgba(22, 21, 19, 0.12);
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -69,7 +68,8 @@
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  background: linear-gradient(135deg, var(--color-sky-blue, #06BEE1), var(--color-mint, #7FCDCD));
+  background: var(--fk-paper, #fffaf0);
+  border-bottom: 1px solid var(--fk-rule, #d9d1bd);
   flex-shrink: 0;
   min-height: 64px;
 }
@@ -84,9 +84,9 @@
   height: 40px;
   min-width: 40px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: var(--color-white, #FFFFFF);
+  background: var(--fk-bg, #f7f3ec);
+  border: 1px solid var(--fk-rule, #d9d1bd);
+  color: var(--fk-ink, #161513);
   font-size: 1.4rem;
   cursor: pointer;
   display: flex;
@@ -96,11 +96,13 @@
 }
 
 .friend-chat-back-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--fk-accent-soft, #f4d6d2);
+  border-color: var(--fk-accent, #c4423a);
+  color: var(--fk-accent, #c4423a);
 }
 
 .friend-chat-back-btn:focus-visible {
-  outline: 2px solid var(--color-white, #FFFFFF);
+  outline: 2px solid var(--fk-accent, #c4423a);
   outline-offset: 2px;
 }
 
@@ -151,10 +153,11 @@
 }
 
 .friend-chat-name {
-  font-family: var(--font-headings, 'Fredoka', sans-serif);
+  font-family: var(--fk-font-display);
   font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--color-white, #FFFFFF);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--fk-ink, #161513);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -167,9 +170,9 @@
   height: 36px;
   min-width: 36px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: var(--color-white, #FFFFFF);
+  background: var(--fk-bg, #f7f3ec);
+  border: 1px solid var(--fk-rule, #d9d1bd);
+  color: var(--fk-ink, #161513);
   font-size: 1.5rem;
   cursor: pointer;
   display: flex;
@@ -179,7 +182,9 @@
 }
 
 .friend-chat-close-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--fk-accent-soft, #f4d6d2);
+  border-color: var(--fk-accent, #c4423a);
+  color: var(--fk-accent, #c4423a);
 }
 
 /* Messages Container */
@@ -190,15 +195,15 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: var(--color-background, #FDFBF7);
+  background: var(--fk-bg, #f7f3ec);
 }
 
 /* Load More Button */
 .friend-chat-load-more {
   align-self: center;
   padding: 8px 16px;
-  background: var(--color-mint, #7FCDCD);
-  color: var(--color-text-primary, #2D3748);
+  background: var(--fk-accent-2-soft, #cce0d8);
+  color: var(--fk-ink, #161513);
   border: none;
   border-radius: 16px;
   font-size: 0.85rem;
@@ -242,10 +247,10 @@
 }
 
 .friend-chat-message.received .friend-chat-bubble {
-  background: var(--color-mint, #7FCDCD);
-  color: var(--color-text-primary, #2D3748);
+  background: var(--fk-accent-2-soft, #cce0d8);
+  color: var(--fk-ink, #161513);
   border-radius: 16px 16px 16px 4px;
-  box-shadow: 0 2px 8px rgba(127, 205, 205, 0.3);
+  box-shadow: 0 2px 8px rgba(31, 79, 68, 0.12);
 }
 
 /* Sent Message */
@@ -254,10 +259,10 @@
 }
 
 .friend-chat-message.sent .friend-chat-bubble {
-  background: linear-gradient(135deg, var(--color-coral, #FF6B6B), var(--color-orange, #FFA94D));
-  color: var(--color-white, #FFFFFF);
+  background: var(--fk-accent, #c4423a);
+  color: var(--fk-paper, #fffaf0);
   border-radius: 16px 16px 4px 16px;
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 2px 8px rgba(196, 66, 58, 0.25);
 }
 
 /* Bubble Content */
@@ -265,7 +270,7 @@
   padding: 12px 16px;
   font-size: 0.95rem;
   line-height: 1.5;
-  font-family: var(--font-primary, 'Poppins', sans-serif);
+  font-family: var(--font-primary);
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
@@ -290,7 +295,7 @@
 /* Timestamp */
 .friend-chat-timestamp {
   font-size: 0.75rem;
-  color: var(--color-text-secondary, #718096);
+  color: var(--fk-soft, #6c655b);
   font-weight: 400;
 }
 
@@ -301,7 +306,7 @@
 }
 
 .friend-chat-read-indicator.read {
-  color: var(--color-sky-blue, #06BEE1);
+  color: var(--fk-accent, #c4423a);
 }
 
 /* Typing Indicator */
@@ -312,19 +317,19 @@
 }
 
 .friend-chat-typing-bubble {
-  background: var(--color-mint, #7FCDCD);
+  background: var(--fk-accent-2-soft, #cce0d8);
   border-radius: 16px 16px 16px 4px;
   padding: 14px 18px;
   display: flex;
   align-items: center;
   gap: 4px;
-  box-shadow: 0 2px 8px rgba(127, 205, 205, 0.3);
+  box-shadow: 0 2px 8px rgba(31, 79, 68, 0.12);
 }
 
 .friend-chat-typing-dot {
   width: 8px;
   height: 8px;
-  background: var(--color-text-primary, #2D3748);
+  background: var(--fk-ink, #161513);
   border-radius: 50%;
   opacity: 0.6;
   animation: typingBounce 1.4s ease-in-out infinite;
@@ -376,16 +381,16 @@
 }
 
 .friend-chat-empty-title {
-  font-family: var(--font-headings, 'Fredoka', sans-serif);
+  font-family: var(--fk-font-display);
   font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text-primary, #2D3748);
+  font-weight: 500;
+  color: var(--fk-ink, #161513);
   margin: 0 0 8px 0;
 }
 
 .friend-chat-empty-subtitle {
   font-size: 0.95rem;
-  color: var(--color-text-secondary, #718096);
+  color: var(--fk-soft, #6c655b);
   margin: 0;
   line-height: 1.5;
 }
@@ -402,8 +407,8 @@
 .friend-chat-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid var(--color-mint, #7FCDCD);
-  border-top-color: var(--color-sky-blue, #06BEE1);
+  border: 3px solid var(--fk-accent-soft, #f4d6d2);
+  border-top-color: var(--fk-accent, #c4423a);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -415,7 +420,7 @@
 .friend-chat-loading-text {
   margin-top: 12px;
   font-size: 0.9rem;
-  color: var(--color-text-secondary, #718096);
+  color: var(--fk-soft, #6c655b);
 }
 
 /* Error State */
@@ -445,8 +450,8 @@
 .friend-chat-retry-btn {
   margin-top: 12px;
   padding: 8px 16px;
-  background: var(--color-coral, #FF6B6B);
-  color: var(--color-white, #FFFFFF);
+  background: var(--fk-accent, #c4423a);
+  color: var(--fk-paper, #fffaf0);
   border: none;
   border-radius: 20px;
   font-size: 0.85rem;
@@ -465,8 +470,8 @@
   align-items: flex-end;
   gap: 10px;
   padding: 12px 16px;
-  background: var(--color-white, #FFFFFF);
-  border-top: 1px solid rgba(127, 205, 205, 0.3);
+  background: var(--fk-paper, #fffaf0);
+  border-top: 1px solid var(--fk-rule, #d9d1bd);
   flex-shrink: 0;
 }
 
@@ -475,24 +480,24 @@
   min-height: 48px;
   max-height: 120px;
   padding: 12px 16px;
-  border: 2px solid var(--color-mint, #7FCDCD);
+  border: 2px solid var(--fk-rule, #d9d1bd);
   border-radius: 24px;
   font-size: 0.95rem;
-  font-family: var(--font-primary, 'Poppins', sans-serif);
-  background: var(--color-background, #FDFBF7);
-  color: var(--color-text-primary, #2D3748);
+  font-family: var(--font-primary);
+  background: var(--fk-bg, #f7f3ec);
+  color: var(--fk-ink, #161513);
   resize: none;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .friend-chat-input::placeholder {
-  color: var(--color-text-secondary, #718096);
+  color: var(--fk-soft, #6c655b);
 }
 
 .friend-chat-input:focus {
-  border-color: var(--color-sky-blue, #06BEE1);
-  box-shadow: 0 0 0 3px rgba(6, 190, 225, 0.15);
+  border-color: var(--fk-accent, #c4423a);
+  box-shadow: 0 0 0 3px rgba(196, 66, 58, 0.12);
 }
 
 /* Send Button */
@@ -502,20 +507,20 @@
   min-width: 48px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-coral, #FF6B6B), var(--color-orange, #FFA94D));
-  color: var(--color-white, #FFFFFF);
+  background: var(--fk-accent, #c4423a);
+  color: var(--fk-paper, #fffaf0);
   font-size: 1.3rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.35);
+  box-shadow: 0 4px 12px rgba(196, 66, 58, 0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .friend-chat-send-btn:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(255, 107, 107, 0.45);
+  box-shadow: 0 6px 16px rgba(196, 66, 58, 0.35);
 }
 
 .friend-chat-send-btn:active:not(:disabled) {
@@ -529,7 +534,7 @@
 }
 
 .friend-chat-send-btn:focus-visible {
-  outline: 2px solid var(--color-coral, #FF6B6B);
+  outline: 2px solid var(--fk-accent, #c4423a);
   outline-offset: 2px;
 }
 

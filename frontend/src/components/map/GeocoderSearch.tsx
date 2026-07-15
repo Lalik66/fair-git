@@ -209,7 +209,7 @@ const GeocoderSearch: React.FC<GeocoderSearchProps> = ({
               setIsOpen(false);
               inputRef.current?.focus();
             }}
-            aria-label="Clear search"
+            aria-label={t('common.clearSearch')}
           >
             ✕
           </button>

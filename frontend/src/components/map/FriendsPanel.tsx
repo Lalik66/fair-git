@@ -306,8 +306,8 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
       if (navigator.share) {
         try {
           await navigator.share({
-            title: 'Fair Marketplace - Friend Invite',
-            text: 'Join me on Fair Marketplace to see my location on the map!',
+            title: t('friends.invite.shareTitle'),
+            text: t('friends.invite.shareText'),
             url: result.url,
           });
           setMessage({ type: 'success', text: t('friends.invite.shared') });
@@ -452,7 +452,7 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
         {/* Header */}
         <div className="friends-panel-header">
           <h2 className="friends-panel-title">{t('friends.panel.title')}</h2>
-          <button className="friends-panel-close" onClick={onClose} aria-label="Close">
+          <button className="friends-panel-close" onClick={onClose} aria-label={t('common.close')}>
             <span>&times;</span>
           </button>
         </div>

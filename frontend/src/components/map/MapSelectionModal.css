@@ -1,7 +1,7 @@
 .map-select-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(22, 21, 19, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,14 +10,15 @@
 }
 
 .map-select-dialog {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--fk-paper, #fffaf0);
+  border-radius: 14px;
   width: 90vw;
   height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 20px 60px rgba(22, 21, 19, 0.25);
+  font-family: var(--font-primary);
 }
 
 .map-select-header {
@@ -25,25 +26,37 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--fk-rule, #d9d1bd);
+  background: var(--fk-paper, #fffaf0);
 }
 
 .map-select-header h2 {
   margin: 0;
+  font-family: var(--fk-font-display);
   font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--fk-ink, #161513);
 }
 
 .map-select-close {
-  background: none;
-  border: none;
-  font-size: 1.8rem;
+  background: var(--fk-bg, #f7f3ec);
+  border: 1px solid var(--fk-rule, #d9d1bd);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--fk-ink, #161513);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .map-select-close:hover {
-  color: #111827;
+  background: var(--fk-accent-soft, #f4d6d2);
+  border-color: var(--fk-accent, #c4423a);
+  color: var(--fk-accent, #c4423a);
 }
 
 .map-select-body {
@@ -65,22 +78,23 @@
   align-items: center;
   justify-content: center;
   font-size: 1rem;
-  color: #6b7280;
+  color: var(--fk-soft, #6c655b);
 }
 
 .map-select-status.error {
-  color: #dc2626;
+  color: var(--fk-accent, #c4423a);
 }
 
 .map-select-footer {
   padding: 10px 20px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--fk-rule, #d9d1bd);
   display: flex;
   justify-content: flex-end;
+  background: var(--fk-paper, #fffaf0);
 }
 
 .house-occupied-label {
-  color: #dc2626;
+  color: var(--fk-accent, #c4423a);
   font-weight: 600;
   margin: 6px 0;
 }

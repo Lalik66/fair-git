@@ -7,6 +7,7 @@ import { MapObject, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getColorForType, getEm
 import type { FriendLocation } from '../../services/friendsService';
 import type { UserPin } from '../../services/pinsService';
 import type { MapZone } from '../../services/zonesService';
+import type { FairEvent } from '../../services/eventsService';
 import { getAvatarLetter, getAvatarColor, getAvatarAnimationDelay } from '../../utils/avatarHelpers';
 import { trackVendorClick } from '../../services/analyticsService';
 
@@ -68,6 +69,13 @@ interface MapPanelProps {
    * as translucent fill + outline layers underneath all DOM markers.
    */
   zones?: MapZone[];
+  /**
+   * Scheduled events keyed by their location id (vendor-house id, facility id,
+   * or zone id). Popups for that location render a "Today's program" list.
+   * Keep this a Map (not an object) so consumers can build it incrementally
+   * without losing reference identity on each push.
+   */
+  eventsByLocation?: Map<string, FairEvent[]>;
 }
 
 export interface MapPanelRef {
@@ -93,6 +101,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   onHouseSelect,
   userPins = [],
   zones = [],
+  eventsByLocation,
 }, ref) => {
   const { t, i18n } = useTranslation();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -123,6 +132,46 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     map.current.once('load', () => {
       map.current?.setZoom(DEFAULT_MAP_ZOOM);
       map.current?.resize();
+
+      // Register the 3D-buildings layer once. The fill-extrusion is toggled
+      // on/off by changing its visibility, not by re-adding the layer, which
+      // would re-trigger Mapbox's tile fetch every time the user toggled.
+      // Layer starts hidden so the default view stays the familiar flat map.
+      if (map.current && !map.current.getLayer('3d-buildings')) {
+        // composite layer ships with the Mapbox streets style; if we ever
+        // switch styles, this guard avoids a hard crash.
+        const labelLayer = map.current.getStyle().layers?.find(
+          (l) => l.type === 'symbol' && l.layout && (l.layout as { 'text-field'?: unknown })['text-field']
+        );
+        try {
+          map.current.addLayer({
+            id: '3d-buildings',
+            source: 'composite',
+            'source-layer': 'building',
+            filter: ['==', 'extrude', 'true'],
+            type: 'fill-extrusion',
+            minzoom: 15,
+            layout: { visibility: 'none' },
+            paint: {
+              'fill-extrusion-color': '#aaa',
+              'fill-extrusion-height': [
+                'interpolate', ['linear'], ['zoom'],
+                15, 0,
+                15.05, ['get', 'height'],
+              ],
+              'fill-extrusion-base': [
+                'interpolate', ['linear'], ['zoom'],
+                15, 0,
+                15.05, ['get', 'min_height'],
+              ],
+              'fill-extrusion-opacity': 0.6,
+            },
+          }, labelLayer?.id);
+        } catch (e) {
+          console.warn('Could not add 3d-buildings layer:', e);
+        }
+      }
+
       if (onMapReady && map.current) {
         onMapReady(map.current);
       }
@@ -131,6 +180,42 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
     map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+
+    // 3D-toggle control. Tilts the camera to a perspective view and shows the
+    // building extrusions; toggling back flatten everything. State lives on
+    // the control button itself so we don't need a React-side reducer.
+    const make3dToggle = (): mapboxgl.IControl => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mapboxgl-ctrl-icon map-3d-toggle';
+      btn.textContent = '3D';
+      btn.title = t('map.toggle3d', 'Toggle 3D view');
+      btn.setAttribute('aria-label', t('map.toggle3d', 'Toggle 3D view'));
+      let on = false;
+      btn.addEventListener('click', () => {
+        if (!map.current) return;
+        on = !on;
+        btn.classList.toggle('active', on);
+        btn.textContent = on ? '2D' : '3D';
+        map.current.easeTo({
+          pitch: on ? 50 : 0,
+          bearing: on ? -20 : 0,
+          duration: 600,
+        });
+        const layer = map.current.getLayer('3d-buildings');
+        if (layer) {
+          map.current.setLayoutProperty('3d-buildings', 'visibility', on ? 'visible' : 'none');
+        }
+      });
+      const container = document.createElement('div');
+      container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+      container.appendChild(btn);
+      return {
+        onAdd: () => container,
+        onRemove: () => container.remove(),
+      };
+    };
+    map.current.addControl(make3dToggle(), 'top-right');
 
     // Add geolocation control
     geolocateControlRef.current = new mapboxgl.GeolocateControl({
@@ -196,6 +281,35 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
     });
   }, [mapCenter]);
 
+  // Render the small "Today's program" block injected at the bottom of any
+  // popup whose location has scheduled events. Returns '' when there are no
+  // events so the popup just collapses cleanly.
+  const renderEventsBlock = useCallback((locationId: string): string => {
+    const events = eventsByLocation?.get(locationId);
+    if (!events || events.length === 0) return '';
+    const now = Date.now();
+    // Surface today's program: events that haven't ended yet, capped at 4 rows
+    // so a busy stage doesn't blow out the popup vertically.
+    const upcoming = events
+      .filter(e => !e.isCancelled && new Date(e.endTime).getTime() > now)
+      .slice(0, 4);
+    if (upcoming.length === 0) return '';
+    const lang = i18n.language === 'en' ? 'en' : 'az';
+    const fmt = (iso: string) =>
+      new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const rows = upcoming.map(e => {
+      const name = lang === 'en' ? e.nameEn : e.nameAz;
+      const emoji = e.emoji || '';
+      return `<li><span class="popup-event-time">${fmt(e.startTime)}</span>
+        <span class="popup-event-name">${emoji} ${escapeHtml(name)}</span></li>`;
+    }).join('');
+    const title = escapeHtml(t('events.todaysProgram', "Today's program"));
+    return `<div class="popup-events">
+      <div class="popup-events-title">${title}</div>
+      <ul class="popup-events-list">${rows}</ul>
+    </div>`;
+  }, [eventsByLocation, i18n.language, t]);
+
   // Create popup content
   const createPopupContent = useCallback((obj: MapObject): string => {
     const isVendorHouse = obj.type === 'vendor_house';
@@ -252,6 +366,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
           ${selectBtn}
           ${directionsBtn}
           ${panoramaBtn}
+          ${renderEventsBlock(obj.id)}
         </div>
       `;
       }
@@ -269,11 +384,11 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
               : 'occupied');
         const availabilityText =
           availState === 'free'
-            ? '<span class="status available">Bos</span>'
+            ? `<span class="status available">${escapeHtml(t('map.available'))}</span>`
             : availState === 'pending'
-              ? '<span class="status pending">Müraciət var</span>'
+              ? `<span class="status pending">${escapeHtml(t('map.pending'))}</span>`
               : availState === 'occupied'
-                ? '<span class="status occupied">Tutulub</span>'
+                ? `<span class="status occupied">${escapeHtml(t('map.occupied'))}</span>`
                 : '';
 
         return `
@@ -286,6 +401,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
             ${obj.description ? `<p>${escapeHtml(obj.description)}</p>` : ''}
           </div>
           ${panoramaBtn}
+          ${renderEventsBlock(obj.id)}
         </div>
       `;
       }
@@ -336,6 +452,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
           ${imagesRow}
           ${directionsBtn}
           ${panoramaBtn}
+          ${renderEventsBlock(obj.id)}
         </div>
       `;
     }
@@ -346,9 +463,10 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         <p class="facility-type">${obj.type.replace('_', ' ')}</p>
         ${obj.description ? `<p>${obj.description}</p>` : ''}
         ${obj.photoUrl ? `<img src="${obj.photoUrl}" alt="${obj.label}" class="facility-photo" />` : ''}
+        ${renderEventsBlock(obj.id)}
       </div>
     `;
-  }, [isPrivileged, selectionMode, t]);
+  }, [isPrivileged, selectionMode, t, renderEventsBlock]);
 
   // Update markers when objects change
   useEffect(() => {
@@ -546,7 +664,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         el.style.color = '#FFFFFF';
         el.style.fontWeight = '700';
         el.style.fontSize = '16px';
-        el.style.fontFamily = 'Poppins, sans-serif';
+        el.style.fontFamily = "'Inter Tight', system-ui, sans-serif";
         // Inner wrapper for animation - outer div must NOT have transform so Mapbox can position it
         el.innerHTML = `<div class="friend-marker-inner" style="animation-delay: ${animationDelay}s"><span class="marker-icon marker-letter">${avatarLetter}</span></div>`;
         el.title = friend.name;

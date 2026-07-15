@@ -93,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <button
               className="search-clear"
               onClick={() => onSearchChange('')}
-              aria-label="Clear search"
+              aria-label={t('common.clearSearch')}
             >
               ✕
             </button>
