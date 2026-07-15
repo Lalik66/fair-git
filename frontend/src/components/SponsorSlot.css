@@ -1,0 +1,35 @@
+.sponsor-slot {
+  position: relative;
+  display: block;
+  text-decoration: none;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f3f4f6;
+}
+.sponsor-slot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sponsor-label {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(17, 24, 39, 0.7);
+  color: #fff;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sponsor-slot--bottom { height: 200px; max-height: 200px; }
+.sponsor-slot--bottom img { height: 200px; max-height: 200px; object-fit: cover; }
+
+.sponsor-slot--inline { margin: 16px 0; height: 140px; max-height: 140px; }
+.sponsor-slot--inline img { height: 140px; max-height: 140px; }
+
+.sponsor-slot--compact { height: 64px; max-height: 64px; border-radius: 8px; }
+.sponsor-slot--compact img { height: 64px; max-height: 64px; }

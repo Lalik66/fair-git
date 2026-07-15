@@ -73,6 +73,48 @@ model UserPin {
   @@index([userId])
 }
 
+// Sponsor / advertisement banners. Admin-managed; rendered in fixed
+// placement slots (home hero, map top, popup footer, sidebar). The fairId
+// is nullable so a sponsor can be either fair-specific or global.
+model SponsorBanner {
+  id          String   @id @default(uuid())
+  fairId      String?  @map("fair_id")
+  imageUrl    String   @map("image_url")
+  linkUrl     String?  @map("link_url")
+  // Free-form alt text + visible label. Both i18n'd because some sponsors
+  // want a Latin-script name and others want Cyrillic/Azerbaijani.
+  altText     String?  @map("alt_text")
+  placement   String   // "home_hero" | "map_top" | "popup_footer" | "sidebar"
+  startsAt    DateTime @map("starts_at")
+  endsAt      DateTime @map("ends_at")
+  priority    Int      @default(0)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  impressions BannerImpression[]
+
+  @@map("sponsor_banners")
+  @@index([placement, isActive, startsAt, endsAt])
+  @@index([fairId])
+}
+
+// One row per impression OR click — separated by eventType so we can compute
+// CTR without a second table. userId is nullable to cover anonymous traffic.
+model BannerImpression {
+  id        String   @id @default(uuid())
+  bannerId  String   @map("banner_id")
+  eventType String   @map("event_type") // "impression" | "click"
+  userId    String?  @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  banner    SponsorBanner @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+
+  @@map("banner_impressions")
+  @@index([bannerId, createdAt])
+  @@index([eventType, createdAt])
+}
+
 // Vendor profiles table
 model VendorProfile {
   id                  String    @id @default(uuid())

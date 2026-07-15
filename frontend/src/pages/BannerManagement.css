@@ -1,0 +1,82 @@
+.banner-mgmt { display: flex; flex-direction: column; gap: 16px; }
+.banner-mgmt h2 { margin: 0 0 4px 0; font-size: 24px; }
+.banner-mgmt .lede { color: #6b7280; font-size: 14px; max-width: 720px; margin: 0; }
+
+.banner-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 960px) { .banner-grid { grid-template-columns: 1fr; } }
+
+.banner-table {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+}
+.banner-table th, .banner-table td {
+  padding: 10px 12px; text-align: left; font-size: 13px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.banner-table th { background: #f9fafb; font-weight: 600; color: #374151; }
+.banner-table img.thumb {
+  width: 80px; height: 40px; object-fit: cover; border-radius: 4px;
+  background: #f3f4f6;
+}
+.banner-status {
+  display: inline-block; padding: 2px 8px; border-radius: 9999px;
+  font-size: 11px; font-weight: 600;
+}
+.banner-status.active { background: #d1fae5; color: #047857; }
+.banner-status.inactive { background: #fee2e2; color: #b91c1c; }
+.banner-status.scheduled { background: #fef3c7; color: #92400e; }
+.banner-status.expired { background: #e5e7eb; color: #6b7280; }
+
+.banner-form {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.banner-form h3 { margin: 0 0 6px 0; font-size: 16px; }
+.banner-form label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 12px; color: #6b7280;
+}
+.banner-form input, .banner-form select, .banner-form textarea {
+  padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;
+  font-family: inherit;
+}
+.banner-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.banner-form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+
+.banner-btn {
+  padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  border: 1px solid transparent; cursor: pointer;
+}
+.banner-btn.primary { background: #111827; color: #fff; }
+.banner-btn.primary:hover:not(:disabled) { background: #000; }
+.banner-btn.primary:disabled { background: #d1d5db; cursor: not-allowed; }
+.banner-btn.ghost { background: #fff; color: #374151; border-color: #e5e7eb; }
+.banner-btn.danger { background: #fff; color: #b91c1c; border-color: #fecaca; }
+
+.banner-msg { padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+.banner-msg.success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.banner-msg.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+.banner-preview {
+  margin-top: 4px;
+  background: #f9fafb;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 6px;
+}
+.banner-preview img { width: 100%; max-height: 120px; object-fit: contain; }

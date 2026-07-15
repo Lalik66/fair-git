@@ -109,6 +109,12 @@ export const productImageUpload = createUpload('products', 'product', 5 * 1024 *
 export const panoramaUpload = createUpload('panoramas', 'panorama', 20 * 1024 * 1024, 4096);
 
 /**
+ * Sponsor banner image upload — 5 MB, stored in 'banners' folder.
+ * 2000px width covers desktop hero use without bloating the upload.
+ */
+export const bannerUpload = createUpload('banners', 'banner', 5 * 1024 * 1024, 2000);
+
+/**
  * Gets the URL for an uploaded file
  * For Cloudinary uploads, the URL is in file.path
  * For local uploads, we construct the URL

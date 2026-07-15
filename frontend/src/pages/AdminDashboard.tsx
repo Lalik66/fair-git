@@ -11,6 +11,7 @@ import AboutUsEditor from './AboutUsEditor';
 import MapManagement from './MapManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ZoneManagement from './ZoneManagement';
+import BannerManagement from './BannerManagement';
 import '../styles/admin-design-system.css';
 import './AdminDashboard.css';
 
@@ -298,6 +299,7 @@ const AdminDashboard: React.FC = () => {
             <Route path="/about-us" element={<AboutUsEditor />} />
             <Route path="/map" element={<MapManagement />} />
             <Route path="/zones" element={<ZoneManagement />} />
+            <Route path="/banners" element={<BannerManagement />} />
             <Route path="/analytics" element={<AnalyticsDashboard />} />
           </Routes>
         </div>
