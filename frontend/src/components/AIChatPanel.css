@@ -8,7 +8,7 @@
   bottom: 24px;
   left: 24px;
   z-index: 100;
-  font-family: var(--font-primary, 'Poppins', sans-serif);
+  font-family: var(--font-primary);
 }
 
 /* Toggle button */
