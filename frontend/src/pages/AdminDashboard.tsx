@@ -45,18 +45,43 @@ const NAV_ITEMS = [
   },
 ];
 
+interface DashboardStats {
+  activeFairs: number;
+  activeFairNames: string[];
+  vendors: number;
+  users: number;
+  newVendors30d: number;
+  newUsers30d: number;
+}
+
+// Growth over the trailing 30 days, relative to the count before that window.
+// Null when there is no baseline to compare against (all accounts are new).
+const growthPct = (total: number, recent: number): number | null => {
+  const previous = total - recent;
+  if (previous <= 0) return null;
+  return Math.round((recent / previous) * 100);
+};
+
 // Admin home/overview component - FestivKids style
 const AdminHome: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
 
   useEffect(() => {
     adminApi
       .getApplicationStats()
       .then((s) => setPendingCount(s.pending))
       .catch(() => setPendingCount(null));
+    adminApi
+      .getDashboardStats()
+      .then(setStats)
+      .catch(() => setStats(null));
   }, []);
+
+  const vendorGrowth = stats ? growthPct(stats.vendors, stats.newVendors30d) : null;
+  const userGrowth = stats ? growthPct(stats.users, stats.newUsers30d) : null;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -78,13 +103,19 @@ const AdminHome: React.FC = () => {
       <div className="stats-fk">
         <div className="stat-fk">
           <div className="k">{t('adminDashboard.statActiveFairs')}</div>
-          <div className="v">2</div>
-          <div className="d">{t('adminDashboard.statActiveFairsDesc')}</div>
+          <div className="v">{stats?.activeFairs ?? '—'}</div>
+          <div className="d">
+            {stats && stats.activeFairNames.length > 0 ? stats.activeFairNames.join(' & ') : '—'}
+          </div>
         </div>
         <div className="stat-fk">
           <div className="k">{t('adminDashboard.statVendors')}</div>
-          <div className="v">48</div>
-          <div className="d"><span className="up">+12%</span> {t('adminDashboard.statVendorsDesc')}</div>
+          <div className="v">{stats?.vendors ?? '—'}</div>
+          <div className="d">
+            {vendorGrowth !== null ? (
+              <><span className="up">+{vendorGrowth}%</span> {t('adminDashboard.statVendorsDesc')}</>
+            ) : '—'}
+          </div>
         </div>
         <div className="stat-fk">
           <div className="k">{t('adminDashboard.statPending')}</div>
@@ -93,8 +124,12 @@ const AdminHome: React.FC = () => {
         </div>
         <div className="stat-fk">
           <div className="k">{t('adminDashboard.statUsers')}</div>
-          <div className="v">156</div>
-          <div className="d"><span className="up">+8%</span> {t('adminDashboard.statUsersDesc')}</div>
+          <div className="v">{stats?.users ?? '—'}</div>
+          <div className="d">
+            {userGrowth !== null ? (
+              <><span className="up">+{userGrowth}%</span> {t('adminDashboard.statUsersDesc')}</>
+            ) : '—'}
+          </div>
         </div>
       </div>
 

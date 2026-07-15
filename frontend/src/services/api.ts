@@ -215,6 +215,18 @@ export const adminApi = {
     return response.data;
   },
 
+  getDashboardStats: async () => {
+    const response = await api.get('/admin/dashboard/stats');
+    return response.data as {
+      activeFairs: number;
+      activeFairNames: string[];
+      vendors: number;
+      users: number;
+      newVendors30d: number;
+      newUsers30d: number;
+    };
+  },
+
   getApplicationDetails: async (applicationId: string) => {
     const response = await api.get(`/admin/applications/${applicationId}`);
     return response.data.application;

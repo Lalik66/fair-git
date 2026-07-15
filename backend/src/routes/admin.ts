@@ -383,6 +383,32 @@ router.get('/applications/stats', async (_req: Request, res: Response): Promise<
   }
 });
 
+// Get dashboard overview statistics
+router.get('/dashboard/stats', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const [activeFairs, vendors, users, newVendors, newUsers] = await Promise.all([
+      prisma.fair.findMany({ where: { status: 'active' }, select: { name: true } }),
+      prisma.user.count({ where: { role: 'vendor', isActive: true } }),
+      prisma.user.count({ where: { isActive: true } }),
+      prisma.user.count({ where: { role: 'vendor', isActive: true, createdAt: { gte: monthAgo } } }),
+      prisma.user.count({ where: { isActive: true, createdAt: { gte: monthAgo } } }),
+    ]);
+
+    res.json({
+      activeFairs: activeFairs.length,
+      activeFairNames: activeFairs.map((f) => f.name),
+      vendors,
+      users,
+      newVendors30d: newVendors,
+      newUsers30d: newUsers,
+    });
+  } catch (error) {
+    console.error('Get dashboard stats error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Approve application
 router.put('/applications/:applicationId/approve', async (req: Request, res: Response): Promise<void> => {
   try {
