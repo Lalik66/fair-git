@@ -14,12 +14,15 @@ import VendorApplications from './pages/VendorApplications';
 import ApplicantApplications from './pages/ApplicantApplications';
 import VendorApplicationForm from './pages/VendorApplicationForm';
 import HomePage from './pages/HomePage';
+import FairDetail from './pages/FairDetail';
 import AboutPage from './pages/AboutPage';
 import InvitePage from './pages/InvitePage';
 import { SplitViewMapLayout } from './components/map';
 import UserProfile from './pages/UserProfile';
 import SchedulePage from './pages/SchedulePage';
 import { authApi } from './services/api';
+import BrandLogo from './components/BrandLogo';
+import Footer from './components/Footer';
 
 // Navigation component
 const Navigation: React.FC = () => {
@@ -117,7 +120,10 @@ const Navigation: React.FC = () => {
   return (
     <nav className="main-nav">
       <div className="nav-brand">
-        <Link to="/">Fair Marketplace</Link>
+        <Link to="/" className="nav-brand-link" aria-label="Fair Marketplace">
+          <BrandLogo size="sm" glow alt="" />
+          <span className="nav-brand-text">Fair Marketplace</span>
+        </Link>
       </div>
 
       {/* Hamburger menu button - visible only on mobile */}
@@ -406,16 +412,32 @@ const NotFoundPage: React.FC = () => {
 
 // Main app content with routes
 const AppContent: React.FC = () => {
+  const location = useLocation();
+  const isAuthShell = location.pathname === '/login' || location.pathname === '/oauth-callback';
+
+  // Footer shows on public content pages only. Excluded on: the map (its
+  // split-view fills the viewport — same reason the request calls it out), the
+  // auth shell (chrome-less, like Navigation), and the admin/vendor/profile
+  // portals (their own full-height shells already carry a footer). Mirrors the
+  // isAuthShell gating used for Navigation above.
+  const isMapRoute = location.pathname === '/map';
+  const isPortalRoute =
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/vendor') ||
+    location.pathname.startsWith('/profile');
+  const showFooter = !isAuthShell && !isMapRoute && !isPortalRoute;
+
   return (
-    <div className="app">
-      <Navigation />
-      <main className="main-content">
+    <div className={`app${isAuthShell ? ' app-auth' : ''}`}>
+      {!isAuthShell && <Navigation />}
+      <main className={`main-content${isAuthShell ? ' main-content-auth' : ''}`}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/map" element={<SplitViewMapLayout />} />
           <Route path="/schedule" element={<SchedulePage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/fairs/:id" element={<FairDetail />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/oauth-callback" element={<OAuthCallback />} />
           <Route path="/invite/:token" element={<InvitePage />} />
@@ -489,6 +511,7 @@ const AppContent: React.FC = () => {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
+      {showFooter && <Footer />}
     </div>
   );
 };

@@ -1,0 +1,221 @@
+.brand-logo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-logo--glow {
+  overflow: visible;
+}
+
+.brand-logo-img {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Nav size */
+.brand-logo--sm {
+  width: 65px;
+  height: 65px;
+}
+
+/* Login / compact feature */
+.brand-logo--md {
+  width: 120px;
+  height: 120px;
+}
+
+/* Home hero */
+.brand-logo--lg {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 12px;
+}
+
+/* ── Glow layers: pale ↔ bright orange crossfade ── */
+.brand-logo-halo,
+.brand-logo-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.brand-logo-halo {
+  z-index: 0;
+  width: 132%;
+  height: 132%;
+}
+
+.brand-logo-glow {
+  z-index: 1;
+  width: 68%;
+  height: 68%;
+}
+
+/* Pale orange — visible at rest, fades at peak */
+.brand-logo-halo--pale {
+  background: radial-gradient(
+    circle,
+    rgba(255, 220, 170, 0.75) 0%,
+    rgba(255, 200, 140, 0.55) 30%,
+    rgba(255, 185, 120, 0.28) 52%,
+    transparent 64%
+  );
+  filter: blur(8px);
+  animation: brandLogoPalePulse 2.8s ease-in-out infinite;
+}
+
+.brand-logo-glow--pale {
+  background: radial-gradient(
+    circle,
+    rgba(255, 235, 200, 0.95) 0%,
+    rgba(255, 210, 160, 0.7) 38%,
+    rgba(255, 190, 130, 0.3) 55%,
+    transparent 66%
+  );
+  filter: blur(4px);
+  animation: brandLogoPalePulse 2.8s ease-in-out infinite;
+}
+
+/* Bright orange — flashes in at peak */
+.brand-logo-halo--bright {
+  background: radial-gradient(
+    circle,
+    rgba(255, 120, 0, 0.95) 0%,
+    rgba(255, 90, 0, 0.78) 28%,
+    rgba(255, 70, 0, 0.42) 48%,
+    transparent 64%
+  );
+  filter: blur(8px);
+  box-shadow: 0 0 14px 3px rgba(255, 110, 0, 0.4);
+  animation: brandLogoBrightPulse 2.8s ease-in-out infinite;
+}
+
+.brand-logo-glow--bright {
+  background: radial-gradient(
+    circle,
+    rgba(255, 180, 40, 1) 0%,
+    rgba(255, 130, 0, 0.92) 32%,
+    rgba(255, 100, 0, 0.55) 50%,
+    transparent 62%
+  );
+  filter: blur(4px);
+  box-shadow: 0 0 12px 3px rgba(255, 120, 0, 0.55);
+  animation: brandLogoBrightPulse 2.8s ease-in-out infinite;
+}
+
+/* Size tweaks */
+.brand-logo--sm.brand-logo--glow .brand-logo-halo {
+  width: 128%;
+  height: 128%;
+}
+
+.brand-logo--sm.brand-logo--glow .brand-logo-halo--pale,
+.brand-logo--sm.brand-logo--glow .brand-logo-halo--bright {
+  filter: blur(7px);
+}
+
+.brand-logo--sm.brand-logo--glow .brand-logo-glow {
+  width: 66%;
+  height: 66%;
+}
+
+.brand-logo--sm.brand-logo--glow .brand-logo-glow--pale,
+.brand-logo--sm.brand-logo--glow .brand-logo-glow--bright {
+  filter: blur(3px);
+}
+
+.brand-logo--sm.brand-logo--glow .brand-logo-halo--pale,
+.brand-logo--sm.brand-logo--glow .brand-logo-glow--pale,
+.brand-logo--sm.brand-logo--glow .brand-logo-halo--bright,
+.brand-logo--sm.brand-logo--glow .brand-logo-glow--bright {
+  animation-duration: 3s;
+}
+
+.brand-logo--md.brand-logo--glow .brand-logo-halo {
+  width: 138%;
+  height: 138%;
+}
+
+.brand-logo--md.brand-logo--glow .brand-logo-halo--pale,
+.brand-logo--md.brand-logo--glow .brand-logo-halo--bright {
+  filter: blur(9px);
+}
+
+.brand-logo--md.brand-logo--glow .brand-logo-glow {
+  width: 70%;
+  height: 70%;
+}
+
+.brand-logo--md.brand-logo--glow .brand-logo-glow--pale,
+.brand-logo--md.brand-logo--glow .brand-logo-glow--bright {
+  filter: blur(5px);
+}
+
+.brand-logo--lg.brand-logo--glow .brand-logo-halo {
+  width: 142%;
+  height: 142%;
+}
+
+.brand-logo--lg.brand-logo--glow .brand-logo-glow {
+  width: 72%;
+  height: 72%;
+}
+
+/* Pale layer: full at rest → hidden at flash */
+@keyframes brandLogoPalePulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.94);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.02);
+    opacity: 0;
+  }
+}
+
+/* Bright layer: hidden at rest → vivid at flash */
+@keyframes brandLogoBrightPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.92);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.06);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo-halo--pale,
+  .brand-logo-glow--pale {
+    animation: none;
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .brand-logo-halo--bright,
+  .brand-logo-glow--bright {
+    animation: none;
+    opacity: 0.65;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .brand-logo--lg {
+    width: 120px;
+    height: 120px;
+  }
+}

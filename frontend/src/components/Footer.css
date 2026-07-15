@@ -1,0 +1,124 @@
+/* Site footer — FestivKids editorial style.
+   Tokens from styles/admin-design-system.css (--fk-*), with literal fallbacks
+   matching the convention used in styles/index.css (e.g. var(--fk-accent, #c4423a)). */
+
+.site-footer {
+  margin-top: auto; /* pin to bottom of the flex-column .app shell */
+  background: var(--fk-paper, #fffaf0);
+  border-top: 1px solid var(--fk-rule, #d9d1bd);
+  font-family: var(--fk-font-body, 'Inter Tight', system-ui, sans-serif);
+  color: var(--fk-ink, #161513);
+}
+
+.site-footer-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+/* Brand */
+.site-footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-footer-brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.site-footer-brand-text {
+  font-family: var(--fk-font-display, 'Fraunces', ui-serif, Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--fk-ink, #161513);
+  transition: color var(--fk-transition-fast, 150ms ease-in-out);
+}
+
+.site-footer-brand-link:hover .site-footer-brand-text {
+  color: var(--fk-accent, #c4423a);
+}
+
+.site-footer-tagline {
+  max-width: 44ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--fk-soft, #6c655b);
+}
+
+/* Centered link row (wraps cleanly on narrow screens) */
+.site-footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 22px;
+}
+
+.site-footer-link {
+  color: var(--fk-ink, #161513);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  padding: 4px 2px;
+  border-bottom: 2px solid transparent;
+  transition: color var(--fk-transition-fast, 150ms ease-in-out),
+    border-color var(--fk-transition-fast, 150ms ease-in-out);
+}
+
+.site-footer-link:hover {
+  color: var(--fk-accent, #c4423a);
+}
+
+/* Active = current page, highlighted in burgundy */
+.site-footer-link.is-active {
+  color: var(--fk-accent, #c4423a);
+  border-bottom-color: var(--fk-accent, #c4423a);
+}
+
+.site-footer-link:focus-visible {
+  color: var(--fk-accent, #c4423a);
+  outline: 2px solid var(--fk-accent, #c4423a);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Copyright strip */
+.site-footer-bottom {
+  border-top: 1px solid var(--fk-rule, #d9d1bd);
+}
+
+.site-footer-copy {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--fk-soft, #6c655b);
+}
+
+/* Mobile: tighter spacing, links stack more readily via wrap */
+@media (max-width: 640px) {
+  .site-footer-inner {
+    padding: 24px 16px 16px;
+    gap: 14px;
+  }
+
+  .site-footer-nav {
+    gap: 6px 16px;
+  }
+
+  .site-footer-copy {
+    padding: 12px 16px;
+  }
+}

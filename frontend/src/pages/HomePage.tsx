@@ -5,7 +5,15 @@ import { useAuth } from '../contexts/AuthContext';
 import { publicApi } from '../services/api';
 import FoxMascot from '../components/FoxMascot';
 import AIChatPanel from '../components/AIChatPanel';
+import HomeWhatsOnCard from '../components/HomeWhatsOnCard';
+import SponsorCarousel from '../components/SponsorCarousel';
+import EventCard from '../components/EventCard';
+import FourSeasonsSky from '../components/FourSeasonsSky';
+import { useReveal } from '../hooks/useReveal';
 import './HomePage.css';
+
+const USE_HERO_VIDEO = true;
+
 
 interface Fair {
   id: string;
@@ -16,6 +24,7 @@ interface Fair {
   endDate: string;
   locationAddress: string | null;
   status: string;
+  bannerImageUrl?: string | null;
 }
 
 interface TimeRemaining {
@@ -28,6 +37,7 @@ interface TimeRemaining {
 const HomePage: React.FC = () => {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
+  const countdownReveal = useReveal<HTMLDivElement>();
   const [nextFair, setNextFair] = useState<Fair | null>(null);
   const [upcomingFairs, setUpcomingFairs] = useState<Fair[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<TimeRemaining | null>(null);
@@ -106,19 +116,9 @@ const HomePage: React.FC = () => {
     });
   };
 
-  // Generate snowflake elements
-  const snowflakes = Array.from({ length: 15 }, (_, i) => (
-    <span key={i} className="snowflake">❄</span>
-  ));
-
   return (
     <div className="home-page">
-      {/* Snowflake Animation */}
-      <div className="snowflakes-container">
-        {snowflakes}
-      </div>
-
-      <div className="hero-section">
+      {/* <div className="hero-section">
         <h1>{t('welcome.title', 'Welcome to Fair Marketplace')}</h1>
         <p className="hero-subtitle">{t('welcome.subtitle', 'Discover amazing fairs and vendors')}</p>
 
@@ -141,12 +141,47 @@ const HomePage: React.FC = () => {
             📝 {t('welcome.cta.applyVendor', 'Apply as Vendor')}
           </Link>
         </div>
+      </div> */}
+
+      <div
+        className={`hero-section ${USE_HERO_VIDEO ? 'hero-section--video' : 'hero-section--image'}`}
+      >
+        {USE_HERO_VIDEO && <FourSeasonsSky />}
+        <div className="hero-overlay" aria-hidden="true" />
+        <div className="hero-content">
+          <h1>{t('welcome.title', 'Welcome to Fair Marketplace')}</h1>
+          <p className="hero-subtitle">{t('welcome.subtitle', 'Discover amazing fairs and vendors')}</p>
+
+          <div className="home-actions">
+            <Link to="/map" className="btn btn-primary btn-lg">
+              🗺️ {t('welcome.cta.browseMap', 'Browse Map')}
+            </Link>
+            <Link
+              to={
+                !user
+                  ? '/login'
+                  : user.role === 'admin'
+                    ? '/admin'
+                    : user.role === 'vendor'
+                      ? '/vendor/applications'
+                      : '/profile/applications'
+              }
+              className="btn btn-secondary btn-lg"
+            >
+              📝 {t('welcome.cta.applyVendor', 'Apply as Vendor')}
+            </Link>
+          </div>
+        </div>
       </div>
+
 
       {/* Countdown Section */}
       {!loading && nextFair && (
         <div className="countdown-section">
-          <div className="countdown-container">
+          <div
+            ref={countdownReveal.ref}
+            className={`countdown-container reveal-block${countdownReveal.visible ? ' is-visible' : ''}`}
+          >
             <h2 className="countdown-title">
               {nextFair.status === 'active'
                 ? t('welcome.countdown.fairIsLive', 'Fair is Live!')
@@ -192,9 +227,18 @@ const HomePage: React.FC = () => {
               )}
             </div>
 
-            <Link to="/map" className="btn btn-primary">
+            <Link to={`/map?fairId=${nextFair.id}`} className="btn btn-primary">
               {t('welcome.countdown.viewOnMap', 'View on Map')}
             </Link>
+
+            {/* Surfaces only when the fair is live AND has events running right
+                now. Renders nothing otherwise, so the layout stays unchanged
+                outside of festival hours. */}
+            {nextFair.status === 'active' && (
+              <div style={{ marginTop: 16 }}>
+                <HomeWhatsOnCard fairId={nextFair.id} />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -217,34 +261,17 @@ const HomePage: React.FC = () => {
           </p>
           <div className="homepage-upcoming-grid">
             {upcomingFairs.map((fair) => (
-              <div key={fair.id} className="homepage-event-card">
-                <div className="homepage-event-card-header">
-                  <span className={`homepage-event-badge ${fair.status}`}>
-                    {fair.status === 'active'
-                      ? t('welcome.status.live', '🔴 Live Now')
-                      : t('welcome.status.upcoming', '🎯 Coming Soon')}
-                  </span>
-                </div>
-                <h3 className="homepage-event-name">{fair.name}</h3>
-                <div className="homepage-event-dates">
-                  <span className="icon">📅</span> {formatDate(fair.startDate)} – {formatDate(fair.endDate)}
-                </div>
-                {fair.locationAddress && (
-                  <div className="homepage-event-location">
-                    <span className="icon">📍</span> {fair.locationAddress}
-                  </div>
-                )}
-                {getDescription(fair) && (
-                  <p className="homepage-event-description">{getDescription(fair)}</p>
-                )}
-                <Link to="/map" className="btn btn-secondary homepage-event-cta">
-                  🗺️ {t('welcome.viewOnMap', 'View on Map')}
-                </Link>
-              </div>
+              <EventCard key={fair.id} fair={fair} />
             ))}
           </div>
         </section>
       )}
+
+      {/* Sponsor carousel at the bottom of the homepage. Cycles through every
+          active banner for this placement; renders nothing when there are none. */}
+      <div style={{ maxWidth: 1100, margin: '32px auto 0', padding: '0 16px' }}>
+        <SponsorCarousel placement="home_bottom" fairId={nextFair?.id} />
+      </div>
 
       {/* Animated Train */}
       <div className="train-container">
