@@ -18,6 +18,7 @@ import AboutPage from './pages/AboutPage';
 import InvitePage from './pages/InvitePage';
 import { SplitViewMapLayout } from './components/map';
 import UserProfile from './pages/UserProfile';
+import SchedulePage from './pages/SchedulePage';
 import { authApi } from './services/api';
 
 // Navigation component
@@ -141,6 +142,7 @@ const Navigation: React.FC = () => {
       <div className={`nav-links ${mobileMenuOpen ? 'open' : ''}`}>
         <Link to="/" onClick={handleNavLinkClick}>{t('nav.home')}</Link>
         <Link to="/map" onClick={handleNavLinkClick}>{t('nav.browseMap')}</Link>
+        <Link to="/schedule" onClick={handleNavLinkClick}>{t('nav.schedule', 'Schedule')}</Link>
         <Link to="/about" onClick={handleNavLinkClick}>{t('nav.aboutUs')}</Link>
         <button onClick={toggleLanguage} className="btn-language">
           {i18n.language === 'az' ? 'EN' : 'AZ'}
@@ -412,6 +414,7 @@ const AppContent: React.FC = () => {
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/map" element={<SplitViewMapLayout />} />
+          <Route path="/schedule" element={<SchedulePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/oauth-callback" element={<OAuthCallback />} />

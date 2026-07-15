@@ -99,6 +99,7 @@ import reactionsRoutes, { setSocketIO as setReactionsSocketIO } from './routes/r
 import analyticsRoutes from './routes/analytics';
 import pinsRoutes from './routes/pins';
 import zonesRoutes from './routes/zones';
+import eventsRoutes from './routes/events';
 import bannersRoutes from './routes/banners';
 
 app.use('/api/auth', authRoutes);
@@ -115,6 +116,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/pins', pinsRoutes);
 app.use('/api/zones', zonesRoutes);
+app.use('/api/events', eventsRoutes);
 app.use('/api/banners', bannersRoutes);
 
 // Error handling middleware

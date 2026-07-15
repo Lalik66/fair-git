@@ -1,0 +1,234 @@
+.event-mgmt {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.event-mgmt-header h2 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.event-mgmt-header .lede {
+  color: #6b7280;
+  font-size: 14px;
+  max-width: 720px;
+  margin: 0;
+}
+
+.event-mgmt-controls {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.event-fair-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.event-fair-picker select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  min-width: 240px;
+}
+
+.event-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.event-btn.primary {
+  background: #111827;
+  color: #fff;
+}
+.event-btn.primary:hover:not(:disabled) { background: #000; }
+.event-btn.primary:disabled { background: #d1d5db; cursor: not-allowed; }
+
+.event-btn.ghost {
+  background: #fff;
+  color: #374151;
+  border-color: #e5e7eb;
+}
+.event-btn.ghost:hover { background: #f9fafb; }
+
+.event-btn.danger {
+  background: #fff;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+.event-btn.danger:hover { background: #fef2f2; }
+
+.event-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .event-grid { grid-template-columns: 1fr; }
+}
+
+.event-table {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+}
+
+.event-table th,
+.event-table td {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 13px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.event-table th {
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+}
+
+.event-table tr.cancelled td {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.event-table tr.editing td {
+  background: #eff6ff;
+}
+
+.event-form {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.event-form h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+}
+
+.event-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.event-form input,
+.event-form select,
+.event-form textarea {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.event-form textarea { resize: vertical; min-height: 60px; }
+
+.event-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.event-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.event-msg {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.event-msg.success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.event-msg.error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* Horizontal scroll wrapper so the 5-column table doesn't overflow the
+   viewport on phones. Border lives here instead of on the table so the
+   rounded corners survive while the inner table scrolls. */
+.event-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.event-table-wrap .event-table {
+  border: 0;
+  border-radius: 0;
+  min-width: 560px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .event-mgmt-header h2 { font-size: 20px; }
+
+  .event-mgmt-controls {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .event-fair-picker,
+  .event-fair-picker select {
+    width: 100%;
+  }
+  .event-fair-picker select { min-width: 0; }
+
+  .event-form { padding: 12px; }
+
+  .event-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .event-form-actions {
+    flex-wrap: wrap;
+  }
+
+  .event-form-actions .event-btn {
+    flex: 1 1 120px;
+    justify-content: center;
+  }
+
+  .event-table th,
+  .event-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+}
