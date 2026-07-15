@@ -22,17 +22,17 @@ const ChangePassword: React.FC = () => {
 
     // Validate passwords
     if (newPassword.length < 8) {
-      setError(t('Password must be at least 8 characters', { defaultValue: 'Password must be at least 8 characters' }));
+      setError(t('changePassword.tooShort'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError(t('Passwords do not match', { defaultValue: 'Passwords do not match' }));
+      setError(t('changePassword.mismatch'));
       return;
     }
 
     if (currentPassword === newPassword) {
-      setError(t('New password must be different from current password', { defaultValue: 'New password must be different from current password' }));
+      setError(t('changePassword.mustDiffer'));
       return;
     }
 
@@ -58,7 +58,7 @@ const ChangePassword: React.FC = () => {
         navigate('/');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || t('Failed to change password', { defaultValue: 'Failed to change password' }));
+      setError(err.response?.data?.error || t('changePassword.failed'));
     } finally {
       setLoading(false);
     }
@@ -74,11 +74,9 @@ const ChangePassword: React.FC = () => {
       <div className="change-password-container">
         <div className="change-password-card">
           <div className="change-password-header">
-            <h1>{t('Change Password', { defaultValue: 'Change Password' })}</h1>
+            <h1>{t('changePassword.title')}</h1>
             <p className="required-notice">
-              {t('You must change your password before continuing.', {
-                defaultValue: 'You must change your password before continuing.',
-              })}
+              {t('changePassword.requiredNotice')}
             </p>
           </div>
 
@@ -87,7 +85,7 @@ const ChangePassword: React.FC = () => {
 
             <div className="form-group">
               <label htmlFor="currentPassword" className="form-label">
-                {t('Current Password', { defaultValue: 'Current Password' })}
+                {t('changePassword.current')}
               </label>
               <input
                 type="password"
@@ -95,7 +93,7 @@ const ChangePassword: React.FC = () => {
                 className="form-input"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder={t('Enter your temporary password', { defaultValue: 'Enter your temporary password' })}
+                placeholder={t('changePassword.currentPlaceholder')}
                 required
                 disabled={loading}
               />
@@ -103,7 +101,7 @@ const ChangePassword: React.FC = () => {
 
             <div className="form-group">
               <label htmlFor="newPassword" className="form-label">
-                {t('New Password', { defaultValue: 'New Password' })}
+                {t('changePassword.new')}
               </label>
               <input
                 type="password"
@@ -111,7 +109,7 @@ const ChangePassword: React.FC = () => {
                 className="form-input"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={t('At least 8 characters', { defaultValue: 'At least 8 characters' })}
+                placeholder={t('changePassword.newPlaceholder')}
                 required
                 disabled={loading}
                 minLength={8}
@@ -120,7 +118,7 @@ const ChangePassword: React.FC = () => {
 
             <div className="form-group">
               <label htmlFor="confirmPassword" className="form-label">
-                {t('Confirm New Password', { defaultValue: 'Confirm New Password' })}
+                {t('changePassword.confirm')}
               </label>
               <input
                 type="password"
@@ -128,7 +126,7 @@ const ChangePassword: React.FC = () => {
                 className="form-input"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t('Confirm your new password', { defaultValue: 'Confirm your new password' })}
+                placeholder={t('changePassword.confirmPlaceholder')}
                 required
                 disabled={loading}
               />
@@ -150,7 +148,7 @@ const ChangePassword: React.FC = () => {
                     {t('common.loading')}
                   </>
                 ) : (
-                  t('Change Password', { defaultValue: 'Change Password' })
+                  t('changePassword.title')
                 )}
               </button>
             </div>

@@ -1,9 +1,12 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../services/api';
+import BrandLogo from '../components/BrandLogo';
 import './LoginPage.css';
+
+const REMEMBER_EMAIL_KEY = 'loginRememberEmail';
 
 const LoginPage: React.FC = () => {
   const { t } = useTranslation();
@@ -14,21 +17,27 @@ const LoginPage: React.FC = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [formError, setFormError] = useState('');
   const [googleEnabled, setGoogleEnabled] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(true);
 
-  // Get the redirect path from location state, or default based on role
-  const from = (location.state as any)?.from?.pathname || '/';
+  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/';
 
-  // Check OAuth status and handle OAuth errors from URL
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
   useEffect(() => {
     const checkOAuthStatus = async () => {
       try {
         const status = await authApi.getOAuthStatus();
         setGoogleEnabled(status.googleEnabled);
       } catch (err) {
-        // OAuth status check failed, disable OAuth buttons
         console.error('Failed to check OAuth status:', err);
         setGoogleEnabled(false);
       } finally {
@@ -38,7 +47,6 @@ const LoginPage: React.FC = () => {
 
     checkOAuthStatus();
 
-    // Check for OAuth error in URL params
     const oauthError = searchParams.get('error');
     if (oauthError) {
       let errorMessage = t('auth.oauthError', 'Authentication failed');
@@ -58,173 +66,244 @@ const LoginPage: React.FC = () => {
     }
   }, [searchParams, t]);
 
+  const navigateAfterLogin = () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.mustChangePassword) {
+        navigate('/change-password');
+      } else if (from && from !== '/') {
+        if (user.role === 'admin') {
+          navigate(from);
+        } else if (user.role === 'vendor' && from.startsWith('/vendor')) {
+          navigate(from);
+        } else if (from.startsWith('/invite') || from.startsWith('/map')) {
+          navigate(from);
+        } else {
+          navigate(user.role === 'admin' ? '/admin' : user.role === 'vendor' ? '/vendor' : '/');
+        }
+      } else if (user.role === 'admin') {
+        navigate('/admin');
+      } else if (user.role === 'vendor') {
+        navigate('/vendor');
+      } else {
+        navigate('/');
+      }
+    } else {
+      navigate(from || '/');
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setFormError('');
     clearError();
 
-    if (!email.trim()) {
-      setFormError(t('errors.required'));
-      return;
-    }
-
-    if (!password.trim()) {
+    if (!email.trim() || !password.trim()) {
       setFormError(t('errors.required'));
       return;
     }
 
     try {
       await login(email, password);
-      // Navigate to the intended destination or dashboard based on role
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        // Check if user must change password first
-        if (user.mustChangePassword) {
-          navigate('/change-password');
-        } else if (from && from !== '/') {
-          // If there's a specific destination, check if user has access
-          if (user.role === 'admin') {
-            // Admin can access any route, use the intended destination
-            navigate(from);
-          } else if (user.role === 'vendor' && from.startsWith('/vendor')) {
-            // Vendor can access vendor routes
-            navigate(from);
-          } else if (from.startsWith('/invite') || from.startsWith('/map')) {
-            // Any user can be redirected to invite or map
-            navigate(from);
-          } else {
-            // For other cases, use role-based default
-            navigate(user.role === 'admin' ? '/admin' : user.role === 'vendor' ? '/vendor' : '/');
-          }
-        } else if (user.role === 'admin') {
-          navigate('/admin');
-        } else if (user.role === 'vendor') {
-          navigate('/vendor');
-        } else {
-          navigate('/');
-        }
+
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_EMAIL_KEY, email.trim());
       } else {
-        navigate(from || '/');
+        localStorage.removeItem(REMEMBER_EMAIL_KEY);
       }
-    } catch (err) {
+
+      navigateAfterLogin();
+    } catch {
       // Error is handled by AuthContext
     }
   };
 
-  /**
-   * Handle Google OAuth sign-in
-   * Redirects the user to Google's consent screen via the backend
-   */
   const handleGoogleLogin = () => {
     setFormError('');
     clearError();
-    // Redirect to backend Google OAuth endpoint
     window.location.href = authApi.getGoogleOAuthUrl();
   };
 
+  const handleReset = () => {
+    setEmail('');
+    setPassword('');
+    setRememberMe(false);
+    setFormError('');
+    clearError();
+    localStorage.removeItem(REMEMBER_EMAIL_KEY);
+  };
+
+  const authSteps = [
+    { num: 1, label: t('auth.steps.signIn', 'Sign in'), active: true },
+    { num: 2, label: t('auth.steps.chooseRole', 'Choose role') },
+    { num: 3, label: t('auth.steps.invite', 'Invite · if any') },
+    { num: 4, label: t('auth.steps.newPassword', 'New password') },
+  ];
+
   return (
     <div className="login-page">
-      <div className="login-container">
-        <div className="login-card">
-          <div className="login-header">
-            <h1>{t('auth.login')}</h1>
-            <p>{t('common.appName')}</p>
+      <div className="login-shell">
+        <div className="auth-stage">
+          <div className="auth-rail">
+            <div className="auth-progress" aria-label={t('auth.login', 'Sign in')}>
+              {authSteps.map((step, index) => (
+                <React.Fragment key={step.num}>
+                  <div className={`auth-step${step.active ? ' active' : ''}`}>
+                    <span className="auth-step-num">{step.num}</span>
+                    <span className="auth-step-label">{step.label}</span>
+                  </div>
+                  {index < authSteps.length - 1 && <span className="auth-bar" aria-hidden="true" />}
+                </React.Fragment>
+              ))}
+            </div>
+            <div className="auth-rail-nav">
+              <Link to="/" className="login-btn login-btn-ghost login-btn-sm">
+                ← {t('auth.back', 'Back')}
+              </Link>
+              <button type="button" className="login-btn login-btn-primary login-btn-sm" disabled>
+                {t('auth.next', 'Next')} →
+              </button>
+              <button
+                type="button"
+                className="login-btn login-btn-icon"
+                onClick={handleReset}
+                title={t('auth.resetForm', 'Clear form')}
+                aria-label={t('auth.resetForm', 'Clear form')}
+              >
+                ↻
+              </button>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="login-form">
-            {(error || formError) && (
-              <div className="form-error-message">
-                {error || formError}
+          <div className="auth-card active">
+            <div className="auth-inner">
+              <div className="auth-intro">
+                <BrandLogo size="md" glow className="auth-brand-logo" />
+                <span className="auth-tag">{t('auth.stepTag', 'step 1 · login')}</span>
+                <h1 className="auth-title">
+                  {t('auth.welcomeBack', 'Welcome back to')}{' '}
+                  <em>{t('common.appName', 'Fair Marketplace')}</em>.
+                </h1>
+                <p className="auth-sub">
+                  {t(
+                    'auth.loginSubtitle',
+                    'Sign in to see your friends at the fair, save vendors, and apply to host a stand.'
+                  )}
+                </p>
               </div>
-            )}
 
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                {t('applications.form.email')}
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="form-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@fairmarketplace.com"
-                autoComplete="email"
-                disabled={loading}
-              />
+              <div className="auth-form-col">
+                <form onSubmit={handleSubmit} className="login-form">
+                  {(error || formError) && (
+                    <div className="login-form-error" role="alert">
+                      {error || formError}
+                    </div>
+                  )}
+
+                  <div className="login-field">
+                    <label htmlFor="email">{t('applications.form.email', 'Email')}</label>
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="login-field">
+                    <label htmlFor="password">{t('auth.password', 'Password')}</label>
+                    <input
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••"
+                      autoComplete="current-password"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="login-form-row">
+                    <label className="login-remember">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        disabled={loading}
+                      />
+                      {t('auth.rememberMe', 'Remember me')}
+                    </label>
+                    <span className="login-forgot" title={t('auth.forgotSoon', 'Password reset coming soon')}>
+                      {t('auth.forgot', 'Forgot?')}
+                    </span>
+                  </div>
+
+                  <button type="submit" className="login-btn login-btn-accent login-btn-full" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <span className="login-spinner" aria-hidden="true" />
+                        {t('common.loading', 'Loading...')}
+                      </>
+                    ) : (
+                      <>{t('auth.signInArrow', 'Sign in →')}</>
+                    )}
+                  </button>
+                </form>
+
+                {!oauthLoading && googleEnabled && (
+                  <>
+                    <div className="login-or">{t('auth.orContinueWith', 'or continue with')}</div>
+                    <div className="login-oauth">
+                      <button
+                        type="button"
+                        className="login-btn login-btn-oauth"
+                        onClick={handleGoogleLogin}
+                        disabled={loading}
+                      >
+                        <span className="login-oauth-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path
+                              d="M12 5c1.85 0 3.5.63 4.8 1.87l3.6-3.6C18.07 1.04 15.27 0 12 0 7.4 0 3.4 2.65 1.4 6.5l4.2 3.27C6.6 7 9.07 5 12 5Z"
+                              fill="#ea4335"
+                            />
+                            <path
+                              d="M23.5 12.27c0-.85-.07-1.66-.2-2.45H12v4.65h6.46c-.28 1.5-1.13 2.78-2.4 3.63l3.7 2.87c2.16-2 3.74-4.94 3.74-8.7Z"
+                              fill="#4285f4"
+                            />
+                            <path
+                              d="M5.6 14.27c-.27-.8-.43-1.66-.43-2.55s.16-1.75.43-2.55L1.4 5.9C.5 7.7 0 9.78 0 12s.5 4.3 1.4 6.1l4.2-3.27Z"
+                              fill="#fbbc04"
+                            />
+                            <path
+                              d="M12 24c3.27 0 6-1.07 8-2.9l-3.7-2.87c-1.04.7-2.4 1.1-4.3 1.1-2.93 0-5.4-2-6.4-4.78L1.4 17.83C3.4 21.45 7.4 24 12 24Z"
+                              fill="#34a853"
+                            />
+                          </svg>
+                        </span>
+                        {t('auth.continueGoogle', 'Continue with Google')}
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                <p className="login-signup">
+                  {t('auth.newHere', 'New here?')}{' '}
+                  {googleEnabled ? (
+                    <button type="button" className="login-signup-link" onClick={handleGoogleLogin} disabled={loading}>
+                      {t('auth.createAccount', 'Create account')}
+                    </button>
+                  ) : (
+                    <Link to="/" className="login-signup-link">
+                      {t('auth.createAccount', 'Create account')}
+                    </Link>
+                  )}
+                </p>
+              </div>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="password" className="form-label">
-                {t('auth.password')}
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="form-input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="********"
-                autoComplete="current-password"
-                disabled={loading}
-              />
-            </div>
-
-            <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
-              {loading ? (
-                <>
-                  <span className="spinner"></span>
-                  {t('common.loading')}
-                </>
-              ) : (
-                t('auth.login')
-              )}
-            </button>
-          </form>
-
-          {/* Google OAuth Section */}
-          {!oauthLoading && googleEnabled && (
-            <>
-              <div className="login-divider">
-                <span>{t('auth.orContinueWith', 'or continue with')}</span>
-              </div>
-
-              <div className="oauth-buttons">
-                <button
-                  type="button"
-                  className="btn btn-oauth btn-google"
-                  onClick={handleGoogleLogin}
-                  disabled={loading}
-                >
-                  <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    />
-                  </svg>
-                  {t('auth.googleLogin', 'Sign in with Google')}
-                </button>
-              </div>
-            </>
-          )}
-
-          <div className="login-footer">
-            <p>
-              <a href="/">{t('nav.home')}</a>
-            </p>
           </div>
         </div>
       </div>

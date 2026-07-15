@@ -71,7 +71,7 @@ const VendorProfile: React.FC = () => {
       populateForm(response.profile);
     } catch (err: any) {
       console.error('Error fetching profile:', err);
-      setError(err.response?.data?.error || 'Failed to load profile');
+      setError(err.response?.data?.error || t('vendorProfile.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -162,14 +162,14 @@ const VendorProfile: React.FC = () => {
       });
 
       setProfile(response.profile);
-      setSuccessMessage('Profile updated successfully!');
+      setSuccessMessage(t('vendorProfile.profileUpdated'));
       setIsEditing(false);
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error('Error saving profile:', err);
-      setError(err.response?.data?.error || 'Failed to save profile');
+      setError(err.response?.data?.error || t('vendorProfile.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -195,13 +195,13 @@ const VendorProfile: React.FC = () => {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      setError('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+      setError(t('vendorProfile.invalidFileType'));
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('File size exceeds 5MB limit.');
+      setError(t('vendorProfile.fileTooLarge'));
       return;
     }
 
@@ -217,11 +217,11 @@ const VendorProfile: React.FC = () => {
         setProfile({ ...profile, logoUrl: response.logoUrl });
       }
 
-      setSuccessMessage('Logo uploaded successfully!');
+      setSuccessMessage(t('vendorProfile.logoUploaded'));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error('Error uploading logo:', err);
-      setError(err.response?.data?.error || 'Failed to upload logo');
+      setError(err.response?.data?.error || t('vendorProfile.logoUploadFailed'));
     } finally {
       setUploadingLogo(false);
       // Reset file input
@@ -232,7 +232,7 @@ const VendorProfile: React.FC = () => {
   };
 
   const handleDeleteLogo = async () => {
-    if (!confirm('Are you sure you want to delete your logo?')) return;
+    if (!confirm(t('vendorProfile.deleteLogoConfirm'))) return;
 
     try {
       setUploadingLogo(true);
@@ -246,11 +246,11 @@ const VendorProfile: React.FC = () => {
         setProfile({ ...profile, logoUrl: null });
       }
 
-      setSuccessMessage('Logo deleted successfully!');
+      setSuccessMessage(t('vendorProfile.logoDeleted'));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error('Error deleting logo:', err);
-      setError(err.response?.data?.error || 'Failed to delete logo');
+      setError(err.response?.data?.error || t('vendorProfile.logoDeleteFailed'));
     } finally {
       setUploadingLogo(false);
     }
@@ -266,20 +266,20 @@ const VendorProfile: React.FC = () => {
 
     // Check if already at max
     if (profile && profile.productImages.length >= MAX_PRODUCT_IMAGES) {
-      setError(`Maximum of ${MAX_PRODUCT_IMAGES} product images allowed.`);
+      setError(t('vendorProfile.maxImages', { max: MAX_PRODUCT_IMAGES }));
       return;
     }
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      setError('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+      setError(t('vendorProfile.invalidFileType'));
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('File size exceeds 5MB limit.');
+      setError(t('vendorProfile.fileTooLarge'));
       return;
     }
 
@@ -298,11 +298,11 @@ const VendorProfile: React.FC = () => {
         });
       }
 
-      setSuccessMessage('Product image uploaded successfully!');
+      setSuccessMessage(t('vendorProfile.imageUploaded'));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error('Error uploading product image:', err);
-      setError(err.response?.data?.error || 'Failed to upload product image');
+      setError(err.response?.data?.error || t('vendorProfile.imageUploadFailed'));
     } finally {
       setUploadingProductImage(false);
       // Reset file input
@@ -313,7 +313,7 @@ const VendorProfile: React.FC = () => {
   };
 
   const handleDeleteProductImage = async (imageId: string) => {
-    if (!confirm('Are you sure you want to delete this product image?')) return;
+    if (!confirm(t('vendorProfile.deleteImageConfirm'))) return;
 
     try {
       setDeletingImageId(imageId);
@@ -330,11 +330,11 @@ const VendorProfile: React.FC = () => {
         });
       }
 
-      setSuccessMessage('Product image deleted successfully!');
+      setSuccessMessage(t('vendorProfile.imageDeleted'));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error('Error deleting product image:', err);
-      setError(err.response?.data?.error || 'Failed to delete product image');
+      setError(err.response?.data?.error || t('vendorProfile.imageDeleteFailed'));
     } finally {
       setDeletingImageId(null);
     }
@@ -354,7 +354,7 @@ const VendorProfile: React.FC = () => {
     }
     switch (category) {
       default:
-        return category || 'Not set';
+        return category || t('common.notSet');
     }
   };
 
@@ -369,7 +369,7 @@ const VendorProfile: React.FC = () => {
   if (loading) {
     return (
       <div className="vendor-profile-container">
-        <div className="loading-spinner">Loading profile...</div>
+        <div className="loading-spinner">{t('vendorProfile.loadingProfile')}</div>
       </div>
     );
   }
@@ -380,7 +380,7 @@ const VendorProfile: React.FC = () => {
         <h1>{t('vendor.profile', { defaultValue: 'Profil' })}</h1>
         {!isEditing && (
           <button className="btn btn-primary" onClick={() => setIsEditing(true)}>
-            Edit Profile
+            {t('vendorProfile.editProfile')}
           </button>
         )}
       </div>
@@ -391,32 +391,32 @@ const VendorProfile: React.FC = () => {
       {isEditing ? (
         <form onSubmit={handleSave} className="profile-form" noValidate>
           <div className="form-section">
-            <h3>Contact Information</h3>
+            <h3>{t('vendorProfile.contactInfo')}</h3>
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="firstName">First Name</label>
+                <label htmlFor="firstName">{t('vendorProfile.firstName')}</label>
                 <input
                   type="text"
                   id="firstName"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Enter first name"
+                  placeholder={t('vendorProfile.firstNamePlaceholder')}
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="lastName">Last Name</label>
+                <label htmlFor="lastName">{t('vendorProfile.lastName')}</label>
                 <input
                   type="text"
                   id="lastName"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Enter last name"
+                  placeholder={t('vendorProfile.lastNamePlaceholder')}
                 />
               </div>
             </div>
             <div className="form-row">
               <div className={`form-group ${fieldErrors.email ? 'has-error' : ''}`}>
-                <label htmlFor="email">Email <span className="required">*</span></label>
+                <label htmlFor="email">{t('vendorProfile.email')} <span className="required">*</span></label>
                 <input
                   type="email"
                   id="email"
@@ -425,7 +425,7 @@ const VendorProfile: React.FC = () => {
                     setEmail(e.target.value);
                     clearFieldError('email');
                   }}
-                  placeholder="Enter email"
+                  placeholder={t('vendorProfile.emailPlaceholder')}
                   className={fieldErrors.email ? 'input-error' : ''}
                   aria-invalid={!!fieldErrors.email}
                   aria-describedby={fieldErrors.email ? 'email-error' : undefined}
@@ -437,7 +437,7 @@ const VendorProfile: React.FC = () => {
                 )}
               </div>
               <div className={`form-group ${fieldErrors.phone ? 'has-error' : ''}`}>
-                <label htmlFor="phone">Phone Number</label>
+                <label htmlFor="phone">{t('vendorProfile.phone')}</label>
                 <input
                   type="tel"
                   id="phone"
@@ -448,7 +448,7 @@ const VendorProfile: React.FC = () => {
                       setFieldErrors(prev => ({ ...prev, phone: undefined }));
                     }
                   }}
-                  placeholder="Enter phone number"
+                  placeholder={t('vendorProfile.phonePlaceholder')}
                   className={fieldErrors.phone ? 'input-error' : ''}
                   aria-invalid={!!fieldErrors.phone}
                   aria-describedby={fieldErrors.phone ? 'phone-error' : undefined}
@@ -463,9 +463,9 @@ const VendorProfile: React.FC = () => {
           </div>
 
           <div className="form-section">
-            <h3>Business Information</h3>
+            <h3>{t('vendorProfile.businessInfo')}</h3>
             <div className={`form-group ${fieldErrors.companyName ? 'has-error' : ''}`}>
-              <label htmlFor="companyName">Company Name <span className="required">*</span></label>
+              <label htmlFor="companyName">{t('vendorProfile.companyName')} <span className="required">*</span></label>
               <input
                 type="text"
                 id="companyName"
@@ -474,7 +474,7 @@ const VendorProfile: React.FC = () => {
                   setCompanyName(e.target.value);
                   clearFieldError('companyName');
                 }}
-                placeholder="Enter company name"
+                placeholder={t('vendorProfile.companyNamePlaceholder')}
                 className={fieldErrors.companyName ? 'input-error' : ''}
                 aria-invalid={!!fieldErrors.companyName}
                 aria-describedby={fieldErrors.companyName ? 'companyName-error' : undefined}
@@ -486,7 +486,7 @@ const VendorProfile: React.FC = () => {
               )}
             </div>
             <div className={`form-group ${fieldErrors.productCategory ? 'has-error' : ''}`}>
-              <label htmlFor="productCategory">Product Category <span className="required">*</span></label>
+              <label htmlFor="productCategory">{t('vendorProfile.productCategory')} <span className="required">*</span></label>
               <select
                 id="productCategory"
                 value={productCategory}
@@ -498,12 +498,12 @@ const VendorProfile: React.FC = () => {
                 aria-invalid={!!fieldErrors.productCategory}
                 aria-describedby={fieldErrors.productCategory ? 'productCategory-error' : undefined}
               >
-                <option value="">Select category</option>
-                <option value="food_beverages">Food & Beverages</option>
-                <option value="handicrafts">Handicrafts</option>
-                <option value="clothing">Clothing</option>
-                <option value="accessories">Accessories</option>
-                <option value="other">Other</option>
+                <option value="">{t('vendorProfile.selectCategory')}</option>
+                <option value="food_beverages">{t('categories.food_beverages')}</option>
+                <option value="handicrafts">{t('categories.handicrafts')}</option>
+                <option value="clothing">{t('categories.clothing')}</option>
+                <option value="accessories">{t('categories.accessories')}</option>
+                <option value="other">{t('categories.other')}</option>
               </select>
               {fieldErrors.productCategory && (
                 <span className="field-error" id="productCategory-error" role="alert">
@@ -512,7 +512,7 @@ const VendorProfile: React.FC = () => {
               )}
             </div>
             <div className={`form-group full-width ${fieldErrors.businessDescription ? 'has-error' : ''}`}>
-              <label htmlFor="businessDescription">Business Description <span className="required">*</span></label>
+              <label htmlFor="businessDescription">{t('vendorProfile.businessDescription')} <span className="required">*</span></label>
               <textarea
                 id="businessDescription"
                 value={businessDescription}
@@ -520,7 +520,7 @@ const VendorProfile: React.FC = () => {
                   setBusinessDescription(e.target.value);
                   clearFieldError('businessDescription');
                 }}
-                placeholder="Describe your business and products..."
+                placeholder={t('vendorProfile.descriptionPlaceholder')}
                 rows={4}
                 className={fieldErrors.businessDescription ? 'input-error' : ''}
                 aria-invalid={!!fieldErrors.businessDescription}
@@ -536,10 +536,10 @@ const VendorProfile: React.FC = () => {
 
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={handleCancel}>
-              Cancel
+              {t('common.cancel')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? t('common.saving') : t('vendorProfile.saveChanges')}
             </button>
           </div>
         </form>
@@ -547,38 +547,38 @@ const VendorProfile: React.FC = () => {
         <div className="profile-view">
           {/* Logo Section */}
           <div className="profile-section logo-section">
-            <h3>Company Logo</h3>
+            <h3>{t('vendorProfile.companyLogo')}</h3>
             <div className="logo-upload-container">
               {profile?.logoUrl ? (
                 <div className="logo-preview">
-                  <img src={getLogoUrl(profile.logoUrl) || ''} alt="Company Logo" loading="lazy" />
+                  <img src={getLogoUrl(profile.logoUrl) || ''} alt={t('vendorProfile.companyLogo')} loading="lazy" />
                   <div className="logo-actions">
                     <button
                       className="btn btn-secondary btn-sm"
                       onClick={handleLogoUploadClick}
                       disabled={uploadingLogo}
                     >
-                      {uploadingLogo ? 'Uploading...' : 'Replace Logo'}
+                      {uploadingLogo ? t('mapManagement.uploading') : t('vendorProfile.replaceLogo')}
                     </button>
                     <button
                       className="btn btn-danger btn-sm"
                       onClick={handleDeleteLogo}
                       disabled={uploadingLogo}
                     >
-                      Delete Logo
+                      {t('vendorProfile.deleteLogo')}
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="logo-placeholder">
                   <div className="placeholder-icon">📷</div>
-                  <p>No logo uploaded</p>
+                  <p>{t('vendorProfile.noLogo')}</p>
                   <button
                     className="btn btn-primary"
                     onClick={handleLogoUploadClick}
                     disabled={uploadingLogo}
                   >
-                    {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
+                    {uploadingLogo ? t('mapManagement.uploading') : t('vendorProfile.uploadLogo')}
                   </button>
                 </div>
               )}
@@ -589,43 +589,43 @@ const VendorProfile: React.FC = () => {
                 accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 style={{ display: 'none' }}
               />
-              <p className="upload-hint">Supported formats: JPEG, PNG, GIF, WebP. Max size: 5MB</p>
+              <p className="upload-hint">{t('vendorProfile.uploadHint')}</p>
             </div>
           </div>
 
           <div className="profile-section">
-            <h3>Contact Information</h3>
+            <h3>{t('vendorProfile.contactInfo')}</h3>
             <div className="profile-grid">
               <div className="profile-item">
-                <span className="profile-label">Name:</span>
-                <span className="profile-value">{profile?.contactName || 'Not set'}</span>
+                <span className="profile-label">{t('vendorProfile.viewName')}</span>
+                <span className="profile-value">{profile?.contactName || t('common.notSet')}</span>
               </div>
               <div className="profile-item">
-                <span className="profile-label">Email:</span>
+                <span className="profile-label">{t('vendorProfile.viewEmail')}</span>
                 <span className="profile-value">{profile?.contactEmail}</span>
               </div>
               <div className="profile-item">
-                <span className="profile-label">Phone:</span>
-                <span className="profile-value">{profile?.contactPhone || 'Not set'}</span>
+                <span className="profile-label">{t('vendorProfile.viewPhone')}</span>
+                <span className="profile-value">{profile?.contactPhone || t('common.notSet')}</span>
               </div>
             </div>
           </div>
 
           <div className="profile-section">
-            <h3>Business Information</h3>
+            <h3>{t('vendorProfile.businessInfo')}</h3>
             <div className="profile-grid">
               <div className="profile-item">
-                <span className="profile-label">Company Name:</span>
-                <span className="profile-value">{profile?.companyName || 'Not set'}</span>
+                <span className="profile-label">{t('vendorProfile.viewCompany')}</span>
+                <span className="profile-value">{profile?.companyName || t('common.notSet')}</span>
               </div>
               <div className="profile-item">
-                <span className="profile-label">Category:</span>
+                <span className="profile-label">{t('vendorProfile.viewCategory')}</span>
                 <span className="profile-value">{getCategoryLabel(profile?.productCategory || null)}</span>
               </div>
               <div className="profile-item full-width">
-                <span className="profile-label">Business Description:</span>
+                <span className="profile-label">{t('vendorProfile.viewDescription')}</span>
                 <span className="profile-value description">
-                  {profile?.businessDescription || 'Not set'}
+                  {profile?.businessDescription || t('common.notSet')}
                 </span>
               </div>
             </div>
@@ -634,7 +634,7 @@ const VendorProfile: React.FC = () => {
           {/* Product Images Section */}
           <div className="profile-section product-images-section">
             <div className="section-header">
-              <h3>Product Images</h3>
+              <h3>{t('vendorProfile.productImages')}</h3>
               <span className="image-count">
                 {profile?.productImages?.length || 0} / {MAX_PRODUCT_IMAGES}
               </span>
@@ -644,12 +644,12 @@ const VendorProfile: React.FC = () => {
               <div className="product-images-grid">
                 {profile?.productImages?.map((img) => (
                   <div key={img.id} className="product-image-item">
-                    <img src={getImageUrl(img.imageUrl) || ''} alt={`Product ${img.orderIndex + 1}`} loading="lazy" />
+                    <img src={getImageUrl(img.imageUrl) || ''} alt={t('vendorProfile.productAlt', { index: img.orderIndex + 1 })} loading="lazy" />
                     <button
                       className="delete-image-btn"
                       onClick={() => handleDeleteProductImage(img.id)}
                       disabled={deletingImageId === img.id}
-                      title="Delete image"
+                      title={t('vendorProfile.deleteImage')}
                     >
                       {deletingImageId === img.id ? '...' : '×'}
                     </button>
@@ -663,11 +663,11 @@ const VendorProfile: React.FC = () => {
                     onClick={uploadingProductImage ? undefined : handleProductImageUploadClick}
                   >
                     {uploadingProductImage ? (
-                      <div className="upload-spinner">Uploading...</div>
+                      <div className="upload-spinner">{t('mapManagement.uploading')}</div>
                     ) : (
                       <>
                         <span className="upload-icon">+</span>
-                        <span className="upload-text">Add Image</span>
+                        <span className="upload-text">{t('vendorProfile.addImage')}</span>
                       </>
                     )}
                   </div>
@@ -683,7 +683,7 @@ const VendorProfile: React.FC = () => {
               />
 
               <p className="upload-hint">
-                Upload up to {MAX_PRODUCT_IMAGES} product images. Supported formats: JPEG, PNG, GIF, WebP. Max size: 5MB each.
+                {t('vendorProfile.productUploadHint', { max: MAX_PRODUCT_IMAGES })}
               </p>
             </div>
           </div>

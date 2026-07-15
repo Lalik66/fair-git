@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { inviteApi } from '../services/api';
 import './InvitePage.css';
@@ -13,6 +14,7 @@ interface InviteValidation {
 }
 
 const InvitePage: React.FC = () => {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,7 +33,7 @@ const InvitePage: React.FC = () => {
   // Validate the invite token
   const validateInvite = useCallback(async () => {
     if (!token) {
-      setError('Invalid invite link');
+      setError(t('invite.invalidLink'));
       setLoading(false);
       return;
     }
@@ -41,11 +43,11 @@ const InvitePage: React.FC = () => {
       setValidation(result);
     } catch (err) {
       console.error('Failed to validate invite:', err);
-      setError('Failed to validate invite link');
+      setError(t('invite.validateFailed'));
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, t]);
 
   // Validate invite when component mounts and user is authenticated
   useEffect(() => {
@@ -82,7 +84,7 @@ const InvitePage: React.FC = () => {
           navigate('/map', { replace: true });
         }, 2000);
       } else {
-        setError(result.error || 'Failed to accept invite');
+        setError(result.error || t('invite.acceptFailed'));
       }
     } catch (err: unknown) {
       console.error('Failed to accept invite:', err);
@@ -90,16 +92,16 @@ const InvitePage: React.FC = () => {
         const axiosErr = err as { response?: { data?: { error?: string; code?: string } } };
         const errorData = axiosErr.response?.data;
         if (errorData?.code === 'ALREADY_FOLLOWING') {
-          setError('You are already friends!');
+          setError(t('invite.alreadyFriends'));
         } else if (errorData?.code === 'SELF_INVITE') {
-          setError('You cannot accept your own invite');
+          setError(t('invite.selfInvite'));
         } else if (errorData?.code === 'EXPIRED') {
-          setError('This invite link has expired');
+          setError(t('invite.expired'));
         } else {
-          setError(errorData?.error || 'Failed to accept invite');
+          setError(errorData?.error || t('invite.acceptFailed'));
         }
       } else {
-        setError('Failed to accept invite');
+        setError(t('invite.acceptFailed'));
       }
     } finally {
       setAccepting(false);
@@ -118,7 +120,7 @@ const InvitePage: React.FC = () => {
         <div className="invite-card">
           <div className="invite-loading">
             <div className="spinner"></div>
-            <p>Loading...</p>
+            <p>{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -132,7 +134,7 @@ const InvitePage: React.FC = () => {
         <div className="invite-card">
           <div className="invite-loading">
             <div className="spinner"></div>
-            <p>Validating invite...</p>
+            <p>{t('invite.validating')}</p>
           </div>
         </div>
       </div>
@@ -145,12 +147,11 @@ const InvitePage: React.FC = () => {
       <div className="invite-page">
         <div className="invite-card invite-success">
           <div className="success-icon">✓</div>
-          <h1>You are now friends!</h1>
+          <h1>{t('invite.friendsTitle')}</h1>
           <p>
-            You and <strong>{acceptResult.inviterName}</strong> can now see each
-            other's location on the map.
+            {t('invite.friendsBody', { name: acceptResult.inviterName })}
           </p>
-          <p className="redirect-notice">Redirecting to map...</p>
+          <p className="redirect-notice">{t('invite.redirecting')}</p>
         </div>
       </div>
     );
@@ -158,7 +159,7 @@ const InvitePage: React.FC = () => {
 
   // Show error state
   if (error || !validation?.isValid) {
-    const errorMessage = error || validation?.error || 'Invalid invite link';
+    const errorMessage = error || validation?.error || t('invite.invalidLink');
     const errorCode = validation?.code;
 
     return (
@@ -167,14 +168,14 @@ const InvitePage: React.FC = () => {
           <div className="error-icon">!</div>
           <h1>
             {errorCode === 'EXPIRED'
-              ? 'Invite Expired'
+              ? t('invite.expiredTitle')
               : errorCode === 'ALREADY_FOLLOWING'
-              ? 'Already Friends'
-              : 'Invalid Invite'}
+              ? t('invite.alreadyTitle')
+              : t('invite.invalidTitle')}
           </h1>
           <p>{errorMessage}</p>
           <button className="btn btn-primary" onClick={handleGoToMap}>
-            Go to Map
+            {t('invite.goToMap')}
           </button>
         </div>
       </div>
@@ -186,13 +187,12 @@ const InvitePage: React.FC = () => {
     <div className="invite-page">
       <div className="invite-card">
         <div className="invite-icon">+</div>
-        <h1>Friend Invite</h1>
+        <h1>{t('invite.inviteTitle')}</h1>
         <p className="invite-message">
-          <strong>{validation.inviterName}</strong> wants to be friends with you
-          on Fair Marketplace!
+          {t('invite.message', { name: validation.inviterName })}
         </p>
         <p className="invite-description">
-          By accepting, you'll be able to see each other's location on the map.
+          {t('invite.description')}
         </p>
         <div className="invite-actions">
           <button
@@ -203,10 +203,10 @@ const InvitePage: React.FC = () => {
             {accepting ? (
               <>
                 <span className="btn-spinner"></span>
-                Accepting...
+                {t('invite.accepting')}
               </>
             ) : (
-              'Accept Invite'
+              t('invite.accept')
             )}
           </button>
           <button
@@ -214,7 +214,7 @@ const InvitePage: React.FC = () => {
             onClick={handleGoToMap}
             disabled={accepting}
           >
-            Decline
+            {t('invite.decline')}
           </button>
         </div>
       </div>
