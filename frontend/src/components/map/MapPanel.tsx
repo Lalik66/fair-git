@@ -78,6 +78,12 @@ interface MapPanelProps {
    * without losing reference identity on each push.
    */
   eventsByLocation?: Map<string, FairEvent[]>;
+  /**
+   * Crowd-density cells (anonymized aggregate GeoJSON from the backend).
+   * Rendered as a native Mapbox heatmap layer when showHeatmap is true.
+   */
+  heatmapData?: GeoJSON.FeatureCollection | null;
+  showHeatmap?: boolean;
 }
 
 export interface MapPanelRef {
@@ -105,6 +111,8 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   userPins = [],
   zones = [],
   eventsByLocation,
+  heatmapData = null,
+  showHeatmap = false,
 }, ref) => {
   const { t, i18n } = useTranslation();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -827,6 +835,62 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       map.current.once('load', applyZones);
     }
   }, [zones]);
+
+  // Crowd-density heatmap layer. The data is an anonymized FeatureCollection
+  // of grid-cell centroids weighted by people count — rendered with Mapbox's
+  // native heatmap type (green → red as density rises). Toggled off it stays
+  // registered but hidden, so re-enabling is instant.
+  useEffect(() => {
+    if (!map.current) return;
+    const m = map.current;
+
+    const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
+    const HEAT_SRC = 'crowd-density';
+    const HEAT_LAYER = 'crowd-density-heat';
+
+    const applyHeatmap = () => {
+      if (!map.current) return;
+      const data = heatmapData ?? EMPTY;
+      const existing = m.getSource(HEAT_SRC) as mapboxgl.GeoJSONSource | undefined;
+      if (existing) {
+        existing.setData(data as never);
+      } else {
+        m.addSource(HEAT_SRC, { type: 'geojson', data: data as never });
+        m.addLayer({
+          id: HEAT_LAYER,
+          type: 'heatmap',
+          source: HEAT_SRC,
+          paint: {
+            // Cell weight scales with people count; ~15 people saturates.
+            'heatmap-weight': ['interpolate', ['linear'], ['get', 'count'], 1, 0.3, 15, 1],
+            'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 12, 1, 18, 3],
+            // Transparent → green → yellow → orange → red density ramp.
+            'heatmap-color': [
+              'interpolate', ['linear'], ['heatmap-density'],
+              0, 'rgba(34,197,94,0)',
+              0.2, 'rgba(34,197,94,0.35)',
+              0.4, 'rgba(250,204,21,0.45)',
+              0.6, 'rgba(249,115,22,0.55)',
+              0.8, 'rgba(239,68,68,0.65)',
+              1, 'rgba(185,28,28,0.75)',
+            ],
+            // Radius grows with zoom so a 50 m cell keeps its footprint.
+            'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 12, 14, 16, 32, 19, 64],
+            'heatmap-opacity': 0.8,
+          },
+        });
+      }
+      if (m.getLayer(HEAT_LAYER)) {
+        m.setLayoutProperty(HEAT_LAYER, 'visibility', showHeatmap ? 'visible' : 'none');
+      }
+    };
+
+    if (m.isStyleLoaded()) {
+      applyHeatmap();
+    } else {
+      m.once('load', applyHeatmap);
+    }
+  }, [heatmapData, showHeatmap]);
 
   // Zone popups — open on click of the fill layer. Created lazily so we
   // never attach handlers before the layer exists.

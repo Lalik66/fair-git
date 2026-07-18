@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../index';
 import { verifyConversationAccess, getOtherParticipant } from '../services/messageService';
+import { getHeatmapSnapshot } from '../services/heatmapService';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -156,6 +157,21 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
       } catch (err) {
         console.error('location:update error:', err);
       }
+    });
+
+    /**
+     * Crowd-density heatmap subscription. Joining the room delivers the
+     * cached snapshot immediately, then 'heatmap:update' pushes on every
+     * aggregation tick. Data is anonymized cell counts only — safe for any
+     * authenticated client.
+     */
+    socket.on('heatmap:subscribe', () => {
+      socket.join('heatmap');
+      socket.emit('heatmap:update', getHeatmapSnapshot());
+    });
+
+    socket.on('heatmap:unsubscribe', () => {
+      socket.leave('heatmap');
     });
 
     // Handle typing indicators

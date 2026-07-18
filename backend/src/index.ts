@@ -12,6 +12,7 @@ import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { initializePassport } from './config/passport';
 import { initializeWebSocket } from './websocket';
+import { startHeatmapAggregator } from './services/heatmapService';
 
 // Load environment variables
 dotenv.config();
@@ -205,6 +206,9 @@ async function startServer(): Promise<void> {
     setReactionsSocketIO(io);
 
     console.log('WebSocket server initialized');
+
+    // Periodic crowd-density aggregation for the map heatmap layer.
+    startHeatmapAggregator(io);
 
     // Start listening
     httpServer.listen(PORT, () => {

@@ -1504,6 +1504,47 @@
   gap: 6px;
 }
 
+/* Crowd-density heatmap toggle — sits above the car-pin control so both
+   stay reachable. Same pill language as the car-pin buttons. */
+.heatmap-control {
+  position: absolute;
+  bottom: 74px;
+  right: 20px;
+  z-index: 12;
+}
+
+.heatmap-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: white;
+  color: #374151;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.heatmap-toggle-btn:hover {
+  background: #f9fafb;
+}
+
+.heatmap-toggle-btn.active {
+  background: linear-gradient(135deg, #f97316, #dc2626);
+  color: white;
+}
+
+.heatmap-count {
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.9;
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
+  padding-left: 8px;
+}
+
 .car-pin-btn {
   display: inline-flex;
   align-items: center;

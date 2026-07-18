@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
 import { useFriendsLocationsLive } from '../../hooks/useFriendsLocationsLive';
 import { useUserPins } from '../../hooks/useUserPins';
+import { useCrowdHeatmap } from '../../hooks/useCrowdHeatmap';
 import { getZones, MapZone } from '../../services/zonesService';
 import { listEvents, getEvent, FairEvent } from '../../services/eventsService';
 import { useRouteToFriend } from '../../hooks/useRouteToFriend';
@@ -51,6 +52,8 @@ const SplitViewMapLayout: React.FC = () => {
   const [reactionPickerFriend, setReactionPickerFriend] = useState<{ id: string; name: string } | null>(null);
   // Vendor reviews modal — opened from the rating badge on a house popup.
   const [reviewsModal, setReviewsModal] = useState<{ vendorProfileId: string; vendorName: string } | null>(null);
+  // Crowd-density heatmap layer toggle. Data only flows while it's on.
+  const [showHeatmap, setShowHeatmap] = useState(false);
   const [reactionMessage, setReactionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Map instance state for route hook
@@ -62,6 +65,13 @@ const SplitViewMapLayout: React.FC = () => {
   // Vendor/admin see operational data (area, price, occupancy); regular
   // visitors (anonymous or role 'user') see only the public story.
   const isPrivileged = user?.role === 'vendor' || user?.role === 'admin';
+
+  // Crowd-density feed: REST poll for everyone, live socket for logged-in
+  // users. Only active while the layer is toggled on.
+  const heatmapSnapshot = useCrowdHeatmap({
+    enabled: showHeatmap,
+    isAuthenticated: !!user,
+  });
 
   // Enable location tracking when user is authenticated and geolocateControl is ready.
   // The REST write happens inside useLocationTracking; we also emit live on
@@ -574,7 +584,27 @@ const SplitViewMapLayout: React.FC = () => {
           userPins={userPins}
           zones={zones}
           eventsByLocation={eventsByLocation}
+          heatmapData={heatmapSnapshot?.cells ?? null}
+          showHeatmap={showHeatmap}
         />
+
+        {/* Crowd-density heatmap toggle. Visible to everyone — the data is
+            anonymized cell counts. Shows the fair-wide active count when on. */}
+        <div className="heatmap-control">
+          <button
+            className={`heatmap-toggle-btn ${showHeatmap ? 'active' : ''}`}
+            onClick={() => setShowHeatmap((v) => !v)}
+            aria-pressed={showHeatmap}
+            title={t('heatmap.toggle')}
+          >
+            🔥 {t('heatmap.toggle')}
+            {showHeatmap && heatmapSnapshot && (
+              <span className="heatmap-count">
+                {t('heatmap.activeCount', { count: heatmapSnapshot.activeCount })}
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Personal car pin control — only visible to logged-in users.
             States: no pin → "Save my car"; pin saved → "Back to my car" + clear. */}

@@ -517,6 +517,13 @@ const resources = {
       },
 
       // Admin Dashboard
+      // Crowd-density heatmap
+      heatmap: {
+        toggle: 'Crowd map',
+        activeCount_one: '{{count}} person here',
+        activeCount_other: '{{count}} people here',
+      },
+
       // Vendor reviews & ratings
       reviews: {
         title: 'Reviews — {{name}}',
@@ -2021,6 +2028,13 @@ const resources = {
       },
 
       // Admin Dashboard
+      // İzdiham sıxlığı xəritəsi
+      heatmap: {
+        toggle: 'İzdiham xəritəsi',
+        activeCount_one: '{{count}} nəfər buradadır',
+        activeCount_other: '{{count}} nəfər buradadır',
+      },
+
       // Satıcı rəyləri və reytinqlər
       reviews: {
         title: 'Rəylər — {{name}}',

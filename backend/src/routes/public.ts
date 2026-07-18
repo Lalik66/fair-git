@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
 import { getColorCategory, getEmoji } from '../utils/mapHelpers';
 import { optionalAuth } from '../middleware/auth';
+import { getHeatmapSnapshot } from '../services/heatmapService';
 
 const router = Router();
 
@@ -810,6 +811,14 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
     console.error('Get map objects error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Crowd-density heatmap snapshot. Public and anonymous-safe: the payload is
+// aggregated cell counts only (k-anonymity enforced by the aggregator), so
+// no auth gate is needed. REST fallback for clients without a socket; the
+// in-memory snapshot makes this effectively free to serve.
+router.get('/heatmap', (_req: Request, res: Response): void => {
+  res.json(getHeatmapSnapshot());
 });
 
 export default router;
