@@ -23,6 +23,7 @@ import WhatsOnNowPanel from '../WhatsOnNowPanel';
 import SponsorSlot from '../SponsorSlot';
 import RouteInstructionsPanel from './RouteInstructionsPanel';
 import ReactionPicker from '../ReactionPicker';
+import VendorReviewsModal from '../VendorReviewsModal';
 import '../ReactionPicker.css';
 import './SplitViewMapLayout.css';
 
@@ -48,6 +49,8 @@ const SplitViewMapLayout: React.FC = () => {
 
   // Reaction picker state
   const [reactionPickerFriend, setReactionPickerFriend] = useState<{ id: string; name: string } | null>(null);
+  // Vendor reviews modal — opened from the rating badge on a house popup.
+  const [reviewsModal, setReviewsModal] = useState<{ vendorProfileId: string; vendorName: string } | null>(null);
   const [reactionMessage, setReactionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Map instance state for route hook
@@ -565,6 +568,7 @@ const SplitViewMapLayout: React.FC = () => {
           onGetDirections={handleGetDirections}
           onSendReaction={handleOpenReactionPicker}
           onObjectDirections={handleObjectDirections}
+          onOpenReviews={(vendorProfileId, vendorName) => setReviewsModal({ vendorProfileId, vendorName })}
           onMapReady={handleMapReady}
           isPrivileged={isPrivileged}
           userPins={userPins}
@@ -779,6 +783,15 @@ const SplitViewMapLayout: React.FC = () => {
           onFlyToFriend={handleFlyToFriend}
           friendLocations={friendLocations}
           friendLocationsLoading={friendLocationsLoading}
+        />
+      )}
+
+      {/* Vendor Reviews Modal */}
+      {reviewsModal && (
+        <VendorReviewsModal
+          vendorProfileId={reviewsModal.vendorProfileId}
+          vendorName={reviewsModal.vendorName}
+          onClose={() => setReviewsModal(null)}
         />
       )}
 

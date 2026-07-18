@@ -856,6 +856,47 @@
   max-width: 240px;
 }
 
+/* Star-rating badge on visitor vendor popups. A button — clicking it opens
+   the reviews modal — styled to read as a compact info chip. */
+.marker-popup .popup-rating-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 5px 9px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--map-rule);
+  background: var(--map-bg);
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--map-ink-2);
+}
+
+.marker-popup .popup-rating-badge:hover {
+  border-color: #a78bfa;
+}
+
+.marker-popup .popup-rating-stars {
+  color: #f59e0b;
+}
+
+.marker-popup .popup-rating-value {
+  font-weight: 700;
+}
+
+.marker-popup .popup-rating-count {
+  color: var(--map-ink-2);
+  opacity: 0.75;
+}
+
+.marker-popup .popup-rating-link {
+  margin-left: auto;
+  color: #7c3aed;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .marker-popup .popup-category {
   display: inline-block;
   padding: 3px 9px;

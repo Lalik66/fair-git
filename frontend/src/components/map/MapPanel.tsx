@@ -43,6 +43,8 @@ interface MapPanelProps {
   onSendReaction?: (friendId: string, friendName: string) => void;
   /** Callback when user clicks "Yol göstər" on a vendor-house visitor popup */
   onObjectDirections?: (lat: number, lng: number, name: string) => void;
+  /** Callback when user clicks "Rəylər" (reviews) on a vendor-house visitor popup */
+  onOpenReviews?: (vendorProfileId: string, vendorName: string) => void;
   /** Callback when map is ready (for parent to get map instance) */
   onMapReady?: (map: mapboxgl.Map) => void;
   /**
@@ -95,6 +97,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
   onGetDirections,
   onSendReaction,
   onObjectDirections,
+  onOpenReviews,
   onMapReady,
   isPrivileged = false,
   selectionMode = false,
@@ -416,6 +419,21 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
       const categoryBadge = category
         ? `<span class="popup-category">${getCategoryEmoji(category)} ${escapeHtml(getCategoryLabel(category, 'az'))}</span>`
         : '';
+      // Star rating summary + reviews entry point. Shown whenever a vendor
+      // occupies the house; "no reviews yet" still renders the button so
+      // visitors can be the first to review.
+      const reviewsLabel = escapeHtml(t('reviews.popupButton'));
+      const ratingBadge = vendor
+        ? `<button class="popup-rating-badge" data-action="open-reviews"
+            data-vendor-profile-id="${escapeHtml(vendor.vendorProfileId)}"
+            data-vendor-name="${escapeHtml(vendor.companyName || obj.label)}"
+            aria-label="${reviewsLabel}">
+            <span class="popup-rating-stars" aria-hidden="true">★</span>
+            <span class="popup-rating-value">${vendor.reviewCount > 0 ? vendor.avgRating.toFixed(1) : '—'}</span>
+            <span class="popup-rating-count">(${vendor.reviewCount})</span>
+            <span class="popup-rating-link">${reviewsLabel}</span>
+          </button>`
+        : '';
       const logo = vendor?.logoUrl
         ? `<img src="${escapeHtml(vendor.logoUrl)}" alt="" class="popup-vendor-logo" />`
         : '';
@@ -446,6 +464,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         <div class="marker-popup vendor-popup visitor-popup">
           <h3>${headEmoji} ${title}</h3>
           ${categoryBadge}
+          ${ratingBadge}
           ${logo}
           ${about}
           ${story}
@@ -891,6 +910,16 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
         return;
       }
 
+      // Handle the rating badge on a vendor-house visitor popup — opens the
+      // reviews modal for the occupying vendor.
+      const reviewsBtn = target.closest('[data-action="open-reviews"]') as HTMLButtonElement | null;
+      if (reviewsBtn && onOpenReviews) {
+        const vendorProfileId = reviewsBtn.getAttribute('data-vendor-profile-id');
+        const vendorName = reviewsBtn.getAttribute('data-vendor-name') || '';
+        if (vendorProfileId) onOpenReviews(vendorProfileId, vendorName);
+        return;
+      }
+
       // Handle "Seç" (select house) in the application form picker modal.
       const selectBtn = target.closest('[data-action="select-house"]') as HTMLButtonElement | null;
       if (selectBtn && onHouseSelect) {
@@ -919,7 +948,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
 
     container.addEventListener('click', handlePopupClick);
     return () => container.removeEventListener('click', handlePopupClick);
-  }, [onGetDirections, onSendReaction, onObjectDirections, onHouseSelect]);
+  }, [onGetDirections, onSendReaction, onObjectDirections, onOpenReviews, onHouseSelect]);
 
   // Handle selection changes - fly to object and open popup
   useEffect(() => {

@@ -49,6 +49,8 @@ model User {
   reactionsSent       Reaction[] @relation("ReactionSender")
   reactionsReceived   Reaction[] @relation("ReactionRecipient")
   pins                UserPin[]
+  reviewsWritten      Review[]  @relation("ReviewVisitor")
+  reviewsModerated    Review[]  @relation("ReviewModerator")
 
   @@map("users")
 }
@@ -123,6 +125,11 @@ model VendorProfile {
   businessDescription String?   @map("business_description")
   logoUrl             String?   @map("logo_url")
   productCategory     String?   @map("product_category") // food_beverages, handicrafts, clothing, accessories, other
+  // Cached review aggregates — recomputed by reviewService.recalcVendorRating
+  // whenever a review is approved or un-approved. Avoids a reviews scan on
+  // every public map/profile read.
+  avgRating           Float     @default(0) @map("avg_rating")
+  reviewCount         Int       @default(0) @map("review_count")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
@@ -131,6 +138,7 @@ model VendorProfile {
   productImages       VendorProductImage[]
   applications        Application[]
   bookings            Booking[]
+  reviews             Review[]
 
   @@map("vendor_profiles")
 }
@@ -503,4 +511,46 @@ model Reaction {
   @@index([recipientId, seenAt])
   @@index([senderId])
   @@map("reactions")
+}
+
+// Vendor reviews left by visitors. Moderated: nothing is public until an
+// admin approves it. SQLite has no enums/JSON, so `status` is a plain string
+// (PENDING | APPROVED | REJECTED) and `categories` is a JSON-encoded string
+// {"quality":1-5,"service":1-5,"priceValue":1-5}. Aggregates live on
+// VendorProfile (avgRating / reviewCount) and count APPROVED reviews only.
+model Review {
+  id              String    @id @default(uuid())
+  vendorId        String    @map("vendor_id")
+  visitorId       String    @map("visitor_id")
+
+  rating          Int       // 1-5 overall stars
+  categories      String?   // JSON: {"quality":5,"service":4,"priceValue":3}
+  comment         String?
+
+  status          String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  rejectionReason String?   @map("rejection_reason")
+
+  vendorReply     String?   @map("vendor_reply")
+  repliedAt       DateTime? @map("replied_at")
+
+  // Visitor "report suspicious review" counter. Reviews with reports float to
+  // the top of the admin queue for a second look.
+  reportCount     Int       @default(0) @map("report_count")
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  moderatedAt     DateTime? @map("moderated_at")
+  moderatedById   String?   @map("moderated_by_id")
+
+  // Relations
+  vendor          VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  visitor         User          @relation("ReviewVisitor", fields: [visitorId], references: [id], onDelete: Cascade)
+  moderatedBy     User?         @relation("ReviewModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
+
+  // One review per visitor per vendor. Editing replaces the old one and
+  // resets it to PENDING.
+  @@unique([vendorId, visitorId])
+  @@index([vendorId, status])
+  @@index([status, createdAt])
+  @@map("reviews")
 }

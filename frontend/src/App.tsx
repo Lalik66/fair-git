@@ -11,6 +11,7 @@ import ChangePassword from './pages/ChangePassword';
 import VendorBookings from './pages/VendorBookings';
 import VendorProfile from './pages/VendorProfile';
 import VendorApplications from './pages/VendorApplications';
+import VendorReviews from './pages/VendorReviews';
 import ApplicantApplications from './pages/ApplicantApplications';
 import VendorApplicationForm from './pages/VendorApplicationForm';
 import HomePage from './pages/HomePage';
@@ -240,6 +241,13 @@ const VendorDashboard: React.FC = () => {
             {t('vendor.myApplications')}
           </Link>
           <Link
+            to="/vendor/reviews"
+            onClick={closeNav}
+            className={`vendor-nav-link ${location.pathname.includes('/vendor/reviews') ? 'active' : ''}`}
+          >
+            {t('reviews.vendorPageTitle')}
+          </Link>
+          <Link
             to="/vendor/profile"
             onClick={closeNav}
             className={`vendor-nav-link ${location.pathname.includes('/vendor/profile') ? 'active' : ''}`}
@@ -311,6 +319,7 @@ const VendorDashboard: React.FC = () => {
           />
           <Route path="bookings" element={<VendorBookings />} />
           <Route path="applications" element={<VendorApplications />} />
+          <Route path="reviews" element={<VendorReviews />} />
           <Route path="profile" element={<VendorProfile />} />
         </Routes>
       </main>

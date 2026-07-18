@@ -657,4 +657,113 @@ export const aiApi = {
   },
 };
 
+// ============ Reviews ============
+
+export interface ReviewCategories {
+  quality?: number;
+  service?: number;
+  priceValue?: number;
+}
+
+export interface PublicReview {
+  id: string;
+  rating: number;
+  categories: ReviewCategories | null;
+  comment: string | null;
+  vendorReply: string | null;
+  repliedAt: string | null;
+  createdAt: string;
+  visitorName: string;
+}
+
+export interface MyReview {
+  id: string;
+  rating: number;
+  categories: ReviewCategories | null;
+  comment: string | null;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  rejectionReason: string | null;
+  createdAt: string;
+}
+
+export interface VendorReviewsResponse {
+  vendor: {
+    id: string;
+    companyName: string | null;
+    avgRating: number;
+    reviewCount: number;
+    isOwnProfile: boolean;
+  };
+  reviews: PublicReview[];
+  myReview: MyReview | null;
+}
+
+export interface AdminReview {
+  id: string;
+  rating: number;
+  categories: ReviewCategories | null;
+  comment: string | null;
+  status: string;
+  rejectionReason: string | null;
+  vendorReply: string | null;
+  reportCount: number;
+  createdAt: string;
+  moderatedAt: string | null;
+  visitor: { id: string; firstName: string | null; lastName: string | null; email: string };
+  vendor: { id: string; companyName: string | null };
+}
+
+export const reviewsApi = {
+  getVendorReviews: async (vendorProfileId: string) => {
+    const response = await api.get(`/reviews/vendor/${vendorProfileId}`);
+    return response.data as VendorReviewsResponse;
+  },
+
+  submitReview: async (payload: {
+    vendorId: string;
+    rating: number;
+    categories?: ReviewCategories;
+    comment?: string;
+  }) => {
+    const response = await api.post('/reviews', payload);
+    return response.data;
+  },
+
+  getMyVendorReviews: async () => {
+    const response = await api.get('/reviews/my-vendor');
+    return response.data as {
+      vendor: { id: string; avgRating: number; reviewCount: number };
+      reviews: PublicReview[];
+    };
+  },
+
+  replyToReview: async (reviewId: string, reply: string) => {
+    const response = await api.post(`/reviews/${reviewId}/reply`, { reply });
+    return response.data;
+  },
+
+  reportReview: async (reviewId: string) => {
+    const response = await api.post(`/reviews/${reviewId}/report`);
+    return response.data;
+  },
+
+  // Admin moderation
+  getAdminReviews: async (status: string = 'PENDING') => {
+    const response = await api.get('/admin/reviews', { params: { status } });
+    return response.data as { reviews: AdminReview[]; pendingCount: number };
+  },
+
+  moderateReview: async (
+    reviewId: string,
+    action: 'approve' | 'reject',
+    rejectionReason?: string
+  ) => {
+    const response = await api.patch(`/admin/reviews/${reviewId}`, {
+      action,
+      rejectionReason,
+    });
+    return response.data;
+  },
+};
+
 export default api;

@@ -143,6 +143,8 @@ router.get('/fairs/:id', async (req: Request, res: Response): Promise<void> => {
             vendorProfile: {
               select: {
                 id: true,
+                avgRating: true,
+                reviewCount: true,
                 companyName: true,
                 productCategory: true,
                 logoUrl: true,
@@ -170,6 +172,9 @@ router.get('/fairs/:id', async (req: Request, res: Response): Promise<void> => {
         vendors: isPast
           ? bookings.map((b) => ({
               id: b.vendorProfile.id,
+              vendorProfileId: b.vendorProfile.id,
+              avgRating: b.vendorProfile.avgRating,
+              reviewCount: b.vendorProfile.reviewCount,
               companyName: b.vendorProfile.companyName,
               productCategory: b.vendorProfile.productCategory,
               logoUrl: b.vendorProfile.logoUrl,
@@ -211,6 +216,8 @@ router.get('/past-events', async (_req: Request, res: Response): Promise<void> =
             vendorProfile: {
               select: {
                 id: true,
+                avgRating: true,
+                reviewCount: true,
                 companyName: true,
                 productCategory: true,
                 logoUrl: true,
@@ -244,6 +251,9 @@ router.get('/past-events', async (_req: Request, res: Response): Promise<void> =
       vendorCount: fair.bookings.length,
       vendors: fair.bookings.map((booking) => ({
         id: booking.vendorProfile.id,
+        vendorProfileId: booking.vendorProfile.id,
+        avgRating: booking.vendorProfile.avgRating,
+        reviewCount: booking.vendorProfile.reviewCount,
         companyName: booking.vendorProfile.companyName,
         productCategory: booking.vendorProfile.productCategory,
         logoUrl: booking.vendorProfile.logoUrl,
@@ -287,6 +297,9 @@ router.get('/vendor-houses', optionalAuth, async (req: Request, res: Response): 
 
     // If fairId is provided, get booking information to determine availability and vendor info
     interface VendorInfo {
+      vendorProfileId: string;
+      avgRating: number;
+      reviewCount: number;
       companyName: string | null;
       productCategory: string | null;
       businessDescription: string | null;
@@ -306,6 +319,9 @@ router.get('/vendor-houses', optionalAuth, async (req: Request, res: Response): 
           vendorHouseId: true,
           vendorProfile: {
             select: {
+              id: true,
+              avgRating: true,
+              reviewCount: true,
               companyName: true,
               productCategory: true,
               businessDescription: true,
@@ -331,6 +347,9 @@ router.get('/vendor-houses', optionalAuth, async (req: Request, res: Response): 
           vendorHouseId: true,
           vendorProfile: {
             select: {
+              id: true,
+              avgRating: true,
+              reviewCount: true,
               companyName: true,
               productCategory: true,
               businessDescription: true,
@@ -349,6 +368,9 @@ router.get('/vendor-houses', optionalAuth, async (req: Request, res: Response): 
       // Map bookings to vendor info
       bookings.forEach((b) => {
         const vendorInfo: VendorInfo = {
+          vendorProfileId: b.vendorProfile.id,
+          avgRating: b.vendorProfile.avgRating,
+          reviewCount: b.vendorProfile.reviewCount,
           companyName: b.vendorProfile.companyName,
           productCategory: b.vendorProfile.productCategory,
           businessDescription: b.vendorProfile.businessDescription,
@@ -362,6 +384,9 @@ router.get('/vendor-houses', optionalAuth, async (req: Request, res: Response): 
       applications.forEach((a) => {
         if (!bookingsMap.has(a.vendorHouseId)) {
           const vendorInfo: VendorInfo = {
+            vendorProfileId: a.vendorProfile.id,
+            avgRating: a.vendorProfile.avgRating,
+            reviewCount: a.vendorProfile.reviewCount,
             companyName: a.vendorProfile.companyName,
             productCategory: a.vendorProfile.productCategory,
             businessDescription: a.vendorProfile.businessDescription,
@@ -395,6 +420,9 @@ router.get('/vendor-houses', optionalAuth, async (req: Request, res: Response): 
         isAvailable: privileged ? (fairId ? !isOccupied : null) : null,
         // Include vendor info for occupied houses (public display)
         vendor: vendorInfo ? {
+          vendorProfileId: vendorInfo.vendorProfileId,
+          avgRating: vendorInfo.avgRating,
+          reviewCount: vendorInfo.reviewCount,
           companyName: vendorInfo.companyName,
           productCategory: vendorInfo.productCategory,
           businessDescription: vendorInfo.businessDescription,
@@ -534,6 +562,9 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
 
     // Build unified response array
     interface VendorInfo {
+      vendorProfileId: string;
+      avgRating: number;
+      reviewCount: number;
       companyName: string | null;
       productCategory: string | null;
       businessDescription: string | null;
@@ -614,6 +645,9 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
             bookingStatus: true,
             vendorProfile: {
               select: {
+                id: true,
+                avgRating: true,
+                reviewCount: true,
                 companyName: true,
                 productCategory: true,
                 businessDescription: true,
@@ -630,6 +664,9 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
           occupiedHouseIds.add(b.vendorHouseId);
           markState(b.vendorHouseId, b.bookingStatus === 'approved' ? 'rented' : 'pending');
           vendorByHouseId.set(b.vendorHouseId, {
+            vendorProfileId: b.vendorProfile.id,
+            avgRating: b.vendorProfile.avgRating,
+            reviewCount: b.vendorProfile.reviewCount,
             companyName: b.vendorProfile.companyName,
             productCategory: b.vendorProfile.productCategory,
             businessDescription: b.vendorProfile.businessDescription,
@@ -649,6 +686,9 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
             status: true,
             vendorProfile: {
               select: {
+                id: true,
+                avgRating: true,
+                reviewCount: true,
                 companyName: true,
                 productCategory: true,
                 businessDescription: true,
@@ -666,6 +706,9 @@ router.get('/map-objects', optionalAuth, async (req: Request, res: Response): Pr
           markState(a.vendorHouseId, a.status === 'approved' ? 'rented' : 'pending');
           if (!vendorByHouseId.has(a.vendorHouseId)) {
             vendorByHouseId.set(a.vendorHouseId, {
+              vendorProfileId: a.vendorProfile.id,
+              avgRating: a.vendorProfile.avgRating,
+              reviewCount: a.vendorProfile.reviewCount,
               companyName: a.vendorProfile.companyName,
               productCategory: a.vendorProfile.productCategory,
               businessDescription: a.vendorProfile.businessDescription,

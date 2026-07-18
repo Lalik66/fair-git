@@ -8,7 +8,13 @@ import { authenticateToken, requireAdmin } from '../middleware/auth';
 import {
   sendApplicationApprovedEmail,
   sendApplicationRejectedEmail,
+  sendReviewPublishedVendorEmail,
+  sendReviewDecisionVisitorEmail,
 } from '../utils/notifications';
+import {
+  recalcVendorRating,
+  parseCategories as parseReviewCategories,
+} from '../services/reviewService';
 import { deleteFromCloud } from '../utils/upload';
 import { panoramaUpload, getUploadedFileUrl, isCloudinaryConfigured } from '../middleware/upload';
 
@@ -2638,6 +2644,160 @@ router.delete('/facilities/:facilityId', async (req: Request, res: Response): Pr
     });
   } catch (error) {
     console.error('Delete facility error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ============ Review Moderation ============
+
+/**
+ * GET /api/admin/reviews?status=PENDING|APPROVED|REJECTED|all
+ * Moderation queue. Reported reviews float to the top, then oldest first
+ * (FIFO — nobody's review should rot at the bottom of the queue).
+ */
+router.get('/reviews', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const statusParam = typeof req.query.status === 'string' ? req.query.status : 'PENDING';
+    const where =
+      statusParam === 'all'
+        ? {}
+        : { status: ['PENDING', 'APPROVED', 'REJECTED'].includes(statusParam) ? statusParam : 'PENDING' };
+
+    const reviews = await prisma.review.findMany({
+      where,
+      orderBy: [{ reportCount: 'desc' }, { createdAt: 'asc' }],
+      take: 200,
+      select: {
+        id: true,
+        rating: true,
+        categories: true,
+        comment: true,
+        status: true,
+        rejectionReason: true,
+        vendorReply: true,
+        reportCount: true,
+        createdAt: true,
+        moderatedAt: true,
+        visitor: { select: { id: true, firstName: true, lastName: true, email: true } },
+        vendor: { select: { id: true, companyName: true } },
+      },
+    });
+
+    const pendingCount = await prisma.review.count({ where: { status: 'PENDING' } });
+
+    res.json({
+      reviews: reviews.map((r) => ({
+        ...r,
+        categories: parseReviewCategories(r.categories),
+      })),
+      pendingCount,
+    });
+  } catch (error) {
+    console.error('Get admin reviews error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * PATCH /api/admin/reviews/:id
+ * Body: { action: 'approve' | 'reject', rejectionReason? }
+ * Moderation decision. Approving publishes the review and refreshes the
+ * vendor's cached rating; rejecting requires no reason but supports one.
+ */
+router.patch('/reviews/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { action, rejectionReason } = req.body ?? {};
+
+    if (action !== 'approve' && action !== 'reject') {
+      res.status(400).json({ error: "action must be 'approve' or 'reject'" });
+      return;
+    }
+    if (
+      rejectionReason !== undefined &&
+      rejectionReason !== null &&
+      (typeof rejectionReason !== 'string' || rejectionReason.length > 500)
+    ) {
+      res.status(400).json({ error: 'rejectionReason must be a string up to 500 characters' });
+      return;
+    }
+
+    const review = await prisma.review.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        status: true,
+        vendorId: true,
+        visitor: {
+          select: { firstName: true, lastName: true, email: true, preferredLanguage: true },
+        },
+        vendor: {
+          select: {
+            companyName: true,
+            user: {
+              select: { firstName: true, lastName: true, email: true, preferredLanguage: true },
+            },
+          },
+        },
+      },
+    });
+    if (!review) {
+      res.status(404).json({ error: 'Review not found' });
+      return;
+    }
+
+    const approving = action === 'approve';
+    const updated = await prisma.review.update({
+      where: { id },
+      data: {
+        status: approving ? 'APPROVED' : 'REJECTED',
+        rejectionReason: approving ? null : (rejectionReason?.trim() || null),
+        // A decision clears prior reports — the queue sorted on them already.
+        reportCount: 0,
+        moderatedAt: new Date(),
+        moderatedById: req.user!.id,
+      },
+      select: { id: true, status: true, rejectionReason: true, moderatedAt: true },
+    });
+
+    await recalcVendorRating(review.vendorId);
+
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: approving ? 'approve_review' : 'reject_review',
+        details: `${approving ? 'Approved' : 'Rejected'} review ${id} (${review.rating}/5) for vendor "${review.vendor.companyName || review.vendorId}"`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    // Notify both sides (console transport in development).
+    const visitorName = `${review.visitor.firstName || ''} ${review.visitor.lastName || ''}`.trim() || 'Visitor';
+    sendReviewDecisionVisitorEmail({
+      visitorName,
+      visitorEmail: review.visitor.email,
+      vendorCompany: review.vendor.companyName || 'Vendor',
+      approved: approving,
+      reason: approving ? null : (rejectionReason?.trim() || null),
+      lang: review.visitor.preferredLanguage,
+    });
+    if (approving) {
+      const vendorUser = review.vendor.user;
+      const vendorName = `${vendorUser.firstName || ''} ${vendorUser.lastName || ''}`.trim() || 'Vendor';
+      sendReviewPublishedVendorEmail({
+        vendorName,
+        vendorEmail: vendorUser.email,
+        rating: review.rating,
+        comment: review.comment,
+        lang: vendorUser.preferredLanguage,
+      });
+    }
+
+    res.json({ review: updated });
+  } catch (error) {
+    console.error('Moderate review error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

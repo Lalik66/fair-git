@@ -15,6 +15,7 @@ import ZoneManagement from './ZoneManagement';
 import EventManagement from './EventManagement';
 import QRGenerator from './QRGenerator';
 import BannerManagement from './BannerManagement';
+import ReviewModeration from './ReviewModeration';
 import '../styles/admin-design-system.css';
 import './AdminDashboard.css';
 
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
       { path: '/admin', labelKey: 'adminDashboard.nav.dashboard', icon: '\u25a6', exact: true },
       { path: '/admin/users', labelKey: 'adminDashboard.nav.users', icon: '\u2399' },
       { path: '/admin/applications', labelKey: 'adminDashboard.nav.applications', icon: '\u2605' },
+      { path: '/admin/reviews', labelKey: 'adminDashboard.nav.reviews', icon: '\u275d' },
       { path: '/admin/fairs', labelKey: 'adminDashboard.nav.fairs', icon: '\u229E' },
       { path: '/admin/map', labelKey: 'adminDashboard.nav.mapEditor', icon: '\u2295' },
       { path: '/admin/zones', labelKey: 'adminDashboard.nav.zones', icon: '\u25ca' },
@@ -398,6 +400,7 @@ const AdminDashboard: React.FC = () => {
             <Route path="/logs" element={<AdminLogs />} />
             <Route path="/fairs" element={<FairManagement />} />
             <Route path="/applications" element={<ApplicationReview />} />
+            <Route path="/reviews" element={<ReviewModeration />} />
             <Route path="/about-us" element={<AboutUsEditor />} />
             <Route path="/map" element={<MapManagement />} />
             <Route path="/zones" element={<ZoneManagement />} />

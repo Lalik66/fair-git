@@ -102,6 +102,7 @@ import zonesRoutes from './routes/zones';
 import eventsRoutes from './routes/events';
 import qrRoutes from './routes/qr';
 import bannersRoutes from './routes/banners';
+import reviewsRoutes from './routes/reviews';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -120,6 +121,7 @@ app.use('/api/zones', zonesRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/banners', bannersRoutes);
+app.use('/api/reviews', reviewsRoutes);
 
 // Error handling middleware
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

@@ -144,3 +144,85 @@ export function sendApplicationRejectedEmail(
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Vendor review lifecycle emails. Same console-transport as the application
+// emails above — swap deliver() for a real transport to go live.
+// ---------------------------------------------------------------------------
+
+interface ReviewPublishedVendorEmailContext {
+  vendorName: string;
+  vendorEmail: string;
+  rating: number;
+  comment?: string | null;
+  lang?: string | null;
+}
+
+/** Tell the vendor a new (approved) review is now visible on their profile. */
+export function sendReviewPublishedVendorEmail(
+  ctx: ReviewPublishedVendorEmailContext
+): void {
+  const lang = normalizeLang(ctx.lang);
+  const stars = '★'.repeat(ctx.rating) + '☆'.repeat(5 - ctx.rating);
+  const commentBlock = ctx.comment ? `\n\n"${ctx.comment}"` : '';
+  if (lang === 'en') {
+    deliver(
+      ctx.vendorEmail,
+      'You received a new review',
+      `Dear ${ctx.vendorName},\n\n` +
+        `A visitor left a new review on your profile: ${stars} (${ctx.rating}/5)` +
+        commentBlock +
+        `\n\nYou can reply to the review from your vendor dashboard.`,
+      lang
+    );
+  } else {
+    deliver(
+      ctx.vendorEmail,
+      'Yeni rəy aldınız',
+      `Hörmətli ${ctx.vendorName},\n\n` +
+        `Ziyarətçi profiliniz haqqında yeni rəy yazdı: ${stars} (${ctx.rating}/5)` +
+        commentBlock +
+        `\n\nSatıcı panelindən rəyə cavab verə bilərsiniz.`,
+      lang
+    );
+  }
+}
+
+interface ReviewDecisionVisitorEmailContext {
+  visitorName: string;
+  visitorEmail: string;
+  vendorCompany: string;
+  approved: boolean;
+  reason?: string | null;
+  lang?: string | null;
+}
+
+/** Tell the visitor their review was approved (published) or rejected. */
+export function sendReviewDecisionVisitorEmail(
+  ctx: ReviewDecisionVisitorEmailContext
+): void {
+  const lang = normalizeLang(ctx.lang);
+  if (lang === 'en') {
+    deliver(
+      ctx.visitorEmail,
+      ctx.approved ? 'Your review has been published' : 'Your review was not published',
+      `Dear ${ctx.visitorName},\n\n` +
+        (ctx.approved
+          ? `Your review of "${ctx.vendorCompany}" passed moderation and is now public.`
+          : `Your review of "${ctx.vendorCompany}" was not approved by moderation.` +
+            (ctx.reason ? `\n\nReason: ${ctx.reason}` : '')),
+      lang
+    );
+  } else {
+    deliver(
+      ctx.visitorEmail,
+      ctx.approved ? 'Rəyiniz dərc olundu' : 'Rəyiniz dərc olunmadı',
+      `Hörmətli ${ctx.visitorName},\n\n` +
+        (ctx.approved
+          ? `"${ctx.vendorCompany}" haqqında rəyiniz moderasiyadan keçdi və artıq açıqdır.`
+          : `"${ctx.vendorCompany}" haqqında rəyiniz moderasiya tərəfindən təsdiqlənmədi.` +
+            (ctx.reason ? `\n\nSəbəb: ${ctx.reason}` : '')),
+      lang
+    );
+  }
+}

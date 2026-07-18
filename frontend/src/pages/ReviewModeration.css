@@ -1,0 +1,271 @@
+/* Review Moderation — admin design language */
+@import '../styles/admin-design-system.css';
+
+.review-moderation-container {
+  padding: 36px;
+  max-width: 980px;
+  margin: 0 auto;
+  background: var(--fk-bg);
+  min-height: calc(100vh - 80px);
+  font-family: var(--fk-font-body);
+  color: var(--fk-ink);
+}
+
+.review-moderation-container .page-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.review-moderation-container .page-header h1 {
+  margin: 0;
+  font-family: var(--fk-font-display);
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.rm-pending-badge {
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.rm-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.rm-filter-btn {
+  border: 1px solid var(--fk-rule, #e5e7eb);
+  background: white;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.rm-filter-btn.active {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: white;
+  font-weight: 600;
+}
+
+.rm-status {
+  color: #6b7280;
+  padding: 24px 0;
+}
+
+.rm-error {
+  color: #b91c1c;
+}
+
+.rm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rm-card {
+  background: white;
+  border: 1px solid var(--fk-rule, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.rm-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rm-status-chip {
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rm-chip-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.rm-chip-approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.rm-chip-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.rm-report-chip {
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.rm-date {
+  margin-left: auto;
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.rm-card-meta {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+
+.rm-meta-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: #9ca3af;
+  letter-spacing: 0.03em;
+}
+
+.rm-meta-email {
+  display: block;
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+.rm-meta-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rm-stars .rm-star {
+  color: #d1d5db;
+}
+
+.rm-stars .rm-star.filled {
+  color: #f59e0b;
+}
+
+.rm-categories {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.rm-cat-chip {
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+.rm-comment {
+  margin: 12px 0 0;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+.rm-vendor-reply {
+  margin: 8px 0 0;
+  color: #6d28d9;
+  font-size: 0.88rem;
+}
+
+.rm-reject-reason {
+  margin: 8px 0 0;
+  color: #991b1b;
+  font-size: 0.85rem;
+}
+
+.rm-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.rm-btn-approve,
+.rm-btn-reject,
+.rm-btn-cancel {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rm-btn-approve {
+  background: #059669;
+  color: white;
+}
+
+.rm-btn-approve:hover:not(:disabled) {
+  background: #047857;
+}
+
+.rm-btn-reject {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.rm-btn-reject:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+.rm-btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.rm-btn-approve:disabled,
+.rm-btn-reject:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.rm-reject-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.rm-reject-form input {
+  flex: 1;
+  min-width: 220px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  font-family: inherit;
+}
+
+@media (max-width: 640px) {
+  .review-moderation-container {
+    padding: 20px 16px;
+  }
+}

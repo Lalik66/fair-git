@@ -17,6 +17,11 @@ export type ColorCategory = 'green' | 'orange' | 'blue' | 'purple' | 'gray';
 // Public business identity of the vendor occupying a house. Contact details
 // are intentionally never included.
 export interface VendorInfo {
+  // Vendor-profile id + cached review aggregates: powers the reviews modal
+  // and the star badge in the house popup.
+  vendorProfileId: string;
+  avgRating: number;
+  reviewCount: number;
   companyName: string | null;
   productCategory: string | null;
   businessDescription: string | null;

@@ -1,0 +1,172 @@
+/* Vendor Reviews — follows the vendor-portal editorial design language */
+@import '../styles/admin-design-system.css';
+
+.vendor-reviews-container {
+  padding: 36px;
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--fk-bg);
+  min-height: calc(100vh - 80px);
+  font-family: var(--fk-font-body);
+  color: var(--fk-ink);
+}
+
+.vendor-reviews-container .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.vendor-reviews-container .page-header h1 {
+  margin: 0;
+  font-family: var(--fk-font-display);
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--fk-ink);
+}
+
+.vr-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vr-avg {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.vr-count {
+  color: var(--fk-ink-2, #6b7280);
+  font-size: 0.9rem;
+}
+
+.vr-stars .vr-star {
+  color: #d1d5db;
+  font-size: 1rem;
+}
+
+.vr-stars .vr-star.filled {
+  color: #f59e0b;
+}
+
+.vr-status {
+  color: #6b7280;
+  padding: 24px 0;
+}
+
+.vr-error {
+  color: #b91c1c;
+}
+
+.vr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vr-card {
+  background: white;
+  border: 1px solid var(--fk-rule, #e5e7eb);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.vr-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.vr-name {
+  font-weight: 600;
+}
+
+.vr-date {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.vr-comment {
+  margin: 10px 0 0;
+  white-space: pre-wrap;
+  color: #374151;
+}
+
+.vr-reply {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #f5f3ff;
+  border-left: 3px solid #a78bfa;
+  border-radius: 0 8px 8px 0;
+}
+
+.vr-reply-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6d28d9;
+  text-transform: uppercase;
+}
+
+.vr-reply p {
+  margin: 4px 0 0;
+  color: #4c1d95;
+  white-space: pre-wrap;
+}
+
+.vr-reply-btn {
+  margin-top: 12px;
+  background: none;
+  border: 1px solid #a78bfa;
+  color: #6d28d9;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vr-reply-btn:hover {
+  background: #f5f3ff;
+}
+
+.vr-reply-form {
+  margin-top: 12px;
+}
+
+.vr-reply-form textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.vr-reply-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .vendor-reviews-container {
+    padding: 20px 16px;
+  }
+
+  .vendor-reviews-container .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
