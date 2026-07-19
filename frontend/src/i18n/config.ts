@@ -580,6 +580,58 @@ const resources = {
         confirmReject: 'Confirm rejection',
       },
 
+      // Fair feedback (About page form → organizers' inbox)
+      feedback: {
+        marker: 'Feedback',
+        headlineA: 'Been to the fair?',
+        headlineB: 'Tell us how ',
+        headlineEm: 'it went',
+        lede: 'Praise, complaints, ideas for the next season — everything goes straight to the organizers. Leave your name if you want a reply, or stay anonymous.',
+        metaPrivate: 'Read by the organizers only',
+        form: {
+          ratingLabel: 'Overall impression',
+          messageLabel: 'Feedback & suggestions',
+          messagePlaceholder: 'What did you enjoy? What should we improve next time?',
+          nameLabel: 'Name (optional)',
+          namePlaceholder: 'Your name',
+          emailLabel: 'Email (optional)',
+          emailPlaceholder: 'If you would like a reply',
+          submit: 'Send feedback',
+          submitting: 'Sending…',
+        },
+        success: {
+          title: 'Thank you!',
+          body: 'Your feedback is on its way to the organizers.',
+        },
+        errors: {
+          ratingRequired: 'Please pick a star rating.',
+          messageTooShort: 'Please write a few words of feedback.',
+          rateLimited: 'Too many submissions — please try again later.',
+          submitFailed: 'Could not send your feedback. Please try again.',
+        },
+      },
+
+      // Admin — feedback inbox
+      feedbackInbox: {
+        title: 'Feedback Inbox',
+        unreadCount_one: '{{count}} unread',
+        unreadCount_other: '{{count}} unread',
+        filter: {
+          all: 'All',
+          unread: 'Unread',
+        },
+        empty: 'No feedback here yet.',
+        newChip: 'New',
+        fromLabel: 'From',
+        anonymous: 'Anonymous',
+        markRead: 'Mark as read',
+        markUnread: 'Mark as unread',
+        delete: 'Delete',
+        confirmDelete: 'Confirm delete',
+        loadError: 'Could not load feedback. Please try again.',
+        actionError: 'Could not apply the change. Please try again.',
+      },
+
       adminDashboard: {
         loggedInAsAdmin: 'You are logged in as an administrator.',
         manageFairsDesc: 'Manage fairs, schedules, and events.',
@@ -619,6 +671,7 @@ const resources = {
           users: 'Users',
           applications: 'Applications',
           reviews: 'Reviews',
+          feedback: 'Feedback',
           fairs: 'Fairs',
           mapEditor: 'Map editor',
           zones: 'Zones',
@@ -2091,6 +2144,58 @@ const resources = {
         confirmReject: 'Rəddi təsdiqlə',
       },
 
+      // Yarmarka rəyi (Haqqımızda səhifəsindəki forma → təşkilatçıların qutusu)
+      feedback: {
+        marker: 'Rəy bildirin',
+        headlineA: 'Yarmarkada olmusunuz?',
+        headlineB: 'Bizə deyin, ',
+        headlineEm: 'necə keçdi',
+        lede: 'Tərif, şikayət, gələn mövsüm üçün ideyalar — hamısı birbaşa təşkilatçılara çatır. Cavab istəyirsinizsə adınızı yazın, ya da anonim qalın.',
+        metaPrivate: 'Yalnız təşkilatçılar tərəfindən oxunur',
+        form: {
+          ratingLabel: 'Ümumi təəssürat',
+          messageLabel: 'Rəy və təkliflər',
+          messagePlaceholder: 'Nə xoşunuza gəldi? Gələn dəfə nəyi yaxşılaşdıraq?',
+          nameLabel: 'Ad (istəyə bağlı)',
+          namePlaceholder: 'Adınız',
+          emailLabel: 'Email (istəyə bağlı)',
+          emailPlaceholder: 'Cavab almaq istəyirsinizsə',
+          submit: 'Rəyi göndər',
+          submitting: 'Göndərilir…',
+        },
+        success: {
+          title: 'Təşəkkürlər!',
+          body: 'Rəyiniz təşkilatçılara göndərildi.',
+        },
+        errors: {
+          ratingRequired: 'Zəhmət olmasa ulduz qiyməti seçin.',
+          messageTooShort: 'Zəhmət olmasa bir neçə söz yazın.',
+          rateLimited: 'Çox sayda göndəriş — bir az sonra yenidən cəhd edin.',
+          submitFailed: 'Rəy göndərilə bilmədi. Yenidən cəhd edin.',
+        },
+      },
+
+      // Admin — rəy qutusu
+      feedbackInbox: {
+        title: 'Rəy Qutusu',
+        unreadCount_one: '{{count}} oxunmamış',
+        unreadCount_other: '{{count}} oxunmamış',
+        filter: {
+          all: 'Hamısı',
+          unread: 'Oxunmamış',
+        },
+        empty: 'Hələ rəy yoxdur.',
+        newChip: 'Yeni',
+        fromLabel: 'Kimdən',
+        anonymous: 'Anonim',
+        markRead: 'Oxunmuş kimi qeyd et',
+        markUnread: 'Oxunmamış kimi qeyd et',
+        delete: 'Sil',
+        confirmDelete: 'Silməyi təsdiqlə',
+        loadError: 'Rəylər yüklənə bilmədi. Yenidən cəhd edin.',
+        actionError: 'Dəyişiklik tətbiq edilə bilmədi. Yenidən cəhd edin.',
+      },
+
       adminDashboard: {
         loggedInAsAdmin: 'İdarəçi kimi daxil olmusunuz.',
         manageFairsDesc: 'Yarmarkaları, cədvəlləri və tədbirləri idarə edin.',
@@ -2130,6 +2235,7 @@ const resources = {
           users: 'İstifadəçilər',
           applications: 'Müraciətlər',
           reviews: 'Rəylər',
+          feedback: 'Rəy qutusu',
           fairs: 'Yarmarkalar',
           mapEditor: 'Xəritə redaktoru',
           zones: 'Zonalar',

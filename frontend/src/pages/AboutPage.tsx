@@ -6,6 +6,7 @@ import FoxMascot from '../components/FoxMascot';
 import RevealText from '../components/RevealText';
 import Reveal from '../components/Reveal';
 import EventCard from '../components/EventCard';
+import FairFeedbackSection from '../components/FairFeedbackSection';
 import './AboutPage.css';
 
 interface AboutContent {
@@ -650,6 +651,9 @@ const AboutPage: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* ============== 07 · FEEDBACK ============== */}
+      <FairFeedbackSection />
 
       <FoxMascot isFairActive={isFairLive} />
     </div>

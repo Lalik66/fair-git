@@ -2802,4 +2802,96 @@ router.patch('/reviews/:id', async (req: Request, res: Response): Promise<void> 
   }
 });
 
+// ============ Fair Feedback Inbox ============
+
+/**
+ * GET /api/admin/feedback?filter=unread|all
+ * Organizer inbox for About-page fair feedback. Newest first; unreadCount
+ * powers the sidebar badge regardless of the active filter.
+ */
+router.get('/feedback', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const filter = req.query.filter === 'unread' ? { isRead: false } : {};
+
+    const feedback = await prisma.siteFeedback.findMany({
+      where: filter,
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+    const unreadCount = await prisma.siteFeedback.count({ where: { isRead: false } });
+
+    res.json({ feedback, unreadCount });
+  } catch (error) {
+    console.error('Get admin feedback error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * PATCH /api/admin/feedback/:id
+ * Body: { isRead: boolean }
+ */
+router.patch('/feedback/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { isRead } = req.body ?? {};
+
+    if (typeof isRead !== 'boolean') {
+      res.status(400).json({ error: 'isRead must be a boolean' });
+      return;
+    }
+
+    const existing = await prisma.siteFeedback.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) {
+      res.status(404).json({ error: 'Feedback not found' });
+      return;
+    }
+
+    const updated = await prisma.siteFeedback.update({
+      where: { id },
+      data: { isRead },
+    });
+
+    res.json({ feedback: updated });
+  } catch (error) {
+    console.error('Update feedback error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * DELETE /api/admin/feedback/:id
+ * Permanent removal (spam / handled items). Logged to the audit trail.
+ */
+router.delete('/feedback/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const existing = await prisma.siteFeedback.findUnique({
+      where: { id },
+      select: { id: true, rating: true, name: true },
+    });
+    if (!existing) {
+      res.status(404).json({ error: 'Feedback not found' });
+      return;
+    }
+
+    await prisma.siteFeedback.delete({ where: { id } });
+
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'delete_feedback',
+        details: `Deleted fair feedback ${id} (${existing.rating}/5, from "${existing.name || 'Anonymous'}")`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    res.json({ message: 'Feedback deleted' });
+  } catch (error) {
+    console.error('Delete feedback error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

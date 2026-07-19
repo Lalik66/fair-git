@@ -513,6 +513,24 @@ model Reaction {
   @@map("reactions")
 }
 
+// Visitor feedback about the fair itself, submitted from the About page form.
+// Deliberately minimal (see docs/Reviwer spec — trimmed on purpose): it is an
+// inbox for the organizers, not a public review wall, so there is no
+// moderation pipeline, no photos, no per-category ratings. Anonymous is fine;
+// name/email are whatever the visitor chose to leave.
+model SiteFeedback {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String?
+  rating    Int      // 1-5 overall impression
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("site_feedback")
+  @@index([isRead, createdAt])
+}
+
 // Vendor reviews left by visitors. Moderated: nothing is public until an
 // admin approves it. SQLite has no enums/JSON, so `status` is a plain string
 // (PENDING | APPROVED | REJECTED) and `categories` is a JSON-encoded string

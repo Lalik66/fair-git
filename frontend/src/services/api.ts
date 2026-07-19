@@ -766,4 +766,39 @@ export const reviewsApi = {
   },
 };
 
+// ============ Fair Feedback (About page → organizers' inbox) ============
+
+export interface SiteFeedbackItem {
+  id: string;
+  name: string | null;
+  email: string | null;
+  rating: number;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export const feedbackApi = {
+  submit: async (payload: { rating: number; message: string; name?: string; email?: string }) => {
+    const response = await api.post('/feedback', payload);
+    return response.data;
+  },
+
+  // Admin inbox
+  getAdminFeedback: async (filter: 'unread' | 'all' = 'all') => {
+    const response = await api.get('/admin/feedback', { params: { filter } });
+    return response.data as { feedback: SiteFeedbackItem[]; unreadCount: number };
+  },
+
+  setRead: async (feedbackId: string, isRead: boolean) => {
+    const response = await api.patch(`/admin/feedback/${feedbackId}`, { isRead });
+    return response.data;
+  },
+
+  remove: async (feedbackId: string) => {
+    const response = await api.delete(`/admin/feedback/${feedbackId}`);
+    return response.data;
+  },
+};
+
 export default api;

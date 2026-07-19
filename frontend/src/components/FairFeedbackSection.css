@@ -1,0 +1,209 @@
+/* Feedback section (07) on the About page. Inherits the --about-* design
+   tokens from .about-page, so it must be rendered inside it. */
+
+.feedback-section {
+  padding: 80px 0 100px;
+  background: var(--about-bg-2);
+  border-top: 1px solid var(--about-rule);
+}
+
+.feedback-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.feedback-h2 {
+  font-family: var(--about-display);
+  font-size: clamp(22px, 3.8vw, 44px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 14px 0 0;
+  line-height: 1.05;
+  color: var(--about-ink);
+}
+.feedback-h2 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--about-accent);
+}
+
+.feedback-lede {
+  margin: 18px 0 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--about-ink-2);
+  max-width: 42ch;
+}
+
+.feedback-meta {
+  margin-top: 22px;
+  font-family: var(--about-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--about-soft);
+}
+
+/* ---------- card ---------- */
+.feedback-card {
+  background: var(--about-paper);
+  border: 1px solid var(--about-rule);
+  border-radius: 4px;
+  padding: 28px;
+  box-shadow: 6px 6px 0 rgba(22, 21, 19, 0.06);
+}
+
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.feedback-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.feedback-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.feedback-label {
+  font-family: var(--about-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--about-soft);
+}
+.fb-req { color: var(--about-accent); }
+
+.feedback-form input,
+.feedback-form textarea {
+  font-family: var(--about-body);
+  font-size: 14px;
+  color: var(--about-ink);
+  background: #fff;
+  border: 1px solid var(--about-rule);
+  border-radius: 3px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.15s ease;
+  resize: vertical;
+}
+.feedback-form input:focus,
+.feedback-form textarea:focus {
+  border-color: var(--about-ink);
+}
+.feedback-form input::placeholder,
+.feedback-form textarea::placeholder {
+  color: var(--about-soft);
+  opacity: 0.7;
+}
+
+.fb-counter {
+  position: absolute;
+  right: 2px;
+  bottom: -16px;
+  font-family: var(--about-mono);
+  font-size: 10px;
+  color: var(--about-soft);
+}
+
+/* ---------- stars ---------- */
+.fb-star-input {
+  display: inline-flex;
+  gap: 4px;
+}
+.fb-star-btn {
+  background: none;
+  border: none;
+  padding: 0 2px;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--about-rule);
+  transition: color 0.12s ease, transform 0.12s ease;
+}
+.fb-star-btn.filled { color: var(--about-gold); }
+.fb-star-btn:hover { transform: scale(1.12); }
+.fb-star-btn:focus-visible {
+  outline: 2px solid var(--about-ink);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.feedback-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--about-accent);
+  background: var(--about-accent-soft);
+  border: 1px solid var(--about-accent);
+  border-radius: 3px;
+  padding: 8px 12px;
+}
+
+.feedback-submit {
+  align-self: flex-start;
+  font-family: var(--about-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--about-paper);
+  background: var(--about-ink);
+  border: 1px solid var(--about-ink);
+  border-radius: 3px;
+  padding: 13px 26px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.feedback-submit:hover:not(:disabled) {
+  background: var(--about-accent);
+  border-color: var(--about-accent);
+}
+.feedback-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ---------- success state ---------- */
+.feedback-success {
+  text-align: center;
+  padding: 30px 10px;
+}
+.feedback-success-stars .fb-star {
+  font-size: 26px;
+  color: var(--about-rule);
+  padding: 0 2px;
+}
+.feedback-success-stars .fb-star.filled { color: var(--about-gold); }
+.feedback-success h3 {
+  font-family: var(--about-display);
+  font-size: 26px;
+  font-weight: 500;
+  margin: 14px 0 8px;
+  color: var(--about-ink);
+}
+.feedback-success p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--about-ink-2);
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .feedback-grid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+}
+@media (max-width: 560px) {
+  .feedback-row { grid-template-columns: 1fr; }
+  .feedback-card { padding: 20px; }
+}
