@@ -17,6 +17,7 @@ import QRGenerator from './QRGenerator';
 import BannerManagement from './BannerManagement';
 import ReviewModeration from './ReviewModeration';
 import FeedbackInbox from './FeedbackInbox';
+import SosDashboard from './SosDashboard';
 import '../styles/admin-design-system.css';
 import './AdminDashboard.css';
 
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
       { path: '/admin/applications', labelKey: 'adminDashboard.nav.applications', icon: '\u2605' },
       { path: '/admin/reviews', labelKey: 'adminDashboard.nav.reviews', icon: '\u275d' },
       { path: '/admin/feedback', labelKey: 'adminDashboard.nav.feedback', icon: '\u2709' },
+      { path: '/admin/sos', labelKey: 'adminDashboard.nav.sos', icon: '\u26a0' },
       { path: '/admin/fairs', labelKey: 'adminDashboard.nav.fairs', icon: '\u229E' },
       { path: '/admin/map', labelKey: 'adminDashboard.nav.mapEditor', icon: '\u2295' },
       { path: '/admin/zones', labelKey: 'adminDashboard.nav.zones', icon: '\u25ca' },
@@ -404,6 +406,7 @@ const AdminDashboard: React.FC = () => {
             <Route path="/applications" element={<ApplicationReview />} />
             <Route path="/reviews" element={<ReviewModeration />} />
             <Route path="/feedback" element={<FeedbackInbox />} />
+            <Route path="/sos" element={<SosDashboard />} />
             <Route path="/about-us" element={<AboutUsEditor />} />
             <Route path="/map" element={<MapManagement />} />
             <Route path="/zones" element={<ZoneManagement />} />

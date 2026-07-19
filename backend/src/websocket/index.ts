@@ -7,6 +7,7 @@ import { getHeatmapSnapshot } from '../services/heatmapService';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
+  userRole?: string;
 }
 
 /**
@@ -46,7 +47,7 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
       // Verify user exists and is active
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
-        select: { id: true, isActive: true },
+        select: { id: true, isActive: true, role: true },
       });
 
       if (!user || !user.isActive) {
@@ -55,6 +56,7 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
 
       // Attach user ID to socket
       socket.userId = user.id;
+      socket.userRole = user.role;
       next();
     } catch (error) {
       console.error('Socket authentication error:', error);
@@ -74,6 +76,12 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
     // Join user-specific room
     socket.join(`user:${userId}`);
     console.log(`User ${userId} connected via WebSocket`);
+
+    // Admins double as the security service: their dashboards listen in the
+    // shared `security` room for SOS alerts (sos:new / sos:updated).
+    if (socket.userRole === 'admin') {
+      socket.join('security');
+    }
 
     // Locate everyone who follows this user and pre-join the senders into
     // their followers' notification rooms. Cheaper than a per-event DB lookup

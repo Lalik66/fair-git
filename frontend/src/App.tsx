@@ -23,6 +23,7 @@ import UserProfile from './pages/UserProfile';
 import SchedulePage from './pages/SchedulePage';
 import { authApi } from './services/api';
 import BrandLogo from './components/BrandLogo';
+import SosButton from './components/SosButton';
 import Footer from './components/Footer';
 
 // Navigation component
@@ -548,6 +549,9 @@ const AppContent: React.FC = () => {
         </Routes>
       </main>
       {showFooter && <Footer />}
+      {/* Emergency SOS — visitor-facing pages only; the admin/vendor portals
+          and the auth shell don't need a panic button. */}
+      {!isAuthShell && !isPortalRoute && <SosButton />}
     </div>
   );
 };

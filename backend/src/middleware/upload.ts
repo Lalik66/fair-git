@@ -115,6 +115,52 @@ export const panoramaUpload = createUpload('panoramas', 'panorama', 20 * 1024 * 
 export const bannerUpload = createUpload('banners', 'banner', 5 * 1024 * 1024, 2000);
 
 /**
+ * File filter for short voice recordings (SOS messages). MediaRecorder
+ * output varies by browser: Chrome/Firefox produce audio/webm (sometimes
+ * labelled video/webm), Safari produces audio/mp4 — accept all of them.
+ */
+const audioFileFilter = (
+  _req: Express.Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
+  const allowedTypes = [
+    'audio/webm',
+    'video/webm',
+    'audio/ogg',
+    'audio/mp4',
+    'video/mp4',
+    'audio/mpeg',
+    'audio/wav',
+    'audio/aac',
+  ];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only common audio formats are allowed.'));
+  }
+};
+
+/**
+ * SOS voice-message upload — 2 MB (a 10-second recording is well under
+ * that), stored in 'sos' folder. Cloudinary stores audio under the
+ * `video` resource type; no image transformation applies.
+ */
+export const sosAudioUpload = multer({
+  storage: isCloudinaryConfigured()
+    ? new CloudinaryStorage({
+        cloudinary,
+        params: {
+          folder: 'fair-marketplace/sos',
+          resource_type: 'video',
+        } as any,
+      })
+    : createLocalStorage('sos', 'sos-audio'),
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: audioFileFilter,
+});
+
+/**
  * Gets the URL for an uploaded file
  * For Cloudinary uploads, the URL is in file.path
  * For local uploads, we construct the URL

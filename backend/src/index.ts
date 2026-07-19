@@ -105,6 +105,8 @@ import qrRoutes from './routes/qr';
 import bannersRoutes from './routes/banners';
 import reviewsRoutes from './routes/reviews';
 import feedbackRoutes from './routes/feedback';
+import sosRoutes from './routes/sos';
+import { setSosSocketIO } from './services/sosService';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -125,6 +127,7 @@ app.use('/api/qr', qrRoutes);
 app.use('/api/banners', bannersRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/sos', sosRoutes);
 
 // Error handling middleware
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
@@ -206,6 +209,7 @@ async function startServer(): Promise<void> {
     // Set Socket.io instance for messages routes
     setSocketIO(io);
     setReactionsSocketIO(io);
+    setSosSocketIO(io);
 
     console.log('WebSocket server initialized');
 

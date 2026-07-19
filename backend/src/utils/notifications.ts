@@ -243,6 +243,41 @@ export function sendReviewPublishedVendorEmail(
   }
 }
 
+// ---------------------------------------------------------------------------
+// SOS emergency alerts.
+// ---------------------------------------------------------------------------
+
+interface SosAlertAdminEmailContext {
+  incidentId: string;
+  senderName: string | null; // null = anonymous visitor
+  latitude: number | null;
+  longitude: number | null;
+  dashboardUrl: string;
+}
+
+/**
+ * Backup channel for SOS alerts: the primary path is the WebSocket push to
+ * the security dashboard; this email covers admins who are not watching it.
+ * Azerbaijani only — same convention as the other admin-facing emails.
+ */
+export function sendSosAlertAdminEmail(adminEmail: string, ctx: SosAlertAdminEmailContext): void {
+  const who = ctx.senderName || 'Anonim ziyarətçi';
+  const where =
+    ctx.latitude !== null && ctx.longitude !== null
+      ? `Koordinatlar: ${ctx.latitude.toFixed(6)}, ${ctx.longitude.toFixed(6)}\n` +
+        `Xəritə: https://www.google.com/maps?q=${ctx.latitude},${ctx.longitude}`
+      : 'Məkan məlumatı yoxdur (ziyarətçi icazə verməyib və ya siqnal alınmayıb).';
+  deliver(
+    adminEmail,
+    '🆘 TƏCİLİ: Yarmarkada SOS siqnalı',
+    `${who} yarmarkada SOS düyməsini basdı.\n\n` +
+      `${where}\n\n` +
+      `Təhlükəsizlik paneli: ${ctx.dashboardUrl}\n` +
+      `İnsident ID: ${ctx.incidentId}`,
+    'az'
+  );
+}
+
 interface ReviewDecisionVisitorEmailContext {
   visitorName: string;
   visitorEmail: string;

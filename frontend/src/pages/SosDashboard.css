@@ -1,0 +1,271 @@
+/* SOS security dashboard — admin design language */
+@import '../styles/admin-design-system.css';
+
+.sos-dashboard-container {
+  padding: 36px;
+  max-width: 980px;
+  margin: 0 auto;
+  background: var(--fk-bg);
+  min-height: calc(100vh - 80px);
+  font-family: var(--fk-font-body);
+  color: var(--fk-ink);
+}
+
+.sos-dashboard-container .page-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.sos-dashboard-container .page-header h1 {
+  margin: 0;
+  font-family: var(--fk-font-display);
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.sd-active-badge {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  animation: sd-badge-blink 1.2s step-end infinite;
+}
+
+@keyframes sd-badge-blink {
+  0%, 100% { background: #fee2e2; }
+  50% { background: #fecaca; }
+}
+
+.sd-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.sd-filter-btn {
+  border: 1px solid var(--fk-rule, #e5e7eb);
+  background: white;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.sd-filter-btn.active {
+  background: #d92d20;
+  border-color: #d92d20;
+  color: white;
+  font-weight: 600;
+}
+
+.sd-status {
+  color: #6b7280;
+  padding: 20px 0;
+}
+
+.sd-error {
+  color: #b91c1c;
+}
+
+.sd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sd-card {
+  background: white;
+  border: 1px solid var(--fk-rule, #e5e7eb);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.sd-card-active {
+  border-left: 4px solid #d92d20;
+}
+
+.sd-card-resolved,
+.sd-card-false_alarm {
+  opacity: 0.85;
+}
+
+.sd-card-flash {
+  animation: sd-flash 0.8s ease-in-out 4;
+}
+
+@keyframes sd-flash {
+  0%, 100% { background: white; }
+  50% { background: #fee2e2; }
+}
+
+.sd-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.sd-chip {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sd-chip-active { background: #fee2e2; color: #b91c1c; }
+.sd-chip-resolved { background: #dcfce7; color: #166534; }
+.sd-chip-false_alarm { background: #f3f4f6; color: #6b7280; }
+
+.sd-sender { font-size: 1rem; }
+
+.sd-email {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.sd-date {
+  margin-left: auto;
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
+.sd-location { margin-bottom: 12px; }
+
+.sd-map {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  border-radius: 8px;
+  border: 1px solid var(--fk-rule, #e5e7eb);
+  margin-bottom: 8px;
+}
+
+.sd-coords {
+  font-size: 0.9rem;
+  color: #374151;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sd-accuracy { color: #6b7280; }
+
+.sd-maps-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.sd-maps-link:hover { text-decoration: underline; }
+
+.sd-no-location {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.sd-audio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.sd-audio-label {
+  font-size: 0.85rem;
+  color: #374151;
+  font-weight: 600;
+}
+
+.sd-audio audio {
+  height: 36px;
+  max-width: 320px;
+}
+
+.sd-resolution {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #6b7280;
+}
+
+.sd-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sd-close-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.sd-close-form input {
+  flex: 1;
+  min-width: 200px;
+  border: 1px solid var(--fk-rule, #e5e7eb);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 0.9rem;
+}
+
+.sd-btn-resolve,
+.sd-btn-false,
+.sd-btn-cancel {
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.sd-btn-resolve {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+.sd-btn-resolve:hover:not(:disabled) { background: #bbf7d0; }
+
+.sd-btn-false {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+.sd-btn-false:hover:not(:disabled) { background: #e5e7eb; }
+
+.sd-btn-cancel {
+  background: white;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.sd-btn-resolve:disabled,
+.sd-btn-false:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .sos-dashboard-container {
+    padding: 20px;
+  }
+}

@@ -801,4 +801,60 @@ export const feedbackApi = {
   },
 };
 
+// ============ SOS emergency alerts ============
+
+export interface SosIncidentStatus {
+  id: string;
+  status: 'ACTIVE' | 'RESOLVED' | 'FALSE_ALARM';
+  createdAt: string;
+  resolvedAt?: string | null;
+}
+
+export interface AdminSosIncident {
+  id: string;
+  latitude: number | null;
+  longitude: number | null;
+  accuracy: number | null;
+  audioUrl: string | null;
+  status: string;
+  resolutionNote: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  senderName: string | null; // null = anonymous
+  senderEmail: string | null;
+}
+
+export const sosApi = {
+  raise: async (coords?: { latitude: number; longitude: number; accuracy?: number }) => {
+    const response = await api.post('/sos', coords ?? {});
+    return response.data as { incident: SosIncidentStatus };
+  },
+
+  attachAudio: async (incidentId: string, blob: Blob, mimeType: string) => {
+    const fd = new FormData();
+    const ext = mimeType.includes('mp4') ? 'm4a' : mimeType.includes('ogg') ? 'ogg' : 'webm';
+    fd.append('audio', blob, `sos.${ext}`);
+    const response = await api.post(`/sos/${incidentId}/audio`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  getStatus: async (incidentId: string) => {
+    const response = await api.get(`/sos/${incidentId}`);
+    return response.data as { incident: SosIncidentStatus };
+  },
+
+  // Admin — security dashboard
+  getAdminIncidents: async (status: string = 'ACTIVE') => {
+    const response = await api.get('/admin/sos', { params: { status } });
+    return response.data as { incidents: AdminSosIncident[]; activeCount: number };
+  },
+
+  closeIncident: async (incidentId: string, action: 'resolve' | 'false_alarm', note?: string) => {
+    const response = await api.patch(`/admin/sos/${incidentId}`, { action, note });
+    return response.data as { incident: AdminSosIncident };
+  },
+};
+
 export default api;

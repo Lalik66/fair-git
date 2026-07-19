@@ -580,6 +580,69 @@ const resources = {
         confirmReject: 'Confirm rejection',
       },
 
+      // Emergency SOS button
+      sos: {
+        buttonAria: 'Emergency SOS',
+        confirm: {
+          title: 'Send emergency alert?',
+          body: 'Fair security will be notified immediately and will see your location.',
+          sendingIn: 'Sending automatically…',
+          sendNow: 'Send now',
+        },
+        sending: 'Sending alert…',
+        sent: {
+          title: 'Alert sent',
+          body: 'Fair security has been notified and is on the way. Stay where you are if it is safe.',
+          resolvedTitle: 'Incident resolved',
+          resolvedBody: 'Security has marked your alert as handled. Stay safe!',
+          locationOk: 'Your location was shared with security.',
+          locationMissing: 'Location unavailable — if you can, tell staff where you are or stay near a landmark.',
+          hide: 'Hide',
+          statusActive: 'This panel updates when security responds.',
+        },
+        audio: {
+          cta: 'Add a 10-second voice message',
+          recording: 'Recording…',
+          stop: 'tap to stop',
+          uploading: 'Sending voice message…',
+          done: 'Voice message sent to security.',
+          failed: 'Could not record — check the microphone permission. Your alert was still sent.',
+        },
+        error: {
+          title: 'Could not send the alert',
+          body: 'Please try again — or contact any staff member on site immediately.',
+          retry: 'Try again',
+        },
+      },
+
+      // Admin — SOS security dashboard
+      sosDashboard: {
+        title: 'SOS Alerts',
+        activeCount_one: '{{count}} active',
+        activeCount_other: '{{count}} active',
+        filter: {
+          ACTIVE: 'Active',
+          RESOLVED: 'Resolved',
+          FALSE_ALARM: 'False alarm',
+          all: 'All',
+        },
+        empty: 'No incidents — all quiet.',
+        anonymous: 'Anonymous visitor',
+        notifyTitle: '🆘 SOS alert at the fair',
+        meters: 'm',
+        openInMaps: 'Open in Google Maps',
+        noLocation: 'No location — the visitor denied or lacked GPS. Check the voice message or recent camera zones.',
+        voiceMessage: 'Voice message',
+        closedAt: 'Closed',
+        resolve: 'Resolve',
+        falseAlarm: 'False alarm',
+        confirmResolve: 'Confirm resolved',
+        confirmFalse: 'Confirm false alarm',
+        notePlaceholder: 'Note (optional)…',
+        loadError: 'Could not load incidents. Please try again.',
+        actionError: 'Could not apply the action. Please try again.',
+      },
+
       // Fair feedback (About page form → organizers' inbox)
       feedback: {
         marker: 'Feedback',
@@ -672,6 +735,7 @@ const resources = {
           applications: 'Applications',
           reviews: 'Reviews',
           feedback: 'Feedback',
+          sos: 'SOS Alerts',
           fairs: 'Fairs',
           mapEditor: 'Map editor',
           zones: 'Zones',
@@ -2144,6 +2208,69 @@ const resources = {
         confirmReject: 'Rəddi təsdiqlə',
       },
 
+      // Təcili SOS düyməsi
+      sos: {
+        buttonAria: 'Təcili yardım SOS',
+        confirm: {
+          title: 'Təcili siqnal göndərilsin?',
+          body: 'Yarmarkanın təhlükəsizlik xidməti dərhal xəbərdar ediləcək və məkanınızı görəcək.',
+          sendingIn: 'Avtomatik göndərilir…',
+          sendNow: 'İndi göndər',
+        },
+        sending: 'Siqnal göndərilir…',
+        sent: {
+          title: 'Siqnal göndərildi',
+          body: 'Təhlükəsizlik xidməti xəbərdar edildi və yoldadır. Təhlükəsizdirsə, olduğunuz yerdə qalın.',
+          resolvedTitle: 'İnsident həll olundu',
+          resolvedBody: 'Təhlükəsizlik xidməti siqnalınızı həll olunmuş kimi qeyd etdi. Özünüzü qoruyun!',
+          locationOk: 'Məkanınız təhlükəsizlik xidməti ilə paylaşıldı.',
+          locationMissing: 'Məkan əlçatan deyil — mümkünsə işçilərə harada olduğunuzu deyin və ya nəzərə çarpan yerin yanında qalın.',
+          hide: 'Gizlət',
+          statusActive: 'Təhlükəsizlik cavab verəndə bu panel yenilənəcək.',
+        },
+        audio: {
+          cta: '10 saniyəlik səsli mesaj əlavə et',
+          recording: 'Yazılır…',
+          stop: 'dayandırmaq üçün toxunun',
+          uploading: 'Səsli mesaj göndərilir…',
+          done: 'Səsli mesaj təhlükəsizlik xidmətinə göndərildi.',
+          failed: 'Yazmaq mümkün olmadı — mikrofon icazəsini yoxlayın. Siqnalınız yenə də göndərildi.',
+        },
+        error: {
+          title: 'Siqnal göndərilə bilmədi',
+          body: 'Yenidən cəhd edin — və ya dərhal ərazidəki istənilən işçiyə müraciət edin.',
+          retry: 'Yenidən cəhd et',
+        },
+      },
+
+      // Admin — SOS təhlükəsizlik paneli
+      sosDashboard: {
+        title: 'SOS Siqnalları',
+        activeCount_one: '{{count}} aktiv',
+        activeCount_other: '{{count}} aktiv',
+        filter: {
+          ACTIVE: 'Aktiv',
+          RESOLVED: 'Həll olunub',
+          FALSE_ALARM: 'Yanlış həyəcan',
+          all: 'Hamısı',
+        },
+        empty: 'İnsident yoxdur — hər şey sakitdir.',
+        anonymous: 'Anonim ziyarətçi',
+        notifyTitle: '🆘 Yarmarkada SOS siqnalı',
+        meters: 'm',
+        openInMaps: 'Google Maps-də aç',
+        noLocation: 'Məkan yoxdur — ziyarətçi icazə verməyib və ya GPS siqnalı olmayıb. Səsli mesajı yoxlayın.',
+        voiceMessage: 'Səsli mesaj',
+        closedAt: 'Bağlanıb',
+        resolve: 'Həll olundu',
+        falseAlarm: 'Yanlış həyəcan',
+        confirmResolve: 'Həlli təsdiqlə',
+        confirmFalse: 'Yanlış həyəcanı təsdiqlə',
+        notePlaceholder: 'Qeyd (istəyə bağlı)…',
+        loadError: 'İnsidentlər yüklənə bilmədi. Yenidən cəhd edin.',
+        actionError: 'Əməliyyat tətbiq edilə bilmədi. Yenidən cəhd edin.',
+      },
+
       // Yarmarka rəyi (Haqqımızda səhifəsindəki forma → təşkilatçıların qutusu)
       feedback: {
         marker: 'Rəy bildirin',
@@ -2236,6 +2363,7 @@ const resources = {
           applications: 'Müraciətlər',
           reviews: 'Rəylər',
           feedback: 'Rəy qutusu',
+          sos: 'SOS Siqnalları',
           fairs: 'Yarmarkalar',
           mapEditor: 'Xəritə redaktoru',
           zones: 'Zonalar',

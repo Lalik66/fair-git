@@ -51,8 +51,37 @@ model User {
   pins                UserPin[]
   reviewsWritten      Review[]  @relation("ReviewVisitor")
   reviewsModerated    Review[]  @relation("ReviewModerator")
+  sosIncidents        SosIncident[] @relation("SosUser")
+  sosResolved         SosIncident[] @relation("SosResolver")
 
   @@map("users")
+}
+
+// Emergency SOS alerts raised by visitors from the floating SOS button.
+// See docs/sos_implementation_plan.md. Deliberately forgiving about missing
+// data: userId is null for anonymous visitors (an emergency must not require
+// login) and coordinates are null when the browser denied or timed out on
+// geolocation — an alert with no location is still an alert. SQLite has no
+// enums, so `status` is a plain string (ACTIVE | RESOLVED | FALSE_ALARM),
+// same convention as Review.status.
+model SosIncident {
+  id             String    @id @default(uuid())
+  userId         String?   @map("user_id")
+  latitude       Float?
+  longitude      Float?
+  accuracy       Float?    // meters, as reported by the browser
+  audioUrl       String?   @map("audio_url") // optional voice message
+  status         String    @default("ACTIVE") // ACTIVE | RESOLVED | FALSE_ALARM
+  resolutionNote String?   @map("resolution_note")
+  resolvedById   String?   @map("resolved_by_id")
+  resolvedAt     DateTime? @map("resolved_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  user       User? @relation("SosUser", fields: [userId], references: [id], onDelete: SetNull)
+  resolvedBy User? @relation("SosResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@map("sos_incidents")
+  @@index([status, createdAt])
 }
 
 // Personal map bookmarks (e.g. "I parked my car here"). Private to the user;

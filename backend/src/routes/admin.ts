@@ -16,6 +16,7 @@ import {
   parseCategories as parseReviewCategories,
 } from '../services/reviewService';
 import { deleteFromCloud } from '../utils/upload';
+import { emitSosUpdated, serializeIncident as serializeSosIncident } from '../services/sosService';
 import { panoramaUpload, getUploadedFileUrl, isCloudinaryConfigured } from '../middleware/upload';
 
 // Note: Panorama upload middleware is now imported from '../middleware/upload'
@@ -2798,6 +2799,103 @@ router.patch('/reviews/:id', async (req: Request, res: Response): Promise<void> 
     res.json({ review: updated });
   } catch (error) {
     console.error('Moderate review error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ============ SOS Incidents (security dashboard) ============
+
+/**
+ * GET /api/admin/sos?status=ACTIVE|RESOLVED|FALSE_ALARM|all
+ * Incident list for the security dashboard. Active first is implicit —
+ * the dashboard defaults to the ACTIVE filter; activeCount powers the
+ * sidebar badge regardless of filter.
+ */
+router.get('/sos', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const statusParam = typeof req.query.status === 'string' ? req.query.status : 'ACTIVE';
+    const where =
+      statusParam === 'all'
+        ? {}
+        : {
+            status: ['ACTIVE', 'RESOLVED', 'FALSE_ALARM'].includes(statusParam)
+              ? statusParam
+              : 'ACTIVE',
+          };
+
+    const incidents = await prisma.sosIncident.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: { user: { select: { firstName: true, lastName: true, email: true } } },
+    });
+    const activeCount = await prisma.sosIncident.count({ where: { status: 'ACTIVE' } });
+
+    res.json({ incidents: incidents.map(serializeSosIncident), activeCount });
+  } catch (error) {
+    console.error('Get admin SOS incidents error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * PATCH /api/admin/sos/:id
+ * Body: { action: 'resolve' | 'false_alarm', note? }
+ * Close out an incident. Logged to the audit trail; the dashboard and the
+ * sender's device are notified over WebSocket.
+ */
+router.patch('/sos/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { action, note } = req.body ?? {};
+
+    if (action !== 'resolve' && action !== 'false_alarm') {
+      res.status(400).json({ error: "action must be 'resolve' or 'false_alarm'" });
+      return;
+    }
+    if (note !== undefined && note !== null && (typeof note !== 'string' || note.length > 500)) {
+      res.status(400).json({ error: 'note must be a string up to 500 characters' });
+      return;
+    }
+
+    const existing = await prisma.sosIncident.findUnique({
+      where: { id },
+      select: { id: true, status: true },
+    });
+    if (!existing) {
+      res.status(404).json({ error: 'Incident not found' });
+      return;
+    }
+    if (existing.status !== 'ACTIVE') {
+      res.status(400).json({ error: 'Incident is already closed' });
+      return;
+    }
+
+    const updated = await prisma.sosIncident.update({
+      where: { id },
+      data: {
+        status: action === 'resolve' ? 'RESOLVED' : 'FALSE_ALARM',
+        resolutionNote: typeof note === 'string' && note.trim() ? note.trim() : null,
+        resolvedById: req.user!.id,
+        resolvedAt: new Date(),
+      },
+      include: { user: { select: { firstName: true, lastName: true, email: true } } },
+    });
+
+    emitSosUpdated(updated);
+
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: action === 'resolve' ? 'resolve_sos' : 'false_alarm_sos',
+        details: `${action === 'resolve' ? 'Resolved' : 'Marked as false alarm'} SOS incident ${id}`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    res.json({ incident: serializeSosIncident(updated) });
+  } catch (error) {
+    console.error('Moderate SOS incident error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
