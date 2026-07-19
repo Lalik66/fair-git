@@ -1,10 +1,12 @@
 // Email notifications for the vendor application lifecycle.
 //
-// The project has no real mail transport (SMTP/SendGrid/etc.) — the prior
-// code logged email bodies to the console in development. This module keeps
-// that behaviour but centralises it so the four application emails
-// (submit->user, submit->admins, approve, reject) share one code path and
-// stay bilingual (az/en) via the recipient's preferred language.
+// Delivery goes through SMTP (nodemailer) when the EMAIL_* env vars hold
+// real values; otherwise every email is printed to the console — the
+// original development behaviour — so local setups keep working without
+// credentials. All templates are bilingual (az/en) via the recipient's
+// preferred language.
+
+import nodemailer, { Transporter } from 'nodemailer';
 
 type Lang = 'az' | 'en';
 
@@ -12,17 +14,70 @@ function normalizeLang(lang?: string | null): Lang {
   return lang === 'en' ? 'en' : 'az';
 }
 
-// Low-level "send". Swap the console block for a real transport here later
-// and every caller below starts delivering for real.
+// Lazily-built SMTP transport. `undefined` = not decided yet, `null` = env
+// vars absent or still the .env placeholders → console fallback.
+let transporter: Transporter | null | undefined;
+
+function getTransporter(): Transporter | null {
+  if (transporter !== undefined) return transporter;
+
+  const host = process.env.EMAIL_HOST;
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASSWORD;
+  const configured =
+    host && user && pass &&
+    !host.includes('example.com') &&
+    !user.includes('example.com') &&
+    pass !== 'your-email-password';
+
+  if (!configured) {
+    transporter = null;
+    console.log('[email] SMTP not configured — emails will be printed to the console');
+    return transporter;
+  }
+
+  const port = parseInt(process.env.EMAIL_PORT || '587', 10);
+  transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465, // 465 = implicit TLS; 587 upgrades via STARTTLS
+    auth: { user, pass },
+  });
+  console.log(`[email] SMTP transport ready (${host}:${port} as ${user})`);
+  return transporter;
+}
+
+// Low-level send. Fire-and-forget on purpose: callers sit inside request
+// handlers that must not fail (or wait) because the mail server hiccuped.
+// Failures are logged with enough context to resend by hand.
 function deliver(to: string, subject: string, body: string, lang: Lang): void {
-  console.log('='.repeat(60));
-  console.log(`EMAIL NOTIFICATION (Development Mode) - Language: ${lang.toUpperCase()}`);
-  console.log('='.repeat(60));
-  console.log(`To: ${to}`);
-  console.log(`Subject: ${subject}`);
-  console.log('');
-  console.log(body);
-  console.log('='.repeat(60));
+  const smtp = getTransporter();
+
+  if (!smtp) {
+    console.log('='.repeat(60));
+    console.log(`EMAIL NOTIFICATION (Development Mode) - Language: ${lang.toUpperCase()}`);
+    console.log('='.repeat(60));
+    console.log(`To: ${to}`);
+    console.log(`Subject: ${subject}`);
+    console.log('');
+    console.log(body);
+    console.log('='.repeat(60));
+    return;
+  }
+
+  smtp
+    .sendMail({
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      to,
+      subject,
+      text: body,
+    })
+    .then((info) => {
+      console.log(`[email] sent "${subject}" to ${to} (${info.messageId})`);
+    })
+    .catch((err: Error) => {
+      console.error(`[email] FAILED "${subject}" to ${to}: ${err.message}`);
+    });
 }
 
 interface ApplicationEmailContext {
