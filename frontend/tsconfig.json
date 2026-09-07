@@ -20,16 +20,15 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Path aliases */
-    "baseUrl": ".",
+    /* Path aliases (baseUrl removed; paths are resolved relative to this file) */
     "paths": {
-      "@/*": ["src/*"],
-      "@components/*": ["src/components/*"],
-      "@pages/*": ["src/pages/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@contexts/*": ["src/contexts/*"],
-      "@services/*": ["src/services/*"],
-      "@styles/*": ["src/styles/*"]
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@contexts/*": ["./src/contexts/*"],
+      "@services/*": ["./src/services/*"],
+      "@styles/*": ["./src/styles/*"]
     }
   },
   "include": ["src"],
