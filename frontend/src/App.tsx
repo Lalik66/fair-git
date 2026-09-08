@@ -24,6 +24,7 @@ import SchedulePage from './pages/SchedulePage';
 import { authApi } from './services/api';
 import BrandLogo from './components/BrandLogo';
 import SosButton from './components/SosButton';
+import MarketingSignupGate from './components/MarketingSignupGate';
 import Footer from './components/Footer';
 
 // Navigation component
@@ -552,6 +553,9 @@ const AppContent: React.FC = () => {
       {/* Emergency SOS — visitor-facing pages only; the admin/vendor portals
           and the auth shell don't need a panic button. */}
       {!isAuthShell && !isPortalRoute && <SosButton />}
+      {/* Marketing signup popup — public visitor pages only (same gate as SOS).
+          The gate wires its own triggers and frequency caps. */}
+      {!isAuthShell && !isPortalRoute && <MarketingSignupGate />}
     </div>
   );
 };

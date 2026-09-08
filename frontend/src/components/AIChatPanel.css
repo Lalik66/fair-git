@@ -5,7 +5,7 @@
 
 .ai-chat-panel {
   position: fixed;
-  bottom: 24px;
+  bottom: 120px;
   left: 24px;
   z-index: 100;
   font-family: var(--font-primary);

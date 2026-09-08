@@ -1,0 +1,308 @@
+/* Marketing signup popup — split card, FestivKids tokens.
+   z-index 1500: above SOS FAB/overlay (900/1000), below MapSelection (2000)
+   and PanoramaViewer (9999). See docs/subscription.md. */
+
+.msm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(45, 55, 72, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: msm-fade 240ms ease-out both;
+}
+
+.msm-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 900px;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  background: var(--color-background, #fdfbf7);
+  border-radius: var(--radius-2xl, 1rem);
+  box-shadow: 0 30px 70px -20px rgba(45, 55, 72, 0.5);
+  animation: msm-pop 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Left media panel ─────────────────────────────────────────── */
+.msm-media {
+  position: relative;
+  min-height: 420px;
+  background-image: url('/images/marketing/for_marketing.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Warm festive wash so the photo reads as branded, not a raw stock image. */
+.msm-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 107, 107, 0.28) 0%,
+    rgba(6, 190, 225, 0.16) 55%,
+    rgba(255, 209, 102, 0.24) 100%
+  );
+  mix-blend-mode: multiply;
+}
+
+.msm-media-glow {
+  position: absolute;
+  left: -30%;
+  bottom: -30%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(255, 209, 102, 0.6), transparent 70%);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+/* ── Right form panel ─────────────────────────────────────────── */
+.msm-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: 44px 40px;
+  overflow-y: auto;
+}
+
+.msm-title {
+  margin: 0;
+  font-family: var(--font-headings, 'Fraunces', serif);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.05rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary, #2d3748);
+}
+
+/* Coral underline flourish under the headline. */
+.msm-title::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 4px;
+  margin-top: 14px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-coral, #ff6b6b);
+}
+
+.msm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.msm-phone {
+  display: flex;
+  gap: 8px;
+}
+
+.msm-phone select,
+.msm-phone input {
+  height: 52px;
+  border: 1.5px solid var(--color-gray-200, #e5e7eb);
+  border-radius: var(--radius-lg, 0.5rem);
+  background: var(--color-white, #fff);
+  font-size: 1rem;
+  font-family: var(--font-primary, sans-serif);
+  color: var(--color-text-primary, #2d3748);
+}
+
+.msm-phone select {
+  flex: 0 0 88px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+.msm-phone input {
+  flex: 1;
+  padding: 0 16px;
+  min-width: 0;
+}
+
+.msm-phone select:focus,
+.msm-phone input:focus {
+  outline: none;
+  border-color: var(--color-sky-blue, #06bee1);
+  box-shadow: 0 0 0 3px rgba(6, 190, 225, 0.18);
+}
+
+.msm-consent {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #718096);
+}
+
+.msm-error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-error, #f56565);
+}
+
+.msm-cta {
+  height: 54px;
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-coral, #ff6b6b);
+  color: #fff;
+  font-family: var(--font-primary, sans-serif);
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 10px 22px -8px rgba(255, 107, 107, 0.7);
+  transition: transform var(--transition-fast, 150ms), box-shadow var(--transition-fast, 150ms),
+    background var(--transition-fast, 150ms);
+}
+
+.msm-cta:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px -8px rgba(255, 107, 107, 0.75);
+}
+
+.msm-cta:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.msm-cta:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.msm-dismiss {
+  align-self: center;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary, #718096);
+  font-family: var(--font-primary, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.msm-dismiss:hover {
+  color: var(--color-text-primary, #2d3748);
+  text-decoration: underline;
+}
+
+/* ── Close button ─────────────────────────────────────────────── */
+.msm-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--color-text-primary, #2d3748);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+  transition: background var(--transition-fast, 150ms), transform var(--transition-fast, 150ms);
+}
+
+.msm-close:hover {
+  background: #fff;
+  transform: rotate(90deg);
+}
+
+.msm-close:focus-visible {
+  outline: 2px solid var(--color-sky-blue, #06bee1);
+  outline-offset: 2px;
+}
+
+/* ── Success state ────────────────────────────────────────────── */
+.msm-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.msm-success-mark {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-mint, #7fcdcd);
+  color: #fff;
+  font-size: 1.8rem;
+  animation: msm-pop 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.msm-success p {
+  margin: 0;
+  font-family: var(--font-headings, 'Fraunces', serif);
+  font-size: 1.3rem;
+  color: var(--color-text-primary, #2d3748);
+}
+
+/* ── Responsive: stack image on top ───────────────────────────── */
+@media (max-width: 720px) {
+  .msm-card {
+    grid-template-columns: 1fr;
+    max-width: 440px;
+  }
+
+  .msm-media {
+    min-height: 180px;
+    height: 180px;
+  }
+
+  .msm-body {
+    padding: 28px 24px 32px;
+  }
+}
+
+/* ── Animations ───────────────────────────────────────────────── */
+@keyframes msm-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes msm-pop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msm-overlay,
+  .msm-card,
+  .msm-success-mark {
+    animation: none;
+  }
+
+  .msm-cta,
+  .msm-close {
+    transition: none;
+  }
+}

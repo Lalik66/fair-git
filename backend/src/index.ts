@@ -105,6 +105,7 @@ import qrRoutes from './routes/qr';
 import bannersRoutes from './routes/banners';
 import reviewsRoutes from './routes/reviews';
 import feedbackRoutes from './routes/feedback';
+import marketingLeadsRoutes from './routes/marketing-leads';
 import sosRoutes from './routes/sos';
 import { setSosSocketIO } from './services/sosService';
 
@@ -127,6 +128,7 @@ app.use('/api/qr', qrRoutes);
 app.use('/api/banners', bannersRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/public/marketing-leads', marketingLeadsRoutes);
 app.use('/api/sos', sosRoutes);
 
 // Error handling middleware

@@ -567,6 +567,17 @@ export const publicApi = {
     const response = await api.get('/public/map-objects', { params });
     return response.data;
   },
+
+  // Marketing signup popup lead capture (anonymous, store-only).
+  submitMarketingLead: async (payload: {
+    phone: string;
+    consentAccepted: boolean;
+    preferredLanguage?: string;
+    source?: string;
+  }) => {
+    const response = await api.post('/public/marketing-leads', payload);
+    return response.data;
+  },
 };
 
 // Admin Contact Info API

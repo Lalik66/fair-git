@@ -601,3 +601,20 @@ model Review {
   @@index([status, createdAt])
   @@map("reviews")
 }
+
+// Lead captured by the marketing signup popup (Sneaker Con–style). Anonymous
+// by design — just a phone number a visitor opted in with, plus the consent
+// flag and which language they saw the form in. Store-only for now: no admin
+// inbox, no SMS integration (see docs/subscription.md). Mirrors the minimal
+// shape of SiteFeedback.
+model MarketingLead {
+  id                String   @id @default(uuid())
+  phone             String
+  consentAccepted   Boolean  @default(false) @map("consent_accepted")
+  source            String   @default("popup")
+  preferredLanguage String?  @map("preferred_language")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@map("marketing_leads")
+  @@index([createdAt])
+}

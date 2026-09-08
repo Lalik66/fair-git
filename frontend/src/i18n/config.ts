@@ -5,6 +5,20 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   en: {
     translation: {
+      // Marketing signup popup (Sneaker Con–style lead capture)
+      marketingPopup: {
+        title: 'Stay in the loop for fair announcements, seasonal events & exclusive content.',
+        phonePlaceholder: 'Phone number',
+        consent:
+          'By submitting, you agree to receive occasional updates about fairs and events from Fair Marketplace. Message frequency varies and consent is not a condition of any purchase. You can opt out anytime.',
+        cta: 'Sign me up!',
+        submitting: 'Signing up…',
+        dismiss: 'No, thanks',
+        closeAria: 'Close signup',
+        success: "You're on the list! See you at the fair.",
+        error: 'Something went wrong. Please try again.',
+        imageAlt: 'Festive Fair Marketplace installation',
+      },
       // Common
       common: {
         appName: 'Fair Marketplace',
@@ -1633,6 +1647,20 @@ const resources = {
   },
   az: {
     translation: {
+      // Marketing signup popup (Sneaker Con–style lead capture)
+      marketingPopup: {
+        title: 'Yarmarka xəbərləri, mövsümi tədbirlər və eksklüziv məzmundan xəbərdar olun.',
+        phonePlaceholder: 'Telefon nömrəsi',
+        consent:
+          'Göndərməklə Fair Marketplace-dən yarmarka və tədbirlər barədə vaxtaşırı yeniliklər almağa razılıq verirsiniz. Mesaj tezliyi dəyişə bilər və razılıq hər hansı alışın şərti deyil. İstənilən vaxt imtina edə bilərsiniz.',
+        cta: 'Məni qeydiyyatdan keçir!',
+        submitting: 'Qeydiyyat gedir…',
+        dismiss: 'Xeyr, təşəkkürlər',
+        closeAria: 'Qeydiyyatı bağla',
+        success: 'Siyahıdasınız! Yarmarkada görüşənədək.',
+        error: 'Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.',
+        imageAlt: 'Şən Fair Marketplace quraşdırması',
+      },
       // Common
       common: {
         appName: 'Fair Marketplace',
