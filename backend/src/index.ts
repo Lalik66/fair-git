@@ -252,5 +252,10 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-// Start the server
-startServer();
+// Start the server only when this module is executed directly (e.g.
+// `node dist/index.js` or ts-node-dev). Importing it — as the test suite does
+// transitively via reviewService — must not boot the HTTP server or connect to
+// the database.
+if (require.main === module) {
+  startServer();
+}
