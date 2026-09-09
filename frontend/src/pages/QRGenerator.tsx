@@ -175,7 +175,15 @@ const QRGenerator: React.FC = () => {
       {result && (
         <div className="qr-preview">
           {result.dataUrl && <img src={result.dataUrl} alt={t('qr.previewAlt')} />}
-          {result.svg && <div dangerouslySetInnerHTML={{ __html: result.svg }} />}
+          {/* Render SVG as an <img> data URL rather than injecting it as raw
+              HTML. Scripts inside an SVG loaded via <img> never execute, so
+              this cannot become an XSS sink even if the SVG string changes. */}
+          {result.svg && (
+            <img
+              src={`data:image/svg+xml;utf8,${encodeURIComponent(result.svg)}`}
+              alt={t('qr.previewAlt')}
+            />
+          )}
           <div className="meta">
             <div><strong>{t('qr.encoded', 'Encoded URL')}</strong></div>
             <code>{result.url}</code>

@@ -118,7 +118,8 @@ export function useLocationTracking({
       }
 
       try {
-        console.log('[LocationTracking] Sending location update:', lat, lng);
+        // Never log raw coordinates — that is user location PII in the console.
+        if (import.meta.env.DEV) console.log('[LocationTracking] Sending location update');
         await updateUserLocation(lat, lng);
 
         // Update tracking state
@@ -205,21 +206,15 @@ export function useLocationTracking({
    * Set up GeolocateControl event listeners
    */
   useEffect(() => {
-    console.log('[LocationTracking] Effect fired — geolocateControl:', !!geolocateControl, 'isAuthenticated:', isAuthenticated);
-
     if (!geolocateControl || !isAuthenticated) {
       return;
     }
 
-    console.log('[LocationTracking] Attaching GeolocateControl listeners');
-
     const handleTrackStart = () => {
-      console.log('[LocationTracking] trackuserlocationstart — starting watchPosition');
       startTracking();
     };
 
     const handleTrackEnd = () => {
-      console.log('[LocationTracking] trackuserlocationend — stopping watchPosition');
       stopTracking();
     };
 

@@ -19,17 +19,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors
+// Handle auth errors. On a 401 we clear the locally cached credentials so the
+// app can't keep using a token the server has rejected, then let the rejection
+// propagate. Navigation is intentionally left to AuthContext/ProtectedRoute
+// (React Router) rather than a hard `window.location` reload, which would blow
+// away in-memory state and any unsaved work.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Don't redirect on login page
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
-      }
     }
     return Promise.reject(error);
   }

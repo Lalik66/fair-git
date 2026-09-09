@@ -1,4 +1,5 @@
-import multer, { StorageEngine } from 'multer';
+import multer, { StorageEngine, Multer } from 'multer';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
@@ -29,6 +30,32 @@ const imageFileFilter = (
 };
 
 /**
+ * Maps a validated MIME type to a safe file extension. We derive the stored
+ * extension from the (allow-listed) MIME type rather than trusting the
+ * client-supplied original filename, which could carry a misleading or
+ * dangerous extension (e.g. an image uploaded as ".html").
+ */
+const MIME_EXTENSION_MAP: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/jpg': '.jpg',
+  'image/png': '.png',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+  'audio/webm': '.webm',
+  'video/webm': '.webm',
+  'audio/ogg': '.ogg',
+  'audio/mp4': '.m4a',
+  'video/mp4': '.mp4',
+  'audio/mpeg': '.mp3',
+  'audio/wav': '.wav',
+  'audio/aac': '.aac',
+};
+
+const safeExtensionFor = (file: Express.Multer.File): string => {
+  return MIME_EXTENSION_MAP[file.mimetype] || '';
+};
+
+/**
  * Creates a local disk storage configuration
  */
 const createLocalStorage = (uploadFolder: string, filenamePrefix: string): StorageEngine => {
@@ -42,7 +69,9 @@ const createLocalStorage = (uploadFolder: string, filenamePrefix: string): Stora
     },
     filename: (_req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      const ext = path.extname(file.originalname);
+      // Derive the extension from the validated MIME type, not the client's
+      // original filename.
+      const ext = safeExtensionFor(file);
       cb(null, `${filenamePrefix}-${uniqueSuffix}${ext}`);
     },
   });
@@ -159,6 +188,25 @@ export const sosAudioUpload = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: audioFileFilter,
 });
+
+/**
+ * Wraps `upload.single(field)` so that a rejected file (bad MIME type via the
+ * fileFilter, or an exceeded size limit) is surfaced as a 400 with the real
+ * reason, instead of falling through to the global error handler as a generic
+ * 500. Use this everywhere instead of attaching `upload.single(...)` directly.
+ */
+export const singleUpload = (upload: Multer, field: string): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    upload.single(field)(req, res, (err: unknown) => {
+      if (err) {
+        const message = err instanceof Error ? err.message : 'File upload failed';
+        res.status(400).json({ error: message });
+        return;
+      }
+      next();
+    });
+  };
+};
 
 /**
  * Gets the URL for an uploaded file

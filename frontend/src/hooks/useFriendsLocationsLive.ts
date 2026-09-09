@@ -76,20 +76,28 @@ export function useFriendsLocationsLive({
   }, [isAuthenticated, isActive]);
 
   // Merge: live overlay wins per id, but only for friends the poll says we
-  // can see (so a stale live event for a friend the user just unfollowed
-  // doesn't leak through).
-  const visibleIds = new Set(polled.map((f) => f.id));
-  const merged: FriendLocation[] = polled.map((f) =>
-    live[f.id] ?? f,
-  );
-  // Also include live events for friends already in the polled list (handled
-  // above); we intentionally do NOT add live-only friends, so the poll stays
-  // the source of truth on "who counts as a friend".
-  for (const id of Object.keys(live)) {
-    if (!visibleIds.has(id)) {
-      delete live[id]; // soft cleanup
-    }
-  }
+  // can see. We map over the polled list (the source of truth on "who counts
+  // as a friend"), so live-only events for someone the user just unfollowed
+  // never leak into the output.
+  const merged: FriendLocation[] = polled.map((f) => live[f.id] ?? f);
+
+  // Prune stale live entries (friends no longer in the poll) in an effect —
+  // never mutate state during render. Runs whenever the visible friend set
+  // changes.
+  const polledIdsKey = polled.map((f) => f.id).sort().join(',');
+  useEffect(() => {
+    const visibleIds = new Set(polled.map((f) => f.id));
+    setLive((prev) => {
+      const staleIds = Object.keys(prev).filter((id) => !visibleIds.has(id));
+      if (staleIds.length === 0) return prev;
+      const next = { ...prev };
+      for (const id of staleIds) delete next[id];
+      return next;
+    });
+    // polledIdsKey captures the set membership; polled itself is a new array
+    // reference each render, so we key the effect on the stable id string.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [polledIdsKey]);
 
   return {
     friendLocations: merged,

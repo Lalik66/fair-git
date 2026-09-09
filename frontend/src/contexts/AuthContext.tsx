@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authApi } from '../services/api';
+import { disconnectSocket } from '../services/friendsMessagesService';
 
 export interface User {
   id: string;
@@ -65,10 +66,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.setItem('user', JSON.stringify(currentUser));
           // Apply user's language preference from database
           applyUserLanguage(currentUser.preferredLanguage);
-        } catch (err) {
-          // Token is invalid, clear storage
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+        } catch (err: any) {
+          // Only clear the session when the server actively rejects the token
+          // (401/403). Transient failures (network down, 5xx) must NOT log the
+          // user out — otherwise a brief backend hiccup wipes their session.
+          const status = err?.response?.status;
+          if (status === 401 || status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          } else {
+            // Keep the cached user optimistically so the app stays usable.
+            try {
+              setUser(JSON.parse(savedUser));
+            } catch {
+              // Corrupted cache — safe to drop it.
+              localStorage.removeItem('user');
+            }
+          }
         }
       }
       setLoading(false);
@@ -138,6 +152,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Continue with logout even if API call fails
       console.error('Logout API error:', err);
     } finally {
+      // Tear down the shared WebSocket so a stale token isn't reused and the
+      // next user doesn't inherit the previous session's socket.
+      disconnectSocket();
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);

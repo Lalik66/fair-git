@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../index';
 import { verifyConversationAccess, getOtherParticipant } from '../services/messageService';
 import { getHeatmapSnapshot } from '../services/heatmapService';
+import { JWT_SECRET } from '../config/env';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -35,10 +36,7 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
       }
 
       // Verify JWT
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || 'your-secret-key'
-      ) as { userId: string };
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
 
       if (!decoded.userId) {
         return next(new Error('Invalid token'));

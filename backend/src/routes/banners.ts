@@ -3,7 +3,7 @@ import fs from 'fs';
 import sharp from 'sharp';
 import { prisma } from '../index';
 import { authenticateToken, requireAdmin, optionalAuth } from '../middleware/auth';
-import { bannerUpload, getUploadedFileUrl, isCloudinaryConfigured } from '../middleware/upload';
+import { bannerUpload, getUploadedFileUrl, isCloudinaryConfigured, singleUpload } from '../middleware/upload';
 
 const router = Router();
 
@@ -206,7 +206,7 @@ router.post(
   '/upload',
   authenticateToken,
   requireAdmin,
-  bannerUpload.single('banner'),
+  singleUpload(bannerUpload, 'banner'),
   async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.file) {

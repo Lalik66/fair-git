@@ -21,7 +21,6 @@ export interface FriendLocation {
 export interface FollowingUser {
   id: string;
   name: string;
-  email: string;
   followedAt: string;
 }
 

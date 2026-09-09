@@ -107,6 +107,75 @@ async function resolveLocation(
   return null;
 }
 
+type ResolvedLocation = { latitude: number; longitude: number; label: string };
+
+// Zone geometry → representative point (see resolveLocation for rationale).
+function zoneCentroid(name: string, geometry: string): ResolvedLocation | null {
+  try {
+    const geo = JSON.parse(geometry) as { coordinates: number[][][] };
+    const ring = geo.coordinates?.[0] ?? [];
+    if (ring.length === 0) return null;
+    let sx = 0;
+    let sy = 0;
+    for (const [lng, lat] of ring) {
+      sx += lng;
+      sy += lat;
+    }
+    return { longitude: sx / ring.length, latitude: sy / ring.length, label: name };
+  } catch {
+    return null;
+  }
+}
+
+// Resolve location coordinates for many events at once. Collects the distinct
+// ids per type and issues one findMany per type (3 queries total) instead of
+// one query per event, avoiding an N+1 on the public schedule page.
+async function resolveLocationsBatch(
+  events: { locationType: string; locationId: string }[]
+): Promise<Map<string, ResolvedLocation>> {
+  const idsByType: Record<string, Set<string>> = { house: new Set(), facility: new Set(), zone: new Set() };
+  for (const e of events) {
+    if (idsByType[e.locationType]) idsByType[e.locationType].add(e.locationId);
+  }
+
+  const result = new Map<string, ResolvedLocation>();
+  const key = (type: string, id: string): string => `${type}:${id}`;
+
+  const [houses, facilities, zones] = await Promise.all([
+    idsByType.house.size
+      ? prisma.vendorHouse.findMany({
+          where: { id: { in: [...idsByType.house] } },
+          select: { id: true, houseNumber: true, latitude: true, longitude: true },
+        })
+      : Promise.resolve([]),
+    idsByType.facility.size
+      ? prisma.facility.findMany({
+          where: { id: { in: [...idsByType.facility] } },
+          select: { id: true, name: true, latitude: true, longitude: true },
+        })
+      : Promise.resolve([]),
+    idsByType.zone.size
+      ? prisma.mapZone.findMany({
+          where: { id: { in: [...idsByType.zone] } },
+          select: { id: true, name: true, geometry: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  for (const h of houses) {
+    result.set(key('house', h.id), { latitude: h.latitude, longitude: h.longitude, label: `#${h.houseNumber}` });
+  }
+  for (const f of facilities) {
+    result.set(key('facility', f.id), { latitude: f.latitude, longitude: f.longitude, label: f.name });
+  }
+  for (const z of zones) {
+    const centroid = zoneCentroid(z.name, z.geometry);
+    if (centroid) result.set(key('zone', z.id), centroid);
+  }
+
+  return result;
+}
+
 /**
  * GET /api/events?fairId=<id>&nowOnly=true|false&locationId=<id>&locationType=<t>
  * Public. Returns non-cancelled events. nowOnly clamps to events currently
@@ -141,18 +210,18 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     });
 
     // Hydrate with the location label and coordinates so callers don't need
-    // a follow-up round-trip per row (would N+1 the schedule page).
-    const enriched = await Promise.all(
-      events.map(async (e) => {
-        const loc = await resolveLocation(e.locationType, e.locationId);
-        return {
-          ...e,
-          locationLabel: loc?.label ?? null,
-          locationLatitude: loc?.latitude ?? null,
-          locationLongitude: loc?.longitude ?? null,
-        };
-      })
-    );
+    // a follow-up round-trip per row. Locations are batch-fetched (one query
+    // per type) to avoid an N+1 across the event list.
+    const locations = await resolveLocationsBatch(events);
+    const enriched = events.map((e) => {
+      const loc = locations.get(`${e.locationType}:${e.locationId}`);
+      return {
+        ...e,
+        locationLabel: loc?.label ?? null,
+        locationLatitude: loc?.latitude ?? null,
+        locationLongitude: loc?.longitude ?? null,
+      };
+    });
 
     res.json({ events: enriched });
   } catch (error) {

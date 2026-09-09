@@ -83,3 +83,13 @@ frontend/public/Charityfairmp4.mp4
 frontend/public/Chertovo_koleso.webm
 frontend/public/svetlee_background.mp4
 frontend/public/fevvareler4.jpg
+
+# Playwright MCP scratch output (screenshots/traces) — not source
+.playwright-mcp/
+
+# Ad-hoc test image fixtures — large binaries, not source
+test-images/
+
+# Windows stray artifact from redirecting command output to `nul`
+nul
+**/nul

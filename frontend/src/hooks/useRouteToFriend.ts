@@ -6,7 +6,7 @@ import type { ActiveRoute, RouteStep, DirectionsResponse, CachedRoute } from '..
 
 // Get Mapbox token
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const MAPBOX_TOKEN = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 interface UseRouteToFriendProps {
   map: mapboxgl.Map | null;

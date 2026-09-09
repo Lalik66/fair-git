@@ -73,7 +73,7 @@ const SponsorCarousel: React.FC<Props> = ({ placement, fairId, intervalMs = 5000
         <a
           href={current.linkUrl}
           target="_blank"
-          rel="noopener sponsored"
+          rel="noopener noreferrer sponsored"
           className="sponsor-carousel__slide"
           onClick={handleClick}
         >

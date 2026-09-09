@@ -7,6 +7,7 @@ import {
   parseCategories,
   reviewerDisplayName,
 } from '../services/reviewService';
+import { escapeHtml } from '../utils/sanitizeHtml';
 
 const router = Router();
 
@@ -53,8 +54,12 @@ router.post('/', authenticateToken, async (req: Request, res: Response): Promise
       res.status(400).json({ error: `comment must be a string up to ${MAX_COMMENT_LENGTH} characters` });
       return;
     }
+    // HTML-escape before storage so the comment can never be rendered as
+    // active markup, even if a downstream surface forgets to escape it.
     const trimmedComment =
-      typeof comment === 'string' && comment.trim().length > 0 ? comment.trim() : null;
+      typeof comment === 'string' && comment.trim().length > 0
+        ? escapeHtml(comment.trim())
+        : null;
 
     const vendor = await prisma.vendorProfile.findUnique({
       where: { id: vendorId },
@@ -69,49 +74,57 @@ router.post('/', authenticateToken, async (req: Request, res: Response): Promise
       return;
     }
 
-    // Was the previous review (if any) public? Then the aggregate must be
-    // recomputed after we pull it back into PENDING.
-    const previous = await prisma.review.findUnique({
-      where: { vendorId_visitorId: { vendorId, visitorId } },
-      select: { status: true },
-    });
+    // Read the previous status, upsert, and (if needed) recompute the cached
+    // aggregate atomically. Doing these in one transaction prevents a
+    // concurrent submission/moderation from interleaving and leaving
+    // avgRating/reviewCount inconsistent.
+    const review = await prisma.$transaction(async (tx) => {
+      // Was the previous review (if any) public? Then the aggregate must be
+      // recomputed after we pull it back into PENDING.
+      const previous = await tx.review.findUnique({
+        where: { vendorId_visitorId: { vendorId, visitorId } },
+        select: { status: true },
+      });
 
-    const review = await prisma.review.upsert({
-      where: { vendorId_visitorId: { vendorId, visitorId } },
-      create: {
-        vendorId,
-        visitorId,
-        rating,
-        categories: categoriesJson,
-        comment: trimmedComment,
-      },
-      update: {
-        rating,
-        categories: categoriesJson,
-        comment: trimmedComment,
-        // Edited content goes back through moderation; the old reply refers
-        // to the old text, so it is cleared too.
-        status: 'PENDING',
-        rejectionReason: null,
-        vendorReply: null,
-        repliedAt: null,
-        reportCount: 0,
-        moderatedAt: null,
-        moderatedById: null,
-      },
-      select: {
-        id: true,
-        rating: true,
-        categories: true,
-        comment: true,
-        status: true,
-        createdAt: true,
-      },
-    });
+      const upserted = await tx.review.upsert({
+        where: { vendorId_visitorId: { vendorId, visitorId } },
+        create: {
+          vendorId,
+          visitorId,
+          rating,
+          categories: categoriesJson,
+          comment: trimmedComment,
+        },
+        update: {
+          rating,
+          categories: categoriesJson,
+          comment: trimmedComment,
+          // Edited content goes back through moderation; the old reply refers
+          // to the old text, so it is cleared too.
+          status: 'PENDING',
+          rejectionReason: null,
+          vendorReply: null,
+          repliedAt: null,
+          reportCount: 0,
+          moderatedAt: null,
+          moderatedById: null,
+        },
+        select: {
+          id: true,
+          rating: true,
+          categories: true,
+          comment: true,
+          status: true,
+          createdAt: true,
+        },
+      });
 
-    if (previous?.status === 'APPROVED') {
-      await recalcVendorRating(vendorId);
-    }
+      if (previous?.status === 'APPROVED') {
+        await recalcVendorRating(vendorId, tx);
+      }
+
+      return upserted;
+    });
 
     res.status(201).json({
       review: { ...review, categories: parseCategories(review.categories) },
@@ -307,7 +320,7 @@ router.post('/:id/reply', authenticateToken, async (req: Request, res: Response)
 
     const updated = await prisma.review.update({
       where: { id },
-      data: { vendorReply: reply.trim(), repliedAt: new Date() },
+      data: { vendorReply: escapeHtml(reply.trim()), repliedAt: new Date() },
       select: { id: true, vendorReply: true, repliedAt: true },
     });
 

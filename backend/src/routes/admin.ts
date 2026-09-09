@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import path from 'path';
@@ -17,7 +18,7 @@ import {
 } from '../services/reviewService';
 import { deleteFromCloud } from '../utils/upload';
 import { emitSosUpdated, serializeIncident as serializeSosIncident } from '../services/sosService';
-import { panoramaUpload, getUploadedFileUrl, isCloudinaryConfigured } from '../middleware/upload';
+import { panoramaUpload, getUploadedFileUrl, isCloudinaryConfigured, singleUpload } from '../middleware/upload';
 
 // Note: Panorama upload middleware is now imported from '../middleware/upload'
 // which automatically uses Cloudinary storage when configured, or local disk storage as fallback
@@ -44,6 +45,8 @@ router.use(requireAdmin);
 router.get('/users', async (_req: Request, res: Response): Promise<void> => {
   try {
     const users = await prisma.user.findMany({
+      // Safety cap to bound the payload as the user base grows.
+      take: Number.parseInt(process.env.ADMIN_LIST_MAX || '', 10) || 500,
       select: {
         id: true,
         email: true,
@@ -267,18 +270,18 @@ router.get('/applications', async (req: Request, res: Response): Promise<void> =
     const { status, fairId, sortBy, sortOrder } = req.query;
 
     // Build filter conditions
-    const where: any = {};
+    const where: Prisma.ApplicationWhereInput = {};
     if (status && status !== 'all') {
-      where.status = status;
+      where.status = String(status);
     }
     if (fairId && fairId !== 'all') {
-      where.fairId = fairId;
+      where.fairId = String(fairId);
     }
 
     // Determine sort order
-    let orderBy: any = { submittedAt: 'desc' };
+    const order: Prisma.SortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
+    let orderBy: Prisma.ApplicationOrderByWithRelationInput = { submittedAt: 'desc' };
     if (sortBy) {
-      const order = sortOrder === 'asc' ? 'asc' : 'desc';
       switch (sortBy) {
         case 'submittedAt':
           orderBy = { submittedAt: order };
@@ -296,6 +299,9 @@ router.get('/applications', async (req: Request, res: Response): Promise<void> =
 
     const applications = await prisma.application.findMany({
       where,
+      // Safety cap so this heavily-joined list can't return an unbounded
+      // payload as data grows. Overridable via ADMIN_LIST_MAX.
+      take: Number.parseInt(process.env.ADMIN_LIST_MAX || '', 10) || 500,
       include: {
         vendorProfile: {
           include: {
@@ -462,40 +468,47 @@ router.put('/applications/:applicationId/approve', async (req: Request, res: Res
       return;
     }
 
-    // Update application status
-    const updatedApplication = await prisma.application.update({
-      where: { id: applicationId },
-      data: {
-        status: 'approved',
-        reviewedAt: new Date(),
-        reviewedById: req.user!.id,
-        adminNotes: adminNotes || null,
-      },
-    });
-
-    // Create booking automatically
-    const booking = await prisma.booking.create({
-      data: {
-        applicationId: application.id,
-        vendorProfileId: application.vendorProfileId,
-        vendorHouseId: application.vendorHouseId,
-        fairId: application.fairId,
-        bookingStatus: 'approved',
-        startDate: application.fair.startDate,
-        endDate: application.fair.endDate,
-      },
-    });
-
-    // Promote the applicant to vendor. The new application flow lets a
-    // regular `user` apply; approval is the moment they actually become a
-    // vendor (and gain the vendor dashboard on next sign-in). Never touch
-    // an admin's role.
-    if (application.vendorProfile.user.role === 'user') {
-      await prisma.user.update({
-        where: { id: application.vendorProfile.userId },
-        data: { role: 'vendor' },
+    // Approval mutates three tables (application status, new booking, and the
+    // applicant's role). Run them atomically so a mid-way failure can't leave
+    // an approved application with no booking, or a booking with a stale role.
+    const shouldPromote = application.vendorProfile.user.role === 'user';
+    const { updatedApplication, booking } = await prisma.$transaction(async (tx) => {
+      const updatedApplication = await tx.application.update({
+        where: { id: applicationId },
+        data: {
+          status: 'approved',
+          reviewedAt: new Date(),
+          reviewedById: req.user!.id,
+          adminNotes: adminNotes || null,
+        },
       });
-    }
+
+      // Create booking automatically
+      const booking = await tx.booking.create({
+        data: {
+          applicationId: application.id,
+          vendorProfileId: application.vendorProfileId,
+          vendorHouseId: application.vendorHouseId,
+          fairId: application.fairId,
+          bookingStatus: 'approved',
+          startDate: application.fair.startDate,
+          endDate: application.fair.endDate,
+        },
+      });
+
+      // Promote the applicant to vendor. The new application flow lets a
+      // regular `user` apply; approval is the moment they actually become a
+      // vendor (and gain the vendor dashboard on next sign-in). Never touch
+      // an admin's role.
+      if (shouldPromote) {
+        await tx.user.update({
+          where: { id: application.vendorProfile.userId },
+          data: { role: 'vendor' },
+        });
+      }
+
+      return { updatedApplication, booking };
+    });
 
     // Log the action
     await prisma.adminLog.create({
@@ -986,9 +999,9 @@ router.get('/bookings', async (req: Request, res: Response): Promise<void> => {
   try {
     const { fairId, isArchived } = req.query;
 
-    const where: any = {};
+    const where: Prisma.BookingWhereInput = {};
     if (fairId) {
-      where.fairId = fairId;
+      where.fairId = String(fairId);
     }
     if (isArchived !== undefined) {
       where.isArchived = isArchived === 'true';
@@ -996,6 +1009,8 @@ router.get('/bookings', async (req: Request, res: Response): Promise<void> => {
 
     const bookings = await prisma.booking.findMany({
       where,
+      // Safety cap to bound the payload as bookings accumulate.
+      take: Number.parseInt(process.env.ADMIN_LIST_MAX || '', 10) || 500,
       include: {
         vendorProfile: {
           include: {
@@ -2129,7 +2144,7 @@ router.put('/vendor-houses/:houseId/panorama', async (req: Request, res: Respons
 });
 
 // Upload panorama image file for vendor house
-router.post('/vendor-houses/:houseId/panorama-upload', panoramaUpload.single('panorama'), async (req: Request, res: Response): Promise<void> => {
+router.post('/vendor-houses/:houseId/panorama-upload', singleUpload(panoramaUpload, 'panorama'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { houseId } = req.params;
 
@@ -2750,20 +2765,26 @@ router.patch('/reviews/:id', async (req: Request, res: Response): Promise<void> 
     }
 
     const approving = action === 'approve';
-    const updated = await prisma.review.update({
-      where: { id },
-      data: {
-        status: approving ? 'APPROVED' : 'REJECTED',
-        rejectionReason: approving ? null : (rejectionReason?.trim() || null),
-        // A decision clears prior reports — the queue sorted on them already.
-        reportCount: 0,
-        moderatedAt: new Date(),
-        moderatedById: req.user!.id,
-      },
-      select: { id: true, status: true, rejectionReason: true, moderatedAt: true },
-    });
+    // Update the review and recompute the vendor's cached rating atomically so
+    // a failure mid-way can't leave the review moderated while avgRating /
+    // reviewCount stay stale (which would corrupt the public rating display).
+    const updated = await prisma.$transaction(async (tx) => {
+      const updated = await tx.review.update({
+        where: { id },
+        data: {
+          status: approving ? 'APPROVED' : 'REJECTED',
+          rejectionReason: approving ? null : (rejectionReason?.trim() || null),
+          // A decision clears prior reports — the queue sorted on them already.
+          reportCount: 0,
+          moderatedAt: new Date(),
+          moderatedById: req.user!.id,
+        },
+        select: { id: true, status: true, rejectionReason: true, moderatedAt: true },
+      });
 
-    await recalcVendorRating(review.vendorId);
+      await recalcVendorRating(review.vendorId, tx);
+      return updated;
+    });
 
     await prisma.adminLog.create({
       data: {

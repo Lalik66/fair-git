@@ -6,8 +6,8 @@ import './SosDashboard.css';
 
 type Filter = 'ACTIVE' | 'RESOLVED' | 'FALSE_ALARM' | 'all';
 
-const MAPBOX_TOKEN = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
-const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api';
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 const BACKEND_ORIGIN = API_URL.replace(/\/api\/?$/, '');
 
 /** Static Mapbox image with a red pin — no live map lifecycle per card. */

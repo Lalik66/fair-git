@@ -1,4 +1,12 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../index';
+
+/**
+ * A Prisma client or an interactive transaction client. Accepting either lets
+ * callers run the rating recompute inside a surrounding `$transaction` so the
+ * moderation decision and the cached aggregates stay consistent.
+ */
+type PrismaClientOrTx = Prisma.TransactionClient | typeof prisma;
 
 /**
  * Recompute the cached rating aggregates on a vendor profile.
@@ -7,14 +15,17 @@ import { prisma } from '../index';
  * transition into or out of APPROVED (moderation decision, or a visitor
  * editing a previously-approved review which resets it to PENDING).
  */
-export async function recalcVendorRating(vendorId: string): Promise<void> {
-  const agg = await prisma.review.aggregate({
+export async function recalcVendorRating(
+  vendorId: string,
+  client: PrismaClientOrTx = prisma
+): Promise<void> {
+  const agg = await client.review.aggregate({
     where: { vendorId, status: 'APPROVED' },
     _avg: { rating: true },
     _count: { _all: true },
   });
 
-  await prisma.vendorProfile.update({
+  await client.vendorProfile.update({
     where: { id: vendorId },
     data: {
       // One decimal place — "4.3" reads better than 4.3333333.

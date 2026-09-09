@@ -8,7 +8,7 @@ import './MapManagement.css';
 
 // Set Mapbox access token
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-mapboxgl.accessToken = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 interface VendorHouse {
   id: string;

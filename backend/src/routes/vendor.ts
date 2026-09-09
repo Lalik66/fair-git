@@ -4,7 +4,7 @@ import fs from 'fs';
 import { prisma } from '../index';
 import { authenticateToken, requireVendor } from '../middleware/auth';
 import { deleteFromCloud, deleteLocalFile } from '../utils/upload';
-import { logoUpload, productImageUpload, getUploadedFileUrl, isCloudinaryConfigured } from '../middleware/upload';
+import { logoUpload, productImageUpload, getUploadedFileUrl, isCloudinaryConfigured, singleUpload } from '../middleware/upload';
 
 const router = Router();
 
@@ -494,7 +494,7 @@ router.post('/applications', async (req: Request, res: Response): Promise<void> 
 });
 
 // Upload or replace vendor logo
-router.post('/logo', logoUpload.single('logo'), async (req: Request, res: Response): Promise<void> => {
+router.post('/logo', singleUpload(logoUpload, 'logo'), async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.file) {
       res.status(400).json({ error: 'No file uploaded' });
@@ -584,7 +584,7 @@ router.delete('/logo', async (req: Request, res: Response): Promise<void> => {
 
 
 // Upload product image
-router.post('/product-images', productImageUpload.single('image'), async (req: Request, res: Response): Promise<void> => {
+router.post('/product-images', singleUpload(productImageUpload, 'image'), async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.file) {
       res.status(400).json({ error: 'No file uploaded' });

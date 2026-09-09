@@ -13,7 +13,7 @@ import { trackVendorClick } from '../../services/analyticsService';
 
 // Set Mapbox access token
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-mapboxgl.accessToken = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 // Escape text/attribute content before injecting into popup HTML (Mapbox
 // setHTML). Covers &, <, >, and both quote styles so it is safe in attributes.

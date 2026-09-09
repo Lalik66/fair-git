@@ -11,8 +11,8 @@ interface Props {
   onClose: () => void;
   /**
    * Optional override for the row tap behaviour. Defaults to navigating to
-   * /map?eventId=… so the existing MapPage deep-link handles the fly + popup.
-   * Map page passes its own handler so a tap doesn't trigger a route change.
+   * /map?eventId=… so the SplitViewMapLayout deep-link handles the fly + popup.
+   * The map view passes its own handler so a tap doesn't trigger a route change.
    */
   onPick?: (event: FairEvent) => void;
 }

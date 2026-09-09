@@ -38,16 +38,8 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramaUrl, onClose, h
 
       // Prevent re-initialization if we've already initialized for this URL
       if (initializedUrlRef.current === urlToLoad && viewerRef.current) {
-        console.log('[PanoramaViewer] Already initialized for this URL, skipping');
         return;
       }
-
-      // Debug logging
-      console.log('[PanoramaViewer] Initializing with URL:', urlToLoad);
-      console.log('[PanoramaViewer] Container dimensions:', {
-        width: containerRef.current.offsetWidth,
-        height: containerRef.current.offsetHeight,
-      });
 
       // Track the URL we're initializing with
       initializedUrlRef.current = urlToLoad;
@@ -71,7 +63,6 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramaUrl, onClose, h
         // Handle ready event
         viewerRef.current.addEventListener('ready', () => {
           if (cancelled) return;
-          console.log('[PanoramaViewer] Viewer ready!');
           setLoading(false);
         });
 
@@ -84,7 +75,6 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramaUrl, onClose, h
           // If we were trying to load a custom URL and it failed, try the demo
           if (urlToLoad !== DEMO_PANORAMA_URL && viewerRef.current) {
             if (cancelled) return;
-            console.log('[PanoramaViewer] Falling back to demo panorama...');
             setUsingDemo(true);
             viewerRef.current.setPanorama(DEMO_PANORAMA_URL).catch((fallbackErr) => {
               if (cancelled) return;
@@ -115,7 +105,6 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramaUrl, onClose, h
       cancelled = true;
       clearTimeout(timer);
       if (viewerRef.current) {
-        console.log('[PanoramaViewer] Destroying viewer');
         viewerRef.current.destroy();
         viewerRef.current = null;
         initializedUrlRef.current = null;

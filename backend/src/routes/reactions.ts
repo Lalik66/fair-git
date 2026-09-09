@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Server } from 'socket.io';
 import { rateLimit } from 'express-rate-limit';
 import { prisma } from '../index';
 import { authenticateToken } from '../middleware/auth';
@@ -26,9 +27,9 @@ const sendReactionLimiter = rateLimit({
 });
 
 // Socket.io instance will be set from index.ts
-let io: any = null;
+let io: Server | null = null;
 
-export function setSocketIO(socketIO: any): void {
+export function setSocketIO(socketIO: Server): void {
   io = socketIO;
 }
 

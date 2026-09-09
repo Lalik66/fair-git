@@ -19,7 +19,7 @@ import {
 import './ZoneManagement.css';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-mapboxgl.accessToken = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 interface Fair {
   id: string;

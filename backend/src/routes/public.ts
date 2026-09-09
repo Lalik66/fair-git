@@ -307,7 +307,7 @@ router.get('/vendor-houses', optionalAuth, async (req: Request, res: Response): 
       logoUrl: string | null;
       productImages: string[];
     }
-    let bookingsMap: Map<string, VendorInfo | true> = new Map();
+    const bookingsMap: Map<string, VendorInfo | true> = new Map();
 
     if (fairId && typeof fairId === 'string') {
       // Get bookings with vendor profile information (for occupied houses)

@@ -5,7 +5,6 @@ import {
   sendMessage,
   markAsRead,
   connectSocket,
-  disconnectSocket,
   onNewMessage,
   onTypingStart,
   onTypingStop,
@@ -197,15 +196,11 @@ const FriendChatPanel: React.FC<FriendChatPanelProps> = ({
     };
   }, [isOpen, conversationId, friend.id]);
 
-  // Disconnect socket on close
-  useEffect(() => {
-    if (!isOpen) {
-      disconnectSocket();
-    }
-    return () => {
-      disconnectSocket();
-    };
-  }, [isOpen]);
+  // NOTE: intentionally do NOT disconnect the socket here. The socket is a
+  // shared singleton used by location tracking, reactions, SOS and the heatmap.
+  // Tearing it down when the chat panel closes would kill those features too.
+  // Its lifecycle is owned by AuthContext (connect on login, disconnect on logout);
+  // this panel only unsubscribes its own listeners (see the effect above).
 
   // Handle ESC key
   useEffect(() => {

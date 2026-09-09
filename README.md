@@ -52,16 +52,17 @@ Fair Marketplace is designed for:
 - Snowflake animations and animated train element
 
 ### Backend
-- **Node.js** with Express/Fastify
-- **PostgreSQL 15+** with PostGIS extension
+- **Node.js** with Express
+- **SQLite** (via Prisma) for development; the datasource URL is configurable
+  for other databases in production
 - **Prisma ORM** for database management
+- **Socket.io** for real-time messaging, reactions, and live location
 - **Google OAuth** authentication
 - **Cloudinary** for image storage
 
 ## Prerequisites
 
 - Node.js 18+
-- PostgreSQL 15+ with PostGIS extension
 - Mapbox API access token
 - Google OAuth credentials
 - Cloudinary account
@@ -167,7 +168,7 @@ fair-marketplace/
 
 ## Database Schema
 
-The application uses PostgreSQL with the following main tables:
+The application uses SQLite (via Prisma) with the following main tables:
 - `users` - User accounts (admin, vendor, visitor)
 - `vendor_profiles` - Vendor company information
 - `vendor_product_images` - Product image gallery
@@ -255,8 +256,11 @@ npx prisma generate
 
 ## Deployment
 
-1. Set up production PostgreSQL with PostGIS
-2. Configure production environment variables
+1. Provision the production database and point `DATABASE_URL` at it (the dev
+   default is SQLite; switch the Prisma datasource provider if you move to
+   another engine)
+2. Configure production environment variables (including a strong `JWT_SECRET`
+   and `SESSION_SECRET` — both are required in production)
 3. Set up Cloudinary production account
 4. Configure Google OAuth production credentials
 5. Build the applications:

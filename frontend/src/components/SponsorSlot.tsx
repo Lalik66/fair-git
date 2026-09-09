@@ -74,7 +74,7 @@ const SponsorSlot: React.FC<Props> = ({ placement, fairId, variant = 'inline', h
       <a
         href={banner.linkUrl}
         target="_blank"
-        rel="noopener sponsored"
+        rel="noopener noreferrer sponsored"
         className={`sponsor-slot sponsor-slot--${variant}`}
         onClick={handleClick}
       >

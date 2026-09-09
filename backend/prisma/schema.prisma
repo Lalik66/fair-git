@@ -377,6 +377,9 @@ model Application {
   booking         Booking?
 
   @@map("applications")
+  @@index([status])
+  @@index([fairId, status])
+  @@index([vendorProfileId, submittedAt])
 }
 
 // Bookings table
@@ -417,6 +420,9 @@ model AdminLog {
   admin     User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
   @@map("admin_logs")
+  @@index([timestamp])
+  @@index([action, timestamp])
+  @@index([adminId])
 }
 
 // About Us content table

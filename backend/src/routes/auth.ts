@@ -6,19 +6,9 @@ import passport from 'passport';
 import { prisma } from '../index';
 import { authenticateToken } from '../middleware/auth';
 import { isGoogleOAuthConfigured } from '../config/passport';
+import { JWT_SECRET } from '../config/env';
 
 const router = Router();
-
-// JWT_SECRET validation - fail loudly in production if not set
-const jwtSecret = process.env.JWT_SECRET;
-if (!jwtSecret) {
-  console.error('JWT_SECRET environment variable is required');
-  // In development, use a default; in production, this should be set
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET environment variable is required in production');
-  }
-}
-const JWT_SECRET = jwtSecret || 'development-secret-do-not-use-in-production';
 
 // Login rate limiter - 5 attempts per 15 minutes per IP
 const loginRateLimiter = rateLimit({

@@ -240,7 +240,6 @@ router.get(
               id: true,
               firstName: true,
               lastName: true,
-              email: true,
             },
           },
           createdAt: true,
@@ -250,10 +249,11 @@ router.get(
         },
       });
 
+      // Do not expose followed users' email addresses (PII). A display name
+      // and id are all the client needs to render the "following" list.
       const users = following.map((f) => ({
         id: f.following.id,
         name: `${f.following.firstName || ''} ${f.following.lastName || ''}`.trim() || 'Anonymous',
-        email: f.following.email,
         followedAt: f.createdAt.toISOString(),
       }));
 

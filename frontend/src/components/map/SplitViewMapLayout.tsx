@@ -30,7 +30,7 @@ import './SplitViewMapLayout.css';
 
 // Get Mapbox token
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const MAPBOX_TOKEN = (import.meta as any).env.VITE_MAPBOX_TOKEN || '';
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 const SplitViewMapLayout: React.FC = () => {
   const { t } = useTranslation();
@@ -77,13 +77,20 @@ const SplitViewMapLayout: React.FC = () => {
   // The REST write happens inside useLocationTracking; we also emit live on
   // the socket so followers see updates in real time. The backend gates both
   // paths on the per-user isSharingLocation flag, so opting out kills both.
+  // Memoized so its identity is stable across renders. useLocationTracking
+  // funnels this through a useCallback chain into the GeolocateControl effect;
+  // an inline function here would re-run that effect (detach/reattach the map
+  // listeners) on every render. setUserLocation and emitLiveLocation are both
+  // stable references.
+  const handleLocationSent = useCallback((lat: number, lng: number) => {
+    setUserLocation({ latitude: lat, longitude: lng });
+    emitLiveLocation(lat, lng);
+  }, []);
+
   useLocationTracking({
     geolocateControl,
     isAuthenticated: !!user,
-    onLocationSent: (lat, lng) => {
-      setUserLocation({ latitude: lat, longitude: lng });
-      emitLiveLocation(lat, lng);
-    },
+    onLocationSent: handleLocationSent,
   });
 
   // Populate userLocation from the existing Mapbox GeolocateControl. This works

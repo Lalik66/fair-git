@@ -13,6 +13,7 @@ import passport from 'passport';
 import { initializePassport } from './config/passport';
 import { initializeWebSocket } from './websocket';
 import { startHeatmapAggregator } from './services/heatmapService';
+import { SESSION_SECRET } from './config/env';
 
 // Load environment variables
 dotenv.config();
@@ -22,7 +23,7 @@ export const prisma = new PrismaClient();
 
 // Create Express app
 const app: Express = express();
-const PORT = process.env.PORT || 3002;
+const PORT = Number.parseInt(process.env.PORT || '', 10) || 3002;
 
 // Security middleware
 app.use(helmet({
@@ -33,10 +34,15 @@ app.use(cors({
   credentials: true,
 }));
 
-// Rate limiting
+// Rate limiting. A sane global cap that blunts scraping/brute force while
+// leaving headroom for legitimate map/polling traffic. Sensitive actions
+// (login, SOS, AI) have their own tighter per-route limiters. Overridable via
+// RATE_LIMIT_MAX for load testing without editing code.
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 1000 requests per windowMs (increased for testing)
+  max: Number.parseInt(process.env.RATE_LIMIT_MAX || '', 10) || 300,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use('/api/', limiter);
@@ -48,12 +54,13 @@ app.use(cookieParser());
 
 // Session middleware (required for Google OAuth state handling)
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'development-session-secret',
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
+    sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
 }));
@@ -131,22 +138,31 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/public/marketing-leads', marketingLeadsRoutes);
 app.use('/api/sos', sosRoutes);
 
-// Error handling middleware
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Error:', err.message);
-  console.error('Stack:', err.stack);
-
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
-  });
-});
-
-// 404 handler
+// 404 handler (must be registered after all routes, before the error handler)
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     error: 'Not Found',
     message: `Route ${req.method} ${req.path} not found`,
+  });
+});
+
+// Error handling middleware (4-arg signature so Express treats it as the
+// terminal error handler). Registered last.
+app.use((err: Error & { status?: number; statusCode?: number }, _req: Request, res: Response, _next: NextFunction) => {
+  const status = err.statusCode || err.status || 500;
+
+  console.error('Error:', err.message);
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('Stack:', err.stack);
+  }
+
+  // Client (4xx) errors carry a safe, intentional message and may be surfaced.
+  // Server (5xx) errors must never leak internal details to the client in any
+  // environment — details stay in the server logs above.
+  const isClientError = status >= 400 && status < 500;
+  res.status(status).json({
+    error: isClientError ? 'Bad Request' : 'Internal Server Error',
+    message: isClientError ? err.message : 'Something went wrong',
   });
 });
 
@@ -252,5 +268,8 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-// Start the server
-startServer();
+// Start the server — but not under the test runner, where modules are
+// imported for unit testing and must not open a port or DB connection.
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}

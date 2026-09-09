@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Server } from 'socket.io';
 import { prisma } from '../index';
 import { authenticateToken } from '../middleware/auth';
 import {
@@ -14,9 +15,9 @@ import {
 const router = Router();
 
 // Socket.io instance will be set from index.ts
-let io: any = null;
+let io: Server | null = null;
 
-export function setSocketIO(socketIO: any): void {
+export function setSocketIO(socketIO: Server): void {
   io = socketIO;
 }
 
@@ -44,7 +45,28 @@ router.get(
         },
       });
 
-      // Count unread messages for each conversation
+      // Count unread messages across all of the user's conversations in a
+      // single grouped query instead of issuing one count() per conversation
+      // (previously an N+1 on a frequently-polled endpoint).
+      const conversationIds = conversations.map((c) => c.id);
+      const grouped = conversationIds.length
+        ? await prisma.message.groupBy({
+            by: ['conversationId'],
+            where: {
+              conversationId: { in: conversationIds },
+              senderId: { not: userId },
+              readAt: null,
+              isDeleted: false,
+            },
+            _count: { _all: true },
+          })
+        : [];
+
+      const unreadByConversation = new Map<string, number>();
+      for (const row of grouped) {
+        unreadByConversation.set(row.conversationId, row._count._all);
+      }
+
       let totalUnread = 0;
       const byConversation: Array<{
         conversationId: string;
@@ -54,15 +76,7 @@ router.get(
       }> = [];
 
       for (const conv of conversations) {
-        const unreadCount = await prisma.message.count({
-          where: {
-            conversationId: conv.id,
-            senderId: { not: userId },
-            readAt: null,
-            isDeleted: false,
-          },
-        });
-
+        const unreadCount = unreadByConversation.get(conv.id) || 0;
         if (unreadCount > 0) {
           const friend = conv.participant1 === userId ? conv.user2 : conv.user1;
           totalUnread += unreadCount;
@@ -204,7 +218,12 @@ router.get(
       const { friendId } = req.params;
       const { cursor, limit: limitParam } = req.query;
 
-      const limit = Math.min(parseInt(limitParam as string) || 50, 100);
+      // Clamp the page size to [1, 100]. A malformed or negative value would
+      // otherwise flow into a negative Prisma `take` and reverse pagination.
+      const parsedLimit = Number.parseInt(String(limitParam ?? ''), 10);
+      const limit = Number.isFinite(parsedLimit)
+        ? Math.min(Math.max(parsedLimit, 1), 100)
+        : 50;
 
       // Validate friendId
       if (!friendId || typeof friendId !== 'string') {
