@@ -43,20 +43,8 @@ export async function validateMutualFriendship(
 }
 
 /**
- * Simple HTML entity encoding for XSS prevention
- */
-export function sanitizeMessageContent(content: string): string {
-  return content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
-}
-
-/**
  * Validate message content
- * Returns sanitized content or throws an error
+ * Returns the raw trimmed content or throws an error
  */
 export function validateMessageContent(content: unknown): string {
   if (typeof content !== 'string') {
@@ -73,7 +61,12 @@ export function validateMessageContent(content: unknown): string {
     throw new Error('Message exceeds 1000 character limit');
   }
 
-  return sanitizeMessageContent(trimmed);
+  // Store the raw message. Output encoding is the renderer's job: the chat
+  // UIs (FriendChatPanel, AIChatPanel) display content as plain-text JSX, so
+  // React escapes it on render. Escaping here would double-encode (users
+  // would see &amp; / &lt;).
+  // See docs/deploy-notes.md — double-encode migration (chat message content)
+  return trimmed;
 }
 
 /**

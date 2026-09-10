@@ -7,7 +7,6 @@ import {
   parseCategories,
   reviewerDisplayName,
 } from '../services/reviewService';
-import { escapeHtml } from '../utils/sanitizeHtml';
 
 const router = Router();
 
@@ -54,11 +53,13 @@ router.post('/', authenticateToken, async (req: Request, res: Response): Promise
       res.status(400).json({ error: `comment must be a string up to ${MAX_COMMENT_LENGTH} characters` });
       return;
     }
-    // HTML-escape before storage so the comment can never be rendered as
-    // active markup, even if a downstream surface forgets to escape it.
+    // Store the raw comment. Output encoding is the renderer's job: the
+    // frontend displays it as plain-text JSX, so React escapes it on render.
+    // Escaping here would double-encode (users would see &amp; / &lt;).
+    // See docs/deploy-notes.md — double-encode migration (comment + vendorReply)
     const trimmedComment =
       typeof comment === 'string' && comment.trim().length > 0
-        ? escapeHtml(comment.trim())
+        ? comment.trim()
         : null;
 
     const vendor = await prisma.vendorProfile.findUnique({
@@ -320,7 +321,7 @@ router.post('/:id/reply', authenticateToken, async (req: Request, res: Response)
 
     const updated = await prisma.review.update({
       where: { id },
-      data: { vendorReply: escapeHtml(reply.trim()), repliedAt: new Date() },
+      data: { vendorReply: reply.trim(), repliedAt: new Date() },
       select: { id: true, vendorReply: true, repliedAt: true },
     });
 
