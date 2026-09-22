@@ -268,8 +268,10 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-// Start the server — but not under the test runner, where modules are
-// imported for unit testing and must not open a port or DB connection.
-if (process.env.NODE_ENV !== 'test') {
+// Start the server only when this module is executed directly (e.g.
+// `node dist/index.js` or ts-node-dev). Importing it — as the test suite does
+// transitively via reviewService — must not boot the HTTP server or connect to
+// the database.
+if (require.main === module) {
   startServer();
 }
