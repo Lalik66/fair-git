@@ -486,10 +486,10 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(({
 
     return `
       <div class="marker-popup facility-popup">
-        <h3>${obj.emoji} ${obj.label}</h3>
-        <p class="facility-type">${obj.type.replace('_', ' ')}</p>
-        ${obj.description ? `<p>${obj.description}</p>` : ''}
-        ${obj.photoUrl ? `<img src="${obj.photoUrl}" alt="${obj.label}" class="facility-photo" />` : ''}
+        <h3>${obj.emoji} ${escapeHtml(obj.label)}</h3>
+        <p class="facility-type">${escapeHtml(obj.type.replace('_', ' '))}</p>
+        ${obj.description ? `<p>${escapeHtml(obj.description)}</p>` : ''}
+        ${obj.photoUrl ? `<img src="${escapeHtml(obj.photoUrl)}" alt="${escapeHtml(obj.label)}" class="facility-photo" />` : ''}
         ${renderEventsBlock(obj.id)}
       </div>
     `;

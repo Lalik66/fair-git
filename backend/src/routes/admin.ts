@@ -37,9 +37,29 @@ function serializeGallery(gallery: unknown): string | null {
   return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
 }
 
+// Parse an optional numeric field to a finite number, or null. Guards against
+// persisting NaN (parseFloat('abc')) for optional coordinate fields.
+function toFloatOrNull(value: unknown): number | null {
+  if (value === undefined || value === null || value === '') return null;
+  const n = parseFloat(String(value));
+  return Number.isNaN(n) ? null : n;
+}
+
 // All admin routes require authentication and admin role
 router.use(authenticateToken);
 router.use(requireAdmin);
+
+// Guard for the `test-*` data-seeding routes below. These create/delete real
+// Users, Houses and Bookings (some with known passwords, some deleting by
+// well-known house numbers) and exist purely to exercise flows in dev. They
+// must never be reachable in production — return 404 so they look absent.
+const blockInProduction = (_req: Request, res: Response, next: import('express').NextFunction): void => {
+  if (process.env.NODE_ENV === 'production') {
+    res.status(404).json({ error: 'Not Found' });
+    return;
+  }
+  next();
+};
 
 // Get all users
 router.get('/users', async (_req: Request, res: Response): Promise<void> => {
@@ -452,27 +472,28 @@ router.put('/applications/:applicationId/approve', async (req: Request, res: Res
       return;
     }
 
-    // Check if house is already booked for this fair
-    const existingBooking = await prisma.booking.findFirst({
-      where: {
-        vendorHouseId: application.vendorHouseId,
-        fairId: application.fairId,
-        bookingStatus: 'approved',
-      },
-    });
-
-    if (existingBooking) {
-      res.status(400).json({
-        error: 'This house is already booked for this fair. Please reject this application or choose a different house.',
-      });
-      return;
-    }
-
     // Approval mutates three tables (application status, new booking, and the
     // applicant's role). Run them atomically so a mid-way failure can't leave
     // an approved application with no booking, or a booking with a stale role.
+    // The "already booked" conflict check runs INSIDE the transaction so two
+    // concurrent approvals for the same house/fair can't both pass the check
+    // and double-book (there is no DB-level unique on house+fair).
     const shouldPromote = application.vendorProfile.user.role === 'user';
-    const { updatedApplication, booking } = await prisma.$transaction(async (tx) => {
+    let alreadyBooked = false;
+    const txResult = await prisma.$transaction(async (tx) => {
+      const existingBooking = await tx.booking.findFirst({
+        where: {
+          vendorHouseId: application.vendorHouseId,
+          fairId: application.fairId,
+          bookingStatus: 'approved',
+        },
+      });
+
+      if (existingBooking) {
+        alreadyBooked = true;
+        return null;
+      }
+
       const updatedApplication = await tx.application.update({
         where: { id: applicationId },
         data: {
@@ -509,6 +530,15 @@ router.put('/applications/:applicationId/approve', async (req: Request, res: Res
 
       return { updatedApplication, booking };
     });
+
+    if (alreadyBooked || !txResult) {
+      res.status(400).json({
+        error: 'This house is already booked for this fair. Please reject this application or choose a different house.',
+      });
+      return;
+    }
+
+    const { updatedApplication, booking } = txResult;
 
     // Log the action
     await prisma.adminLog.create({
@@ -1255,8 +1285,8 @@ router.post('/fairs', async (req: Request, res: Response): Promise<void> => {
         startDate: start,
         endDate: end,
         locationAddress: locationAddress || null,
-        mapCenterLat: mapCenterLat ? parseFloat(mapCenterLat) : null,
-        mapCenterLng: mapCenterLng ? parseFloat(mapCenterLng) : null,
+        mapCenterLat: toFloatOrNull(mapCenterLat),
+        mapCenterLng: toFloatOrNull(mapCenterLng),
         bannerImageUrl: bannerImageUrl || null,
         galleryUrls: serializeGallery(gallery),
         archiveVideoUrl: archiveVideoUrl || null,
@@ -1357,8 +1387,8 @@ router.put('/fairs/:fairId', async (req: Request, res: Response): Promise<void> 
         startDate: start,
         endDate: end,
         locationAddress: locationAddress !== undefined ? locationAddress : existingFair.locationAddress,
-        mapCenterLat: mapCenterLat !== undefined ? (mapCenterLat ? parseFloat(mapCenterLat) : null) : existingFair.mapCenterLat,
-        mapCenterLng: mapCenterLng !== undefined ? (mapCenterLng ? parseFloat(mapCenterLng) : null) : existingFair.mapCenterLng,
+        mapCenterLat: mapCenterLat !== undefined ? toFloatOrNull(mapCenterLat) : existingFair.mapCenterLat,
+        mapCenterLng: mapCenterLng !== undefined ? toFloatOrNull(mapCenterLng) : existingFair.mapCenterLng,
         bannerImageUrl: bannerImageUrl !== undefined ? bannerImageUrl : existingFair.bannerImageUrl,
         galleryUrls: gallery !== undefined ? serializeGallery(gallery) : existingFair.galleryUrls,
         archiveVideoUrl: archiveVideoUrl !== undefined ? (archiveVideoUrl || null) : existingFair.archiveVideoUrl,
@@ -1527,7 +1557,7 @@ router.delete('/fairs/:fairId', async (req: Request, res: Response): Promise<voi
 // ==================== TEST DATA (Development Only) ====================
 
 // Create test booking for a fair (for testing deletion protection)
-router.post('/fairs/:fairId/test-booking', async (req: Request, res: Response): Promise<void> => {
+router.post('/fairs/:fairId/test-booking', blockInProduction, async (req: Request, res: Response): Promise<void> => {
   try {
     const { fairId } = req.params;
 
@@ -1619,7 +1649,7 @@ router.post('/fairs/:fairId/test-booking', async (req: Request, res: Response): 
 });
 
 // Delete test booking data
-router.delete('/fairs/:fairId/test-booking', async (req: Request, res: Response): Promise<void> => {
+router.delete('/fairs/:fairId/test-booking', blockInProduction, async (req: Request, res: Response): Promise<void> => {
   try {
     const { fairId } = req.params;
 
@@ -1661,7 +1691,7 @@ router.delete('/fairs/:fairId/test-booking', async (req: Request, res: Response)
 
 // ==================== TEST DATA (Development Only) ====================
 // Create test applications for testing Application Review feature
-router.post('/test-applications', async (req: Request, res: Response): Promise<void> => {
+router.post('/test-applications', blockInProduction, async (req: Request, res: Response): Promise<void> => {
   try {
     // Get all active/upcoming fairs
     const fairs = await prisma.fair.findMany({
@@ -1796,7 +1826,7 @@ router.post('/test-applications', async (req: Request, res: Response): Promise<v
 });
 
 // Delete test applications
-router.delete('/test-applications', async (_req: Request, res: Response): Promise<void> => {
+router.delete('/test-applications', blockInProduction, async (_req: Request, res: Response): Promise<void> => {
   try {
     // Find all test vendor users
     const testUsers = await prisma.user.findMany({
@@ -1827,7 +1857,7 @@ router.delete('/test-applications', async (_req: Request, res: Response): Promis
 });
 
 // Create test vendor with password (for testing purposes)
-router.post('/test-vendor', async (_req: Request, res: Response): Promise<void> => {
+router.post('/test-vendor', blockInProduction, async (_req: Request, res: Response): Promise<void> => {
   try {
     const testEmail = `test-vendor-${Date.now()}@test.com`;
     const testPassword = 'VendorPass123!';
@@ -1869,7 +1899,7 @@ router.post('/test-vendor', async (_req: Request, res: Response): Promise<void> 
 });
 
 // Create test vendor with 360° panorama booking (for testing panorama feature)
-router.post('/test-vendor-with-panorama', async (req: Request, res: Response): Promise<void> => {
+router.post('/test-vendor-with-panorama', blockInProduction, async (req: Request, res: Response): Promise<void> => {
   try {
     const testEmail = `test-panorama-vendor-${Date.now()}@test.com`;
     const testPassword = 'VendorPass123!';
@@ -2483,7 +2513,12 @@ router.delete('/vendor-houses/:houseId', async (req: Request, res: Response): Pr
           where: { status: 'pending' },
         },
         bookings: {
-          where: { bookingStatus: 'active' },
+          // Live bookings block deletion. The only statuses ever written are
+          // pending | approved | completed | archived (see schema + booking
+          // creation sites); 'active' was never a real status, so the old
+          // guard silently allowed deleting a house out from under a confirmed
+          // booking. Block on the genuinely-live states.
+          where: { bookingStatus: { in: ['pending', 'approved'] }, isArchived: false },
         },
       },
     });
@@ -2566,13 +2601,22 @@ router.post('/facilities', async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    // Coordinates must be real numbers — parseFloat('abc') is NaN, which would
+    // otherwise be persisted and render as a broken map marker.
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      res.status(400).json({ error: 'Latitude and longitude must be valid numbers' });
+      return;
+    }
+
     const facility = await prisma.facility.create({
       data: {
         name,
         type,
         description: description || null,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
+        latitude: lat,
+        longitude: lng,
         photoUrl: photoUrl || null,
         icon: icon || null,
         color: color || null,
@@ -2616,8 +2660,22 @@ router.put('/facilities/:facilityId', async (req: Request, res: Response): Promi
     if (name !== undefined) updateData.name = name;
     if (type !== undefined) updateData.type = type;
     if (description !== undefined) updateData.description = description || null;
-    if (latitude !== undefined) updateData.latitude = parseFloat(latitude);
-    if (longitude !== undefined) updateData.longitude = parseFloat(longitude);
+    if (latitude !== undefined) {
+      const lat = parseFloat(latitude);
+      if (Number.isNaN(lat)) {
+        res.status(400).json({ error: 'Latitude must be a valid number' });
+        return;
+      }
+      updateData.latitude = lat;
+    }
+    if (longitude !== undefined) {
+      const lng = parseFloat(longitude);
+      if (Number.isNaN(lng)) {
+        res.status(400).json({ error: 'Longitude must be a valid number' });
+        return;
+      }
+      updateData.longitude = lng;
+    }
     if (photoUrl !== undefined) updateData.photoUrl = photoUrl || null;
     if (icon !== undefined) updateData.icon = icon || null;
     if (color !== undefined) updateData.color = color || null;

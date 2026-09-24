@@ -21,9 +21,17 @@ dotenv.config();
 // Initialize Prisma client
 export const prisma = new PrismaClient();
 
-// Create Express app
-const app: Express = express();
+// Create Express app. Exported so the test suite can drive it with supertest
+// without booting the HTTP/WebSocket server (see the require.main guard below).
+export const app: Express = express();
 const PORT = Number.parseInt(process.env.PORT || '', 10) || 3002;
+
+// Trust the first proxy hop in production (e.g. Nginx / a load balancer) so
+// req.ip reflects the real client from X-Forwarded-For. Without this every
+// client shares the proxy's IP, collapsing all per-IP rate limiters (login
+// brute-force, SOS, AI) into a single global bucket. In dev there is no proxy,
+// so trust nothing and use the socket address directly.
+app.set('trust proxy', process.env.NODE_ENV === 'production' ? 1 : false);
 
 // Security middleware
 app.use(helmet({

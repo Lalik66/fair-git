@@ -55,6 +55,18 @@ router.get(
         },
       });
 
+      // Live location is only shared between MUTUAL friends. Following is
+      // one-directional and requires no consent from the target, so returning
+      // a followed user's GPS on a one-way follow would let any stranger who
+      // knows a userId track them (stalking vector). Restrict to users who
+      // also follow the caller back. This mirrors the mutual-friendship gate
+      // enforced on messaging/reactions.
+      const followerRows = await prisma.userFollow.findMany({
+        where: { followingId: userId },
+        select: { followerId: true },
+      });
+      const mutualFollowerIds = new Set(followerRows.map((r) => r.followerId));
+
       // Filter and map to response format. The sharing-flag check is
       // belt-and-suspenders: lastLatitude is already cleared on opt-out, but
       // an explicit guard here protects against a stale row created before
@@ -63,6 +75,7 @@ router.get(
         .filter((follow) => {
           const user = follow.following;
           return (
+            mutualFollowerIds.has(user.id) &&
             user.isActive &&
             user.isSharingLocation &&
             user.lastLatitude !== null &&

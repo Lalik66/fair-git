@@ -16,8 +16,7 @@
     "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@photo-sphere-viewer/core": "^5.7.1",
     "@turf/turf": "^7.3.4",
-    "@types/mapbox__mapbox-gl-draw": "^1.4.9",
-    "axios": "^1.6.2",
+    "axios": "^1.20.0",
     "i18next": "^23.7.11",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
@@ -26,14 +25,14 @@
     "react-dom": "^18.2.0",
     "react-i18next": "^13.5.0",
     "react-router-dom": "^6.21.1",
-    "socket.io-client": "^4.8.3",
-    "zustand": "^4.4.7"
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/mapbox-gl": "^2.7.19",
+    "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "@typescript-eslint/eslint-plugin": "^6.15.0",

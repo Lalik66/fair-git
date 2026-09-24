@@ -38,8 +38,14 @@ const OAuthCallback: React.FC = () => {
             errorMessage = t('auth.accountDeactivated', 'Your account has been deactivated.');
             break;
           default:
-            // Use the error message from the backend if provided
-            errorMessage = decodeURIComponent(errorParam);
+            // Use the error message from the backend if provided. Guard against
+            // a malformed percent-encoding, which would otherwise throw a
+            // URIError and abort the callback handler (stuck spinner).
+            try {
+              errorMessage = decodeURIComponent(errorParam);
+            } catch {
+              errorMessage = t('auth.oauthError', 'Authentication failed');
+            }
         }
 
         setError(errorMessage);

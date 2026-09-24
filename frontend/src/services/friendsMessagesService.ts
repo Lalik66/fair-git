@@ -126,6 +126,14 @@ export function connectSocket(): Socket {
     return socket;
   }
 
+  // A socket object exists but is not connected (e.g. mid-reconnect or a
+  // previous failed attempt). Tear it down before creating a new one, otherwise
+  // the old instance and its listeners leak.
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+
   const token = localStorage.getItem('token');
   if (!token) {
     throw new MessagesApiError('No authentication token available');

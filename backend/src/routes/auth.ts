@@ -68,7 +68,7 @@ router.post('/login', loginRateLimiter, async (req: Request, res: Response): Pro
     const token = jwt.sign(
       { userId: user.id },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '24h', algorithm: 'HS256' }
     );
 
     res.json({
@@ -239,7 +239,7 @@ router.get(
       const token = jwt.sign(
         { userId: user.id },
         JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '24h', algorithm: 'HS256' }
       );
 
       // Redirect to frontend OAuth callback page with token
@@ -465,12 +465,21 @@ router.post('/upgrade-to-vendor', authenticateToken, async (req: Request, res: R
         },
       });
 
-      // Create vendor profile
-      await tx.vendorProfile.create({
-        data: {
-          userId: req.user!.id,
-        },
+      // Create vendor profile only if one doesn't already exist. A plain
+      // 'user' can already own a VendorProfile (the public application flow
+      // creates one), and VendorProfile.userId is @unique — an unconditional
+      // create there throws P2002 and surfaces as a 500 on a normal upgrade.
+      const existingProfile = await tx.vendorProfile.findUnique({
+        where: { userId: req.user!.id },
       });
+
+      if (!existingProfile) {
+        await tx.vendorProfile.create({
+          data: {
+            userId: req.user!.id,
+          },
+        });
+      }
 
       return updatedUser;
     });

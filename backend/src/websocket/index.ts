@@ -36,7 +36,7 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
       }
 
       // Verify JWT
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+      const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as { userId: string };
 
       if (!decoded.userId) {
         return next(new Error('Invalid token'));
@@ -96,12 +96,15 @@ export function initializeWebSocket(httpServer: HttpServer): Server {
           where: { followerId: userId },
           select: { followingId: true },
         });
+        // Live location is only shared between MUTUAL friends (see
+        // GET /api/friends/locations). Only join the location room of a user
+        // we follow when they follow us back, otherwise a one-way follow would
+        // stream their real-time position to a stranger.
+        const followsMe = new Set(followers.map((f) => f.followerId));
         for (const f of following) {
-          socket.join(`followers-of:${f.followingId}`);
-        }
-        // Touch followers count for logging clarity — not used otherwise.
-        if (followers.length || following.length) {
-          // no-op: documented for future debugging
+          if (followsMe.has(f.followingId)) {
+            socket.join(`followers-of:${f.followingId}`);
+          }
         }
       } catch (err) {
         console.error('socket follow-room join error:', err);

@@ -10,6 +10,18 @@ import './MapManagement.css';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
+// Escape user/admin-authored text before interpolating it into popup HTML built
+// with setHTML(). Names/descriptions are admin-authored, but a compromised or
+// careless admin string containing markup would otherwise execute in the popup.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 interface VendorHouse {
   id: string;
   houseNumber: string;
@@ -289,9 +301,9 @@ const MapManagement: React.FC = () => {
         .setPopup(
           new mapboxgl.Popup({ offset: 25 }).setHTML(`
             <div style="padding: 4px;">
-              <strong>${icon} ${facility.name}</strong><br/>
-              <span style="color: #6b7280; font-size: 0.85em;">${typeInfo?.label || facility.type}</span>
-              ${facility.description ? `<br/><span style="font-size: 0.85em;">${facility.description}</span>` : ''}
+              <strong>${icon} ${escapeHtml(facility.name)}</strong><br/>
+              <span style="color: #6b7280; font-size: 0.85em;">${escapeHtml(typeInfo?.label || facility.type)}</span>
+              ${facility.description ? `<br/><span style="font-size: 0.85em;">${escapeHtml(facility.description)}</span>` : ''}
             </div>
           `)
         )
@@ -328,8 +340,8 @@ const MapManagement: React.FC = () => {
           .setPopup(
             new mapboxgl.Popup({ offset: 25 }).setHTML(`
               <div style="padding: 4px;">
-                <strong>🏠 ${house.houseNumber}</strong>
-                ${house.description ? `<br/><span style="font-size: 0.85em;">${house.description}</span>` : ''}
+                <strong>🏠 ${escapeHtml(house.houseNumber)}</strong>
+                ${house.description ? `<br/><span style="font-size: 0.85em;">${escapeHtml(house.description)}</span>` : ''}
               </div>
             `)
           )

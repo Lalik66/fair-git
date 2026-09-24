@@ -52,6 +52,17 @@ export const initializePassport = (): void => {
             return done(new Error('No email provided by Google. Please ensure your Google account has a verified email.'));
           }
 
+          // Whether Google asserts this email is verified. Google normally only
+          // returns verified emails for consumer accounts, but a misconfigured
+          // Workspace domain could assert an unverified address. We require
+          // verification before LINKING to a pre-existing email-based account
+          // (below) so an attacker can't take over an account by asserting its
+          // email on a Google account they control.
+          const rawVerified =
+            (profile.emails?.[0] as { verified?: boolean | string } | undefined)?.verified ??
+            (profile as { _json?: { email_verified?: boolean | string } })._json?.email_verified;
+          const emailVerified = rawVerified === true || rawVerified === 'true';
+
           const googleId = profile.id;
           const displayName = profile.displayName || '';
 
@@ -85,6 +96,12 @@ export const initializePassport = (): void => {
             if (user.googleId && user.googleId !== googleId) {
               // Email is already linked to a different Google account
               return done(new Error('This email is already linked to another account.'));
+            }
+
+            // Refuse to link into an existing account unless Google vouches the
+            // email is verified — otherwise this is a potential account takeover.
+            if (!emailVerified) {
+              return done(new Error('Your Google email must be verified to sign in to this account.'));
             }
 
             // Link Google account to existing user

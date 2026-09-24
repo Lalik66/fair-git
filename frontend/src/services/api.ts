@@ -19,17 +19,30 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Event name broadcast when the server rejects a token mid-session. AuthContext
+// listens for this and clears its in-memory `user`, which lets ProtectedRoute
+// redirect to /login. Kept as a DOM event so this module has no import cycle
+// with the React context.
+export const SESSION_EXPIRED_EVENT = 'auth:session-expired';
+
 // Handle auth errors. On a 401 we clear the locally cached credentials so the
-// app can't keep using a token the server has rejected, then let the rejection
-// propagate. Navigation is intentionally left to AuthContext/ProtectedRoute
-// (React Router) rather than a hard `window.location` reload, which would blow
-// away in-memory state and any unsaved work.
+// app can't keep using a token the server has rejected. Crucially, if we were
+// actually carrying a token (i.e. a live session just got rejected, not a
+// failed login attempt), we also notify AuthContext so React state is cleared
+// and ProtectedRoute redirects — otherwise the app stays in an "authenticated
+// but every request 401s" limbo until a full reload. Navigation is left to
+// AuthContext/ProtectedRoute (React Router) rather than a hard `window.location`
+// reload, which would blow away in-memory state and any unsaved work.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      const hadToken = !!localStorage.getItem('token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      if (hadToken && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
+      }
     }
     return Promise.reject(error);
   }

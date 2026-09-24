@@ -5,10 +5,28 @@ Tracked here so they don't get lost; none block current work.
 
 ## Dependencies
 
-- **`@types/qrcode` is in `dependencies`** ([backend/package.json](backend/package.json));
-  it belongs in `devDependencies`. Type stubs ship to production installs.
-- **`npm audit` reports vulnerabilities** in both `backend/` and `frontend/`.
-  Triage and update; Prisma also suggests a client upgrade.
+- ~~**`@types/qrcode` is in `dependencies`**~~ — fixed (Sep 2026 audit pass):
+  moved to `devDependencies`; frontend `@types/mapbox__mapbox-gl-draw` likewise;
+  unused `zustand` removed.
+- **`npm audit`**: the non-breaking fixes are applied (axios bumped to the
+  patched 1.20.x, `npm audit fix` run in both workspaces). Remaining advisories
+  require **breaking major upgrades** deliberately deferred so they can be tested
+  in isolation: `react-router-dom` v7, `jspdf` (→ dompurify), `socket.io-client`,
+  `vitest` 3.x (frontend); `nodemailer` 10.x, `cloudinary` v2, `multer` 2.x,
+  `uuid` v14 (backend). Plan these as a dedicated upgrade PR.
+
+## Security hardening — deferred (larger changes)
+
+- **JWT delivered in the OAuth redirect URL query string**
+  ([backend/src/routes/auth.ts](backend/src/routes/auth.ts) `/google/callback`).
+  Leaks via history/`Referer`/proxy logs. Fix properly with a short-lived
+  single-use exchange code or an httpOnly cookie handoff (frontend currently
+  reads the token from localStorage for the `Authorization` header, so this is
+  an auth-architecture change).
+- **No token revocation / logout is client-side only.** Add a `tokenVersion`
+  claim (or refresh-token model) so logout/compromise can invalidate outstanding
+  tokens before their 24h expiry. Account deactivation/role changes are already
+  enforced per-request.
 
 ## Code duplication
 

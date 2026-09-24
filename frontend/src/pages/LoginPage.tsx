@@ -59,7 +59,14 @@ const LoginPage: React.FC = () => {
           errorMessage = t('auth.accountDeactivated', 'Your account has been deactivated.');
           break;
         default:
-          errorMessage = decodeURIComponent(oauthError);
+          // A malformed percent-encoding (e.g. a lone '%') makes
+          // decodeURIComponent throw a URIError, which would escape the effect
+          // and blank the page. Fall back to the generic message instead.
+          try {
+            errorMessage = decodeURIComponent(oauthError);
+          } catch {
+            errorMessage = t('auth.oauthError', 'Authentication failed');
+          }
       }
 
       setFormError(errorMessage);
@@ -69,7 +76,14 @@ const LoginPage: React.FC = () => {
   const navigateAfterLogin = () => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
-      const user = JSON.parse(userStr);
+      let user: { mustChangePassword?: boolean; role?: string };
+      try {
+        user = JSON.parse(userStr);
+      } catch {
+        // Corrupted cache — send them to a sensible default.
+        navigate('/');
+        return;
+      }
       if (user.mustChangePassword) {
         navigate('/change-password');
       } else if (from && from !== '/') {

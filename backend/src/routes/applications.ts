@@ -279,78 +279,93 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // --- One pending application per user ---
-    let vendorProfile = await prisma.vendorProfile.findUnique({
-      where: { userId: req.user!.id },
-    });
-    if (vendorProfile) {
-      const existingPending = await prisma.application.findFirst({
-        where: { vendorProfileId: vendorProfile.id, status: 'pending' },
+    // Profile upsert, name/phone backfill, and application create are a single
+    // logical unit — run them in one transaction so a mid-way failure can't
+    // leave a mutated VendorProfile/User with no application. The
+    // "one pending per user" check runs inside the transaction too, so a
+    // double submit can't slip two pending applications past it.
+    const txOutcome = await prisma.$transaction(async (tx) => {
+      // --- One pending application per user ---
+      let vendorProfile = await tx.vendorProfile.findUnique({
+        where: { userId: req.user!.id },
       });
-      if (existingPending) {
-        res.status(400).json({
-          error: 'You already have a pending application',
-          code: 'DUPLICATE_APPLICATION',
+      if (vendorProfile) {
+        const existingPending = await tx.application.findFirst({
+          where: { vendorProfileId: vendorProfile.id, status: 'pending' },
         });
-        return;
+        if (existingPending) {
+          return { duplicate: true as const };
+        }
       }
-    }
 
-    // --- VendorProfile carries the company identity the admin panel reads
-    // (table + detail + public map). Create it, or refresh it with this
-    // application's company/category so it never shows stale "N/A". ---
-    if (!vendorProfile) {
-      vendorProfile = await prisma.vendorProfile.create({
+      // --- VendorProfile carries the company identity the admin panel reads
+      // (table + detail + public map). Create it, or refresh it with this
+      // application's company/category so it never shows stale "N/A". ---
+      if (!vendorProfile) {
+        vendorProfile = await tx.vendorProfile.create({
+          data: {
+            userId: req.user!.id,
+            companyName: trimmed.companyName,
+            productCategory,
+          },
+        });
+      } else {
+        vendorProfile = await tx.vendorProfile.update({
+          where: { id: vendorProfile.id },
+          data: {
+            companyName: trimmed.companyName,
+            productCategory,
+          },
+        });
+      }
+
+      // Backfill the User's name/phone if empty so the admin Users table and
+      // applications list (which derive contact from User) stay meaningful.
+      await tx.user.update({
+        where: { id: req.user!.id },
         data: {
-          userId: req.user!.id,
-          companyName: trimmed.companyName,
-          productCategory,
+          firstName: req.user!.firstName || trimmed.firstName,
+          lastName: req.user!.lastName || trimmed.lastName,
+          phone: trimmed.phone,
         },
       });
-    } else {
-      vendorProfile = await prisma.vendorProfile.update({
-        where: { id: vendorProfile.id },
+
+      const application = await tx.application.create({
         data: {
-          companyName: trimmed.companyName,
-          productCategory,
+          vendorProfileId: vendorProfile.id,
+          fairId: fair.id,
+          vendorHouseId: house.id,
+          status: 'pending',
+          submittedAt: new Date(),
+          firstName: trimmed.firstName,
+          lastName: trimmed.lastName,
+          patronymic: trimmed.patronymic,
+          applicantEmail: trimmed.email,
+          applicantPhone: trimmed.phone,
+          idSeries: trimmed.idSeries,
+          idNumber: trimmed.idNumber,
+          financialId: trimmed.financialId,
+          dateOfBirth: dob,
+          country: trimmed.country,
+          city: trimmed.city,
+          rulesAccepted: true,
+          paymentAccepted: true,
         },
+        include: { fair: true, vendorHouse: true },
       });
+
+      return { duplicate: false as const, application };
+    });
+
+    if (txOutcome.duplicate) {
+      res.status(400).json({
+        error: 'You already have a pending application',
+        code: 'DUPLICATE_APPLICATION',
+      });
+      return;
     }
 
-    // Backfill the User's name/phone if empty so the admin Users table and
-    // applications list (which derive contact from User) stay meaningful.
-    await prisma.user.update({
-      where: { id: req.user!.id },
-      data: {
-        firstName: req.user!.firstName || trimmed.firstName,
-        lastName: req.user!.lastName || trimmed.lastName,
-        phone: trimmed.phone,
-      },
-    });
-
-    const application = await prisma.application.create({
-      data: {
-        vendorProfileId: vendorProfile.id,
-        fairId: fair.id,
-        vendorHouseId: house.id,
-        status: 'pending',
-        submittedAt: new Date(),
-        firstName: trimmed.firstName,
-        lastName: trimmed.lastName,
-        patronymic: trimmed.patronymic,
-        applicantEmail: trimmed.email,
-        applicantPhone: trimmed.phone,
-        idSeries: trimmed.idSeries,
-        idNumber: trimmed.idNumber,
-        financialId: trimmed.financialId,
-        dateOfBirth: dob,
-        country: trimmed.country,
-        city: trimmed.city,
-        rulesAccepted: true,
-        paymentAccepted: true,
-      },
-      include: { fair: true, vendorHouse: true },
-    });
+    const application = txOutcome.application;
 
     // --- Notifications: applicant + all admins ---
     const applicantName = `${trimmed.firstName} ${trimmed.lastName}`.trim();

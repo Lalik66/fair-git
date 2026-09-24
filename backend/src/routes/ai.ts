@@ -353,6 +353,18 @@ router.post('/chat', chatLimiter, async (req: Request, res: Response): Promise<v
       return;
     }
 
+    // Cap input length. This endpoint is unauthenticated and backed by paid
+    // Gemini quota; without a bound a single request could ship a huge prompt
+    // and inflate token cost. 2000 chars is ample for a chat question.
+    const MAX_MESSAGE_LENGTH = 2000;
+    if (trimmedMessage.length > MAX_MESSAGE_LENGTH) {
+      res.status(400).json({
+        error: 'Message is too long',
+        message: `Please keep your message under ${MAX_MESSAGE_LENGTH} characters.`,
+      });
+      return;
+    }
+
     // Check if message contains weather keywords
     let currentWeather: CurrentWeatherData | null = null;
     let dailyForecast: DailyForecastData | null = null;
@@ -400,6 +412,10 @@ router.post('/chat', chatLimiter, async (req: Request, res: Response): Promise<v
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
       systemInstruction: systemPrompt,
+      // Bound the response so a single call can't run away on paid quota.
+      generationConfig: {
+        maxOutputTokens: 1024,
+      },
     });
 
     const result = await model.generateContent(trimmedMessage);

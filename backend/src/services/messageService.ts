@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../index';
 
 /**
@@ -85,14 +86,33 @@ export async function getOrCreateConversation(
     },
   });
 
-  // Create if not exists
+  // Create if not exists. Two concurrent first-messages between the same pair
+  // can both find null and both try to create; the second hits the
+  // @@unique([participant1, participant2]) constraint (P2002). Treat that as a
+  // benign race and re-fetch the row the other request just created.
   if (!conversation) {
-    conversation = await prisma.conversation.create({
-      data: {
-        participant1: p1,
-        participant2: p2,
-      },
-    });
+    try {
+      conversation = await prisma.conversation.create({
+        data: {
+          participant1: p1,
+          participant2: p2,
+        },
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        conversation = await prisma.conversation.findUnique({
+          where: {
+            participant1_participant2: { participant1: p1, participant2: p2 },
+          },
+        });
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  if (!conversation) {
+    throw new Error('Failed to get or create conversation');
   }
 
   return conversation;

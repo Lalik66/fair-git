@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { authApi } from '../services/api';
+import { authApi, SESSION_EXPIRED_EVENT } from '../services/api';
 import { disconnectSocket } from '../services/friendsMessagesService';
 
 export interface User {
@@ -89,6 +89,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     checkAuth();
+  }, []);
+
+  // When the API layer sees a 401 on a request that carried a token, the live
+  // session has been rejected (expired/revoked). Clear in-memory auth state so
+  // ProtectedRoute redirects to /login instead of leaving the app in an
+  // "authenticated but every request fails" limbo. localStorage is already
+  // cleared by the interceptor; we also tear down the socket here.
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      disconnectSocket();
+      setUser(null);
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
   }, []);
 
   const login = async (email: string, password: string) => {
