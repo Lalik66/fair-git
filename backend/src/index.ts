@@ -66,9 +66,13 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
+    // In production the frontend (Vercel) and API (Railway) are on different
+    // sites, so the session cookie must be SameSite=None to be sent cross-site,
+    // which browsers only allow over HTTPS (Secure). On localhost both run on
+    // the same site over HTTP, so keep Lax + non-Secure so dev keeps working.
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
 }));
