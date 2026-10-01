@@ -4,6 +4,7 @@
 // callers don't need to cast `import.meta` to `any`.
 interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
+  readonly VITE_WS_URL?: string;
   readonly VITE_MAPBOX_TOKEN?: string;
 }
 
