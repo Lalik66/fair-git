@@ -472,6 +472,19 @@
   border-color: var(--fk-rule);
 }
 
+/* Destructive action: outlined red that fills in on hover. Kept distinct from
+   .accent (solid red) so a Delete button never looks like the Activate button. */
+.btn-fk.danger {
+  background: #fff;
+  border-color: var(--fk-accent);
+  color: var(--fk-accent);
+}
+
+.btn-fk.danger:hover {
+  background: var(--fk-accent);
+  color: #fff;
+}
+
 /* ============================================
    FORM FIELDS
    ============================================ */

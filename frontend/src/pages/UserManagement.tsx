@@ -5,6 +5,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAdminSearchQuery, matchesQuery } from '../hooks/useAdminSearch';
 import './UserManagement.css';
 
+// Keep in sync with the backend's ADMIN_BULK_DELETE_MAX (default 100). The
+// server enforces this hard; the client mirrors it only to disable the action
+// and hint before a doomed request is sent.
+const BULK_DELETE_MAX = 100;
+
 interface User {
   id: string;
   email: string;
@@ -27,6 +32,11 @@ const UserManagement: React.FC = () => {
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
   const [filterRole, setFilterRole] = useState<string>('all');
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   // Form state
   const [email, setEmail] = useState('');
@@ -87,6 +97,68 @@ const UserManagement: React.FC = () => {
       loadUsers();
     } catch (err: any) {
       setError(err.response?.data?.error || t('userAdmin.statusUpdateFailed'));
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      await adminApi.deleteUser(deleteTarget.id);
+      // Drop the deleted user from any active selection so bulk actions and the
+      // selection chip don't reference a user that's no longer in the list.
+      setSelectedUsers(prev => {
+        const next = new Set(prev);
+        next.delete(deleteTarget.id);
+        return next;
+      });
+      setDeleteTarget(null);
+      loadUsers();
+    } catch (err: any) {
+      setError(err.response?.data?.error || t('userAdmin.deleteFailed'));
+      setDeleteTarget(null);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Users eligible for bulk delete: everything selected except the current
+  // admin (you can't delete your own account — the backend rejects it too).
+  const bulkDeletableIds = Array.from(selectedUsers).filter(id => id !== currentUser?.id);
+  const bulkDeleteExceedsMax = bulkDeletableIds.length > BULK_DELETE_MAX;
+
+  const handleBulkDelete = async () => {
+    if (bulkDeletableIds.length === 0 || bulkDeleteExceedsMax) return;
+    setBulkDeleteLoading(true);
+    try {
+      const data = await adminApi.bulkDeleteUsers(bulkDeletableIds);
+      // Partial batch: some selected rows were already deleted / no longer
+      // exist. Surface a non-blocking notice so the admin isn't surprised that
+      // the table didn't shrink by the full count.
+      const skipped = data?.skippedCount ?? (bulkDeletableIds.length - (data?.deletedCount ?? bulkDeletableIds.length));
+      if (skipped > 0) {
+        setNotice(
+          t('userAdmin.bulkDeletePartial', {
+            deleted: data?.deletedCount ?? bulkDeletableIds.length - skipped,
+            requested: data?.requestedCount ?? bulkDeletableIds.length,
+            skipped,
+          })
+        );
+      } else {
+        setNotice(
+          t('userAdmin.bulkDeleteSuccess', {
+            count: data?.deletedCount ?? bulkDeletableIds.length,
+          })
+        );
+      }
+      setSelectedUsers(new Set());
+      setBulkDeleteOpen(false);
+      loadUsers();
+    } catch (err: any) {
+      setError(err.response?.data?.error || t('userAdmin.bulkDeleteFailed'));
+      setBulkDeleteOpen(false);
+    } finally {
+      setBulkDeleteLoading(false);
     }
   };
 
@@ -214,6 +286,13 @@ const UserManagement: React.FC = () => {
         </div>
       )}
 
+      {notice && (
+        <div className="um-notice">
+          <span>{notice}</span>
+          <button onClick={() => setNotice(null)}>{'\u2715'}</button>
+        </div>
+      )}
+
       {/* Stats row */}
       <div className="stats-fk">
         <div className="stat-fk">
@@ -268,10 +347,27 @@ const UserManagement: React.FC = () => {
         </div>
         <div className="spacer"></div>
         {selectedUsers.size > 0 && (
-          <span className="chip">
-            {t('userAdmin.selected', { count: selectedUsers.size })}
-            <span className="x" onClick={() => setSelectedUsers(new Set())}>{'\u2715'}</span>
-          </span>
+          <>
+            <span className="chip">
+              {t('userAdmin.selected', { count: selectedUsers.size })}
+              <span className="x" onClick={() => setSelectedUsers(new Set())}>{'\u2715'}</span>
+            </span>
+            {bulkDeletableIds.length > 0 && (
+              <>
+                <button
+                  className="btn-fk sm danger"
+                  onClick={() => setBulkDeleteOpen(true)}
+                  disabled={bulkDeleteExceedsMax}
+                  title={bulkDeleteExceedsMax ? t('userAdmin.bulkDeleteTooMany', { max: BULK_DELETE_MAX }) : undefined}
+                >
+                  {t('userAdmin.bulkDelete', { count: bulkDeletableIds.length })}
+                </button>
+                {bulkDeleteExceedsMax && (
+                  <span className="hint-fk">{t('userAdmin.bulkDeleteTooMany', { max: BULK_DELETE_MAX })}</span>
+                )}
+              </>
+            )}
+          </>
         )}
       </div>
 
@@ -336,17 +432,25 @@ const UserManagement: React.FC = () => {
                 </td>
                 <td>
                   <div className="actions">
-                    {user.id === currentUser?.id && user.isActive ? (
+                    {user.id === currentUser?.id ? (
                       <span className="pill muted" title={t('userAdmin.youTooltip')}>
                         {t('userAdmin.you')}
                       </span>
                     ) : (
-                      <button
-                        className={`btn-fk sm ${user.isActive ? '' : 'accent'}`}
-                        onClick={() => handleToggleStatus(user.id, user.isActive)}
-                      >
-                        {user.isActive ? t('userAdmin.deactivate') : t('userAdmin.activate')}
-                      </button>
+                      <>
+                        <button
+                          className={`btn-fk sm ${user.isActive ? '' : 'accent'}`}
+                          onClick={() => handleToggleStatus(user.id, user.isActive)}
+                        >
+                          {user.isActive ? t('userAdmin.deactivate') : t('userAdmin.activate')}
+                        </button>
+                        <button
+                          className="btn-fk sm danger"
+                          onClick={() => setDeleteTarget(user)}
+                        >
+                          {t('userAdmin.delete')}
+                        </button>
+                      </>
                     )}
                   </div>
                 </td>
@@ -361,6 +465,97 @@ const UserManagement: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Bulk Delete Confirmation Modal */}
+      {bulkDeleteOpen && (
+        <div className="modal-overlay" onClick={() => !bulkDeleteLoading && setBulkDeleteOpen(false)}>
+          <div className="modal-fk" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{t('userAdmin.bulkDeleteTitle')}</h3>
+              <button
+                className="btn-fk icon"
+                onClick={() => setBulkDeleteOpen(false)}
+                disabled={bulkDeleteLoading}
+              >
+                {'✕'}
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>
+                {t('userAdmin.bulkDeleteConfirm', { count: bulkDeletableIds.length })}
+              </p>
+              <p style={{ color: 'var(--fk-soft)', fontSize: '13px' }}>
+                {t('userAdmin.bulkDeleteNote')}
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-fk ghost"
+                onClick={() => setBulkDeleteOpen(false)}
+                disabled={bulkDeleteLoading}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                className="btn-fk danger"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteLoading}
+              >
+                {bulkDeleteLoading ? t('userAdmin.deleting') : t('userAdmin.delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete User Confirmation Modal */}
+      {deleteTarget && (
+        <div className="modal-overlay" onClick={() => !deleteLoading && setDeleteTarget(null)}>
+          <div className="modal-fk" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{t('userAdmin.deleteTitle')}</h3>
+              <button
+                className="btn-fk icon"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteLoading}
+              >
+                {'✕'}
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>
+                {t('userAdmin.deleteConfirm', {
+                  name: getUserDisplayName(deleteTarget),
+                  email: deleteTarget.email,
+                })}
+              </p>
+              <p style={{ color: 'var(--fk-soft)', fontSize: '13px' }}>
+                {t('userAdmin.deleteNote')}
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-fk ghost"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteLoading}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                className="btn-fk danger"
+                onClick={handleDeleteUser}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? t('userAdmin.deleting') : t('userAdmin.delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Admin Modal */}
       {showCreateModal && (

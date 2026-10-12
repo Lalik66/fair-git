@@ -137,6 +137,16 @@ export const adminApi = {
     return response.data;
   },
 
+  deleteUser: async (userId: string) => {
+    const response = await api.delete(`/admin/users/${userId}`);
+    return response.data;
+  },
+
+  bulkDeleteUsers: async (userIds: string[]) => {
+    const response = await api.post('/admin/users/bulk-delete', { userIds });
+    return response.data;
+  },
+
   getLogs: async (params?: { action?: string; fromDate?: string; toDate?: string }) => {
     const response = await api.get('/admin/logs', { params });
     return response.data;
