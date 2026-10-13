@@ -53,6 +53,39 @@
   background: rgba(196, 66, 58, 0.1);
 }
 
+/* Non-blocking success/info notice (e.g. partial bulk-delete result). */
+.um-notice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #e3eee5;
+  border: 1px solid #bcd6c0;
+  border-radius: var(--fk-radius-lg);
+  color: #1f4f44;
+  font-size: 13px;
+}
+
+.um-notice button {
+  background: none;
+  border: none;
+  color: #1f4f44;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.um-notice button:hover {
+  background: rgba(31, 79, 68, 0.1);
+}
+
+/* Inline hint next to a disabled toolbar action (e.g. bulk-delete over cap). */
+.hint-fk {
+  font-size: 12px;
+  color: var(--fk-accent);
+}
+
 /* Modal overlay */
 .modal-overlay {
   position: fixed;

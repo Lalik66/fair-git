@@ -65,6 +65,9 @@ const blockInProduction = (_req: Request, res: Response, next: import('express')
 router.get('/users', async (_req: Request, res: Response): Promise<void> => {
   try {
     const users = await prisma.user.findMany({
+      // Soft-deleted accounts are hidden from the active list; their rows (and
+      // all their reviews/bookings/messages) are preserved in the database.
+      where: { deletedAt: null },
       // Safety cap to bound the payload as the user base grows.
       take: Number.parseInt(process.env.ADMIN_LIST_MAX || '', 10) || 500,
       select: {
@@ -219,6 +222,141 @@ router.patch('/users/:userId/status', async (req: Request, res: Response): Promi
     res.json({ user, message: `User ${isActive ? 'activated' : 'deactivated'} successfully` });
   } catch (error) {
     console.error('Update user status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Soft-delete a user. We never remove the row: we stamp deletedAt and flip
+// isActive off so the account disappears from the admin list and is locked out
+// of every isActive-gated path (auth, login, websocket, friends, messaging),
+// while their reviews, bookings, messages and logs are preserved for history.
+router.delete('/users/:userId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+
+    // Block deleting your own account (mirrors the self-deactivation guard).
+    if (userId === req.user!.id) {
+      res.status(400).json({ error: 'You cannot delete your own account' });
+      return;
+    }
+
+    const existing = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, deletedAt: true },
+    });
+
+    if (!existing) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    if (existing.deletedAt) {
+      res.status(400).json({ error: 'User is already deleted' });
+      return;
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { deletedAt: new Date(), isActive: false },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+      },
+    });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'delete_user',
+        details: `Soft-deleted user: ${user.email}`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    res.json({ user, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Max ids accepted in one bulk-delete request. Bounds the updateMany and the
+// payload size; overridable via ADMIN_BULK_DELETE_MAX (default 100).
+const BULK_DELETE_MAX = Number.parseInt(process.env.ADMIN_BULK_DELETE_MAX || '', 10) || 100;
+
+// Bulk soft-delete users. Same semantics as the single delete above (stamp
+// deletedAt + flip isActive off, preserving every related row), but applied to
+// a set of ids in one atomic updateMany so the admin's "Delete selected" action
+// is a single request with a single log entry. The current admin's own id is
+// always excluded (mirrors the self-delete guard); already-deleted rows are
+// skipped by the `deletedAt: null` filter.
+router.post('/users/bulk-delete', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userIds } = req.body;
+
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      res.status(400).json({ error: 'userIds must be a non-empty array' });
+      return;
+    }
+
+    if (!userIds.every((id) => typeof id === 'string')) {
+      res.status(400).json({ error: 'userIds must be an array of strings' });
+      return;
+    }
+
+    if (userIds.length > BULK_DELETE_MAX) {
+      res.status(400).json({ error: `Too many users selected (max ${BULK_DELETE_MAX} per request)` });
+      return;
+    }
+
+    // Never delete yourself, and de-duplicate.
+    const ids = [...new Set(userIds)].filter((id) => id !== req.user!.id);
+
+    if (ids.length === 0) {
+      res.status(400).json({ error: 'No deletable users selected' });
+      return;
+    }
+
+    const result = await prisma.user.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { deletedAt: new Date(), isActive: false },
+    });
+
+    // Nothing matched: every id was already deleted or not a real user. Treat
+    // as a client error so the UI can surface it rather than silently claiming
+    // success with a count of 0.
+    if (result.count === 0) {
+      res.status(400).json({
+        error: 'No users were deleted — they may already be deleted or ids were invalid',
+      });
+      return;
+    }
+
+    // Log once for the whole batch.
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: 'bulk_delete_users',
+        details: `Soft-deleted ${result.count} user(s)`,
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    // requestedCount reflects the ids actually acted on (after de-dup and
+    // self-exclusion). skippedCount > 0 means some selected rows were already
+    // deleted / invalid, so the client can warn that not all were removed.
+    res.json({
+      deletedCount: result.count,
+      requestedCount: ids.length,
+      skippedCount: ids.length - result.count,
+      message: `${result.count} user(s) deleted successfully`,
+    });
+  } catch (error) {
+    console.error('Bulk delete users error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -32,6 +32,12 @@ model User {
   // so opt-out beats opt-in for the common case. Users who want privacy
   // can disable it any time from the Friends panel toggle.
   isSharingLocation   Boolean   @default(true) @map("is_sharing_location")
+  // Soft-delete marker. Null = active account; a timestamp = the account was
+  // deleted by an admin. We keep the row (and set isActive=false alongside) so
+  // the user's reviews, bookings, messages and logs are preserved — every
+  // existing isActive gate (auth, login, websocket, friends) already excludes
+  // them, and the admin list filters on deletedAt. Never hard-deleted.
+  deletedAt           DateTime? @map("deleted_at")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
