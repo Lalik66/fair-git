@@ -35,7 +35,9 @@ router.post('/login', loginRateLimiter, async (req: Request, res: Response): Pro
       where: { email: email.toLowerCase() },
     });
 
-    if (!user) {
+    // A soft-deleted account no longer exists from the user's point of view,
+    // so answer exactly as for an unknown email rather than "deactivated".
+    if (!user || user.deletedAt) {
       res.status(401).json({ error: 'Invalid email or password' });
       return;
     }

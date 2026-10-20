@@ -226,10 +226,26 @@ router.patch('/users/:userId/status', async (req: Request, res: Response): Promi
   }
 });
 
+// Fields written when soft-deleting a user. Besides stamping deletedAt and
+// flipping isActive off, we release the account's identity: the email is
+// rewritten to a unique tombstone (`deleted_<id>_<original>`) and the Google
+// link and password are cleared. Without this the row keeps holding the unique
+// email forever, so the same address could never sign in, sign up with Google,
+// or be re-created by an admin again — login just answered "deactivated".
+// The original address stays readable inside the tombstone and in AdminLog.
+export const softDeleteUserData = (user: { id: string; email: string }) => ({
+  deletedAt: new Date(),
+  isActive: false,
+  email: `deleted_${user.id}_${user.email}`,
+  googleId: null,
+  passwordHash: null,
+});
+
 // Soft-delete a user. We never remove the row: we stamp deletedAt and flip
 // isActive off so the account disappears from the admin list and is locked out
 // of every isActive-gated path (auth, login, websocket, friends, messaging),
 // while their reviews, bookings, messages and logs are preserved for history.
+// The email is released (see softDeleteUserData) so it can be registered again.
 router.delete('/users/:userId', async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
@@ -257,7 +273,7 @@ router.delete('/users/:userId', async (req: Request, res: Response): Promise<voi
 
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { deletedAt: new Date(), isActive: false },
+      data: softDeleteUserData(existing),
       select: {
         id: true,
         email: true,
@@ -272,7 +288,7 @@ router.delete('/users/:userId', async (req: Request, res: Response): Promise<voi
       data: {
         adminId: req.user!.id,
         action: 'delete_user',
-        details: `Soft-deleted user: ${user.email}`,
+        details: `Soft-deleted user: ${existing.email}`,
         ipAddress: req.ip || req.socket.remoteAddress,
       },
     });
@@ -321,20 +337,33 @@ router.post('/users/bulk-delete', async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const result = await prisma.user.updateMany({
+    // Each row's email tombstone embeds its own id, so this can't be a single
+    // updateMany; instead load the not-yet-deleted rows and update them all in
+    // one transaction (all-or-nothing, like the previous updateMany).
+    const targets = await prisma.user.findMany({
       where: { id: { in: ids }, deletedAt: null },
-      data: { deletedAt: new Date(), isActive: false },
+      select: { id: true, email: true },
     });
 
     // Nothing matched: every id was already deleted or not a real user. Treat
     // as a client error so the UI can surface it rather than silently claiming
     // success with a count of 0.
-    if (result.count === 0) {
+    if (targets.length === 0) {
       res.status(400).json({
         error: 'No users were deleted — they may already be deleted or ids were invalid',
       });
       return;
     }
+
+    await prisma.$transaction(
+      targets.map((u) =>
+        prisma.user.update({
+          where: { id: u.id, deletedAt: null },
+          data: softDeleteUserData(u),
+        })
+      )
+    );
+    const result = { count: targets.length };
 
     // Log once for the whole batch.
     await prisma.adminLog.create({
