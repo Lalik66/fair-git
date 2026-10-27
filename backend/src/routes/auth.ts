@@ -7,6 +7,7 @@ import { prisma } from '../index';
 import { authenticateToken } from '../middleware/auth';
 import { isGoogleOAuthConfigured } from '../config/passport';
 import { JWT_SECRET } from '../config/env';
+import { sendPasswordResetEmail } from '../utils/notifications';
 
 const router = Router();
 
@@ -315,6 +316,150 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// =====================================
+// Forgot / Reset Password
+// =====================================
+//
+// Stateless reset tokens: a short-lived JWT signed with JWT_SECRET *plus the
+// user's current password hash*. No table is needed, and the token is
+// single-use by construction — once the password changes, the hash changes and
+// every outstanding link stops verifying. It also can't be used as a login
+// token, because authenticateToken verifies with JWT_SECRET alone.
+
+const RESET_TOKEN_TTL_MINUTES = 60;
+const RESET_PURPOSE = 'password_reset';
+
+const resetSecretFor = (passwordHash: string | null) => `${JWT_SECRET}:${passwordHash ?? ''}`;
+
+// 5 reset emails per 15 minutes per IP, so the endpoint can't be used to spam
+// an inbox.
+const forgotPasswordRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many requests. Please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/**
+ * POST /api/auth/forgot-password  { email }
+ * Always answers 200 with the same message, whether or not the email exists,
+ * so the endpoint can't be used to discover which addresses have accounts.
+ */
+router.post('/forgot-password', forgotPasswordRateLimiter, async (req: Request, res: Response): Promise<void> => {
+  const genericResponse = {
+    message: 'If an account exists for this email, a password reset link has been sent.',
+  };
+
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      res.status(400).json({ error: 'Email is required' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+    });
+
+    // Unknown, deleted or deactivated accounts get the same answer and no email.
+    if (!user || user.deletedAt || !user.isActive) {
+      res.json(genericResponse);
+      return;
+    }
+
+    const token = jwt.sign(
+      { sub: user.id, purpose: RESET_PURPOSE },
+      resetSecretFor(user.passwordHash),
+      { expiresIn: `${RESET_TOKEN_TTL_MINUTES}m`, algorithm: 'HS256' }
+    );
+
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+
+    sendPasswordResetEmail({
+      email: user.email,
+      name,
+      resetUrl,
+      expiresInMinutes: RESET_TOKEN_TTL_MINUTES,
+      lang: user.preferredLanguage,
+    });
+
+    res.json(genericResponse);
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/auth/reset-password  { token, newPassword }
+ * Sets a new password from a reset link. Also works for Google-only accounts,
+ * which then gain a password alongside their Google sign-in.
+ */
+router.post('/reset-password', forgotPasswordRateLimiter, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || typeof token !== 'string' || !newPassword || typeof newPassword !== 'string') {
+      res.status(400).json({ error: 'Token and new password are required' });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      res.status(400).json({ error: 'New password must be at least 8 characters' });
+      return;
+    }
+
+    const invalidLink = () =>
+      res.status(400).json({
+        error: 'INVALID_RESET_TOKEN',
+        message: 'This reset link is invalid or has expired. Please request a new one.',
+      });
+
+    // Read the user id first (unverified) to know which password hash the
+    // token must be verified against; the real check is jwt.verify below.
+    const decoded = jwt.decode(token) as { sub?: string; purpose?: string } | null;
+    if (!decoded?.sub || decoded.purpose !== RESET_PURPOSE) {
+      invalidLink();
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: decoded.sub } });
+    if (!user || user.deletedAt || !user.isActive) {
+      invalidLink();
+      return;
+    }
+
+    try {
+      const payload = jwt.verify(token, resetSecretFor(user.passwordHash), {
+        algorithms: ['HS256'],
+      }) as { sub?: string; purpose?: string };
+      if (payload.sub !== user.id || payload.purpose !== RESET_PURPOSE) {
+        invalidLink();
+        return;
+      }
+    } catch {
+      // Expired, tampered with, or already used (password changed since).
+      invalidLink();
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash, mustChangePassword: false },
+    });
+
+    res.json({ message: 'Password has been reset. You can now sign in.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -316,3 +316,40 @@ export function sendReviewDecisionVisitorEmail(
     );
   }
 }
+
+interface PasswordResetEmailContext {
+  email: string;
+  name: string;
+  resetUrl: string;
+  expiresInMinutes: number;
+  lang?: string | null;
+}
+
+export function sendPasswordResetEmail(ctx: PasswordResetEmailContext): void {
+  const lang = normalizeLang(ctx.lang);
+  if (lang === 'en') {
+    deliver(
+      ctx.email,
+      'Reset your password',
+      `Hello ${ctx.name},\n\n` +
+        `We received a request to reset the password for your account.\n` +
+        `Open this link to choose a new password:\n\n` +
+        `${ctx.resetUrl}\n\n` +
+        `The link is valid for ${ctx.expiresInMinutes} minutes and can be used once.\n` +
+        `If you didn't ask for this, you can ignore this email — your password stays the same.`,
+      lang
+    );
+  } else {
+    deliver(
+      ctx.email,
+      'Şifrənin bərpası',
+      `Salam, ${ctx.name},\n\n` +
+        `Hesabınızın şifrəsini bərpa etmək üçün sorğu aldıq.\n` +
+        `Yeni şifrə təyin etmək üçün bu linki açın:\n\n` +
+        `${ctx.resetUrl}\n\n` +
+        `Link ${ctx.expiresInMinutes} dəqiqə etibarlıdır və yalnız bir dəfə istifadə oluna bilər.\n` +
+        `Əgər bu sorğunu siz göndərməmisinizsə, bu məktubu nəzərə almayın — şifrəniz dəyişməyəcək.`,
+      lang
+    );
+  }
+}

@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import OAuthCallback from './pages/OAuthCallback';
 import RoleSelection from './pages/RoleSelection';
 import AdminDashboard from './pages/AdminDashboard';
@@ -451,7 +453,11 @@ const NotFoundPage: React.FC = () => {
 // Main app content with routes
 const AppContent: React.FC = () => {
   const location = useLocation();
-  const isAuthShell = location.pathname === '/login' || location.pathname === '/oauth-callback';
+  const isAuthShell =
+    location.pathname === '/login' ||
+    location.pathname === '/oauth-callback' ||
+    location.pathname === '/forgot-password' ||
+    location.pathname === '/reset-password';
 
   // Footer shows on public content pages only. Excluded on: the map (its
   // split-view fills the viewport — same reason the request calls it out), the
@@ -477,6 +483,8 @@ const AppContent: React.FC = () => {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/fairs/:id" element={<FairDetail />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/oauth-callback" element={<OAuthCallback />} />
           <Route path="/invite/:token" element={<InvitePage />} />
 
