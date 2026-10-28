@@ -39,12 +39,21 @@ const mockCaller = (overrides: Record<string, unknown> = {}) => {
 };
 
 let findUniqueSpy: jest.SpyInstance;
-let updateManySpy: jest.SpyInstance;
+let findManySpy: jest.SpyInstance;
+let updateSpy: jest.SpyInstance;
+let transactionSpy: jest.SpyInstance;
 let adminLogSpy: jest.SpyInstance;
+
+// Rows returned by the "which of these are still deletable" lookup.
+const rows = (...ids: string[]) => ids.map((id) => ({ id, email: `${id}@test.local` }));
 
 beforeEach(() => {
   findUniqueSpy = jest.spyOn(prisma.user, 'findUnique');
-  updateManySpy = jest.spyOn(prisma.user, 'updateMany');
+  findManySpy = jest.spyOn(prisma.user, 'findMany');
+  updateSpy = jest.spyOn(prisma.user, 'update').mockImplementation(((args: unknown) => args) as never);
+  transactionSpy = jest
+    .spyOn(prisma, '$transaction')
+    .mockImplementation((async (ops: unknown[]) => ops) as never);
   adminLogSpy = jest.spyOn(prisma.adminLog, 'create').mockResolvedValue({} as never);
   mockCaller();
 });
@@ -58,14 +67,14 @@ describe('POST /api/admin/users/bulk-delete', () => {
     it('rejects with no token (401) and never queries', async () => {
       const res = await post({ userIds: ['u1'] }, null);
       expect(res.status).toBe(401);
-      expect(updateManySpy).not.toHaveBeenCalled();
+      expect(transactionSpy).not.toHaveBeenCalled();
     });
 
     it('rejects a non-admin caller (403)', async () => {
       mockCaller({ id: 'user-1', role: 'user' });
       const res = await post({ userIds: ['u1'] }, sign('user-1'));
       expect(res.status).toBe(403);
-      expect(updateManySpy).not.toHaveBeenCalled();
+      expect(transactionSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -73,19 +82,19 @@ describe('POST /api/admin/users/bulk-delete', () => {
     it('400 when userIds is missing/empty', async () => {
       const res = await post({ userIds: [] });
       expect(res.status).toBe(400);
-      expect(updateManySpy).not.toHaveBeenCalled();
+      expect(transactionSpy).not.toHaveBeenCalled();
     });
 
     it('400 when userIds is not an array', async () => {
       const res = await post({ userIds: 'not-an-array' });
       expect(res.status).toBe(400);
-      expect(updateManySpy).not.toHaveBeenCalled();
+      expect(transactionSpy).not.toHaveBeenCalled();
     });
 
     it('400 when userIds contains non-strings', async () => {
       const res = await post({ userIds: ['u1', 42] });
       expect(res.status).toBe(400);
-      expect(updateManySpy).not.toHaveBeenCalled();
+      expect(transactionSpy).not.toHaveBeenCalled();
     });
 
     it('400 when the batch exceeds the cap', async () => {
@@ -93,44 +102,54 @@ describe('POST /api/admin/users/bulk-delete', () => {
       const res = await post({ userIds: tooMany });
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/max/i);
-      expect(updateManySpy).not.toHaveBeenCalled();
+      expect(transactionSpy).not.toHaveBeenCalled();
     });
 
     it('400 when only the caller is selected (nothing deletable)', async () => {
       const res = await post({ userIds: [ADMIN_ID] });
       expect(res.status).toBe(400);
-      expect(updateManySpy).not.toHaveBeenCalled();
+      expect(transactionSpy).not.toHaveBeenCalled();
     });
   });
 
   describe('deletion', () => {
-    it('soft-deletes the selected users and reports the count (200)', async () => {
-      updateManySpy.mockResolvedValue({ count: 2 } as never);
+    it('soft-deletes the selected users, releases their emails and reports the count (200)', async () => {
+      findManySpy.mockResolvedValue(rows('u1', 'u2') as never);
       const res = await post({ userIds: ['u1', 'u2'] });
 
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({ deletedCount: 2, requestedCount: 2, skippedCount: 0 });
-      // Soft-delete semantics: stamp deletedAt + flip isActive off, scoped to
-      // not-yet-deleted rows, excluding the caller.
-      expect(updateManySpy).toHaveBeenCalledWith({
-        where: { id: { in: ['u1', 'u2'] }, deletedAt: null },
-        data: expect.objectContaining({ isActive: false, deletedAt: expect.any(Date) }),
+      // Scoped to not-yet-deleted rows, excluding the caller.
+      expect(findManySpy).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: { in: ['u1', 'u2'] }, deletedAt: null } })
+      );
+      // One atomic transaction; each row is stamped and its email tombstoned.
+      expect(transactionSpy).toHaveBeenCalledTimes(1);
+      expect(updateSpy).toHaveBeenCalledWith({
+        where: { id: 'u1', deletedAt: null },
+        data: expect.objectContaining({
+          isActive: false,
+          deletedAt: expect.any(Date),
+          email: 'deleted_u1_u1@test.local',
+          googleId: null,
+          passwordHash: null,
+        }),
       });
       expect(adminLogSpy).toHaveBeenCalledTimes(1);
     });
 
     it('excludes the caller even when selected alongside others', async () => {
-      updateManySpy.mockResolvedValue({ count: 1 } as never);
+      findManySpy.mockResolvedValue(rows('u1') as never);
       const res = await post({ userIds: [ADMIN_ID, 'u1'] });
 
       expect(res.status).toBe(200);
-      expect(updateManySpy).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: { in: ['u1'] }, deletedAt: null } })
       );
     });
 
     it('reports a partial batch (skippedCount > 0) with 200', async () => {
-      updateManySpy.mockResolvedValue({ count: 1 } as never);
+      findManySpy.mockResolvedValue(rows('u1') as never);
       const res = await post({ userIds: ['u1', 'u2'] });
 
       expect(res.status).toBe(200);
@@ -138,11 +157,12 @@ describe('POST /api/admin/users/bulk-delete', () => {
     });
 
     it('400 when nothing was deleted (all already gone/invalid)', async () => {
-      updateManySpy.mockResolvedValue({ count: 0 } as never);
+      findManySpy.mockResolvedValue([] as never);
       const res = await post({ userIds: ['ghost'] });
 
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/no users were deleted/i);
+      expect(transactionSpy).not.toHaveBeenCalled();
       expect(adminLogSpy).not.toHaveBeenCalled();
     });
   });
