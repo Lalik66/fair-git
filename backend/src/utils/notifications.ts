@@ -50,7 +50,20 @@ function getTransporter(): Transporter | null {
 // Low-level send. Fire-and-forget on purpose: callers sit inside request
 // handlers that must not fail (or wait) because the mail server hiccuped.
 // Failures are logged with enough context to resend by hand.
+//
+// Transport priority:
+//   1. Resend HTTPS API when RESEND_API_KEY is set. Railway's Free/Trial/Hobby
+//      plans block outbound SMTP ports, so an HTTPS email API is the only way
+//      to send mail from there.
+//   2. SMTP (nodemailer) when the EMAIL_* vars are set (Pro plan / local).
+//   3. Console output (local development without credentials).
 function deliver(to: string, subject: string, body: string, lang: Lang): void {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    deliverViaResend(resendKey, to, subject, body);
+    return;
+  }
+
   const smtp = getTransporter();
 
   if (!smtp) {
@@ -77,6 +90,37 @@ function deliver(to: string, subject: string, body: string, lang: Lang): void {
     })
     .catch((err: Error) => {
       console.error(`[email] FAILED "${subject}" to ${to}: ${err.message}`);
+    });
+}
+
+// Send through Resend's REST API (https://resend.com/docs/api-reference/emails/send-email).
+// Uses Node's built-in fetch, so no extra dependency. Fire-and-forget like the
+// SMTP path: errors are logged, never thrown into the request handler.
+function deliverViaResend(apiKey: string, to: string, subject: string, body: string): void {
+  // EMAIL_FROM must be an address on a domain verified in Resend, e.g.
+  // "FestivKids <noreply@festivkids.az>". Without a verified domain Resend
+  // only allows its test sender, which can mail nothing but your own address.
+  const from = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+
+  fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ from, to: [to], subject, text: body }),
+  })
+    .then(async (res) => {
+      if (res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { id?: string };
+        console.log(`[email] sent via Resend "${subject}" to ${to} (${data.id ?? 'no id'})`);
+      } else {
+        const detail = await res.text().catch(() => '');
+        console.error(`[email] Resend FAILED "${subject}" to ${to}: HTTP ${res.status} ${detail}`);
+      }
+    })
+    .catch((err: Error) => {
+      console.error(`[email] Resend FAILED "${subject}" to ${to}: ${err.message}`);
     });
 }
 
@@ -312,6 +356,43 @@ export function sendReviewDecisionVisitorEmail(
           ? `"${ctx.vendorCompany}" haqqında rəyiniz moderasiyadan keçdi və artıq açıqdır.`
           : `"${ctx.vendorCompany}" haqqında rəyiniz moderasiya tərəfindən təsdiqlənmədi.` +
             (ctx.reason ? `\n\nSəbəb: ${ctx.reason}` : '')),
+      lang
+    );
+  }
+}
+
+interface PasswordResetEmailContext {
+  email: string;
+  name: string;
+  resetUrl: string;
+  expiresInMinutes: number;
+  lang?: string | null;
+}
+
+export function sendPasswordResetEmail(ctx: PasswordResetEmailContext): void {
+  const lang = normalizeLang(ctx.lang);
+  if (lang === 'en') {
+    deliver(
+      ctx.email,
+      'Reset your password',
+      `Hello ${ctx.name},\n\n` +
+        `We received a request to reset the password for your account.\n` +
+        `Open this link to choose a new password:\n\n` +
+        `${ctx.resetUrl}\n\n` +
+        `The link is valid for ${ctx.expiresInMinutes} minutes and can be used once.\n` +
+        `If you didn't ask for this, you can ignore this email — your password stays the same.`,
+      lang
+    );
+  } else {
+    deliver(
+      ctx.email,
+      'Şifrənin bərpası',
+      `Salam, ${ctx.name},\n\n` +
+        `Hesabınızın şifrəsini bərpa etmək üçün sorğu aldıq.\n` +
+        `Yeni şifrə təyin etmək üçün bu linki açın:\n\n` +
+        `${ctx.resetUrl}\n\n` +
+        `Link ${ctx.expiresInMinutes} dəqiqə etibarlıdır və yalnız bir dəfə istifadə oluna bilər.\n` +
+        `Əgər bu sorğunu siz göndərməmisinizsə, bu məktubu nəzərə almayın — şifrəniz dəyişməyəcək.`,
       lang
     );
   }

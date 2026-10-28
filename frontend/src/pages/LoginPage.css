@@ -331,7 +331,30 @@
 .login-forgot {
   color: var(--fk-accent, #c4423a);
   font-weight: 600;
-  cursor: default;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.login-forgot:hover,
+.login-forgot:focus-visible {
+  text-decoration: underline;
+}
+
+.login-form-success {
+  background: #e3f0e6;
+  border: 1px solid #5c8f6a;
+  border-radius: 10px;
+  color: #2f5e3c;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.login-form-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fk-ink-soft, #6b6259);
+  line-height: 1.5;
 }
 
 .login-spinner {

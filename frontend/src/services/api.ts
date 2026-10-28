@@ -73,6 +73,18 @@ export const authApi = {
     return response.data;
   },
 
+  /** Ask for a password reset email. Always resolves the same way whether or not the email exists. */
+  forgotPassword: async (email: string) => {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  /** Set a new password using the token from the reset email. */
+  resetPassword: async (token: string, newPassword: string) => {
+    const response = await api.post('/auth/reset-password', { token, newPassword });
+    return response.data;
+  },
+
   updateLanguage: async (language: string) => {
     const response = await api.put('/auth/language', { language });
     return response.data;

@@ -251,9 +251,9 @@ const LoginPage: React.FC = () => {
                       />
                       {t('auth.rememberMe', 'Remember me')}
                     </label>
-                    <span className="login-forgot" title={t('auth.forgotSoon', 'Password reset coming soon')}>
+                    <Link to="/forgot-password" state={{ email }} className="login-forgot">
                       {t('auth.forgot', 'Forgot?')}
-                    </span>
+                    </Link>
                   </div>
 
                   <button type="submit" className="login-btn login-btn-accent login-btn-full" disabled={loading}>
