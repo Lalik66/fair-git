@@ -9,6 +9,15 @@
 
 const BRAND_NAME = 'FestivKids';
 
+// Absolute URL of the PNG logo (email clients can't load relative paths, and
+// Gmail/Outlook don't render SVG). Served by the frontend from
+// frontend/public/email-logo.png; override with EMAIL_LOGO_URL if needed.
+function logoUrl(): string {
+  if (process.env.EMAIL_LOGO_URL) return process.env.EMAIL_LOGO_URL;
+  const base = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
+  return `${base}/email-logo.png`;
+}
+
 const C = {
   page: '#f6f1e9',
   card: '#fffaf1',
@@ -102,8 +111,18 @@ export function renderEmailLayout(opts: EmailLayoutOptions): string {
             <td style="padding:36px 40px 32px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="font-family:${SERIF};font-size:32px;font-weight:700;font-style:italic;line-height:1.2;color:${C.ink};">
-                    ${escapeHtml(BRAND_NAME)}
+                  <td>
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding-right:14px;vertical-align:middle;">
+                          <img src="${escapeHtml(logoUrl())}" width="72" height="72" alt="${escapeHtml(BRAND_NAME)}"
+                               style="display:block;width:72px;height:72px;border:0;outline:none;" />
+                        </td>
+                        <td style="vertical-align:middle;font-family:${SERIF};font-size:30px;font-weight:700;font-style:italic;line-height:1.2;color:${C.ink};">
+                          ${escapeHtml(BRAND_NAME)}
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
                 <tr>
