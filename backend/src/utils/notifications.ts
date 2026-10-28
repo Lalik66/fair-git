@@ -7,6 +7,7 @@
 // preferred language.
 
 import nodemailer, { Transporter } from 'nodemailer';
+import { renderEmailLayout, textToBrandedHtml, escapeHtml } from './emailTemplate';
 
 type Lang = 'az' | 'en';
 
@@ -57,10 +58,16 @@ function getTransporter(): Transporter | null {
 //      to send mail from there.
 //   2. SMTP (nodemailer) when the EMAIL_* vars are set (Pro plan / local).
 //   3. Console output (local development without credentials).
-function deliver(to: string, subject: string, body: string, lang: Lang): void {
+//
+// Every email goes out as multipart text + HTML. Callers may pass their own
+// HTML (e.g. the password reset with a button); otherwise the plain-text body
+// is wrapped in the branded layout automatically.
+function deliver(to: string, subject: string, body: string, lang: Lang, html?: string): void {
+  const htmlBody = html ?? textToBrandedHtml(body, subject, lang);
+
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
-    deliverViaResend(resendKey, to, subject, body);
+    deliverViaResend(resendKey, to, subject, body, htmlBody);
     return;
   }
 
@@ -84,6 +91,7 @@ function deliver(to: string, subject: string, body: string, lang: Lang): void {
       to,
       subject,
       text: body,
+      html: htmlBody,
     })
     .then((info) => {
       console.log(`[email] sent "${subject}" to ${to} (${info.messageId})`);
@@ -96,7 +104,7 @@ function deliver(to: string, subject: string, body: string, lang: Lang): void {
 // Send through Resend's REST API (https://resend.com/docs/api-reference/emails/send-email).
 // Uses Node's built-in fetch, so no extra dependency. Fire-and-forget like the
 // SMTP path: errors are logged, never thrown into the request handler.
-function deliverViaResend(apiKey: string, to: string, subject: string, body: string): void {
+function deliverViaResend(apiKey: string, to: string, subject: string, body: string, html: string): void {
   // EMAIL_FROM must be an address on a domain verified in Resend, e.g.
   // "FestivKids <noreply@festivkids.az>". Without a verified domain Resend
   // only allows its test sender, which can mail nothing but your own address.
@@ -108,7 +116,7 @@ function deliverViaResend(apiKey: string, to: string, subject: string, body: str
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ from, to: [to], subject, text: body }),
+    body: JSON.stringify({ from, to: [to], subject, text: body, html }),
   })
     .then(async (res) => {
       if (res.ok) {
@@ -371,29 +379,45 @@ interface PasswordResetEmailContext {
 
 export function sendPasswordResetEmail(ctx: PasswordResetEmailContext): void {
   const lang = normalizeLang(ctx.lang);
-  if (lang === 'en') {
-    deliver(
-      ctx.email,
-      'Reset your password',
-      `Hello ${ctx.name},\n\n` +
-        `We received a request to reset the password for your account.\n` +
-        `Open this link to choose a new password:\n\n` +
-        `${ctx.resetUrl}\n\n` +
-        `The link is valid for ${ctx.expiresInMinutes} minutes and can be used once.\n` +
-        `If you didn't ask for this, you can ignore this email — your password stays the same.`,
-      lang
-    );
-  } else {
-    deliver(
-      ctx.email,
-      'Şifrənin bərpası',
-      `Salam, ${ctx.name},\n\n` +
-        `Hesabınızın şifrəsini bərpa etmək üçün sorğu aldıq.\n` +
-        `Yeni şifrə təyin etmək üçün bu linki açın:\n\n` +
-        `${ctx.resetUrl}\n\n` +
-        `Link ${ctx.expiresInMinutes} dəqiqə etibarlıdır və yalnız bir dəfə istifadə oluna bilər.\n` +
-        `Əgər bu sorğunu siz göndərməmisinizsə, bu məktubu nəzərə almayın — şifrəniz dəyişməyəcək.`,
-      lang
-    );
-  }
+  const copy =
+    lang === 'en'
+      ? {
+          subject: 'Reset your FestivKids password',
+          tag: 'Password reset',
+          greeting: `Hi ${ctx.name},`,
+          intro: 'We received a request to reset the password for your FestivKids account. Click the button below to choose a new one.',
+          button: 'Reset password',
+          fallback: 'Or copy this link into your browser:',
+          footer:
+            `The link is valid for ${ctx.expiresInMinutes} minutes and can be used once. ` +
+            "If you didn't ask for this, you can ignore this email — your password stays the same.",
+        }
+      : {
+          subject: 'FestivKids şifrənizin bərpası',
+          tag: 'Şifrə bərpası',
+          greeting: `Salam, ${ctx.name},`,
+          intro: 'FestivKids hesabınızın şifrəsini bərpa etmək üçün sorğu aldıq. Yeni şifrə seçmək üçün aşağıdakı düyməyə klikləyin.',
+          button: 'Şifrəni yenilə',
+          fallback: 'Və ya bu linki brauzerinizə köçürün:',
+          footer:
+            `Link ${ctx.expiresInMinutes} dəqiqə etibarlıdır və yalnız bir dəfə istifadə oluna bilər. ` +
+            'Əgər bu sorğunu siz göndərməmisinizsə, bu məktubu nəzərə almayın — şifrəniz dəyişməyəcək.',
+        };
+
+  const text =
+    `${copy.greeting}\n\n${copy.intro}\n\n${ctx.resetUrl}\n\n${copy.footer}`;
+
+  const html = renderEmailLayout({
+    lang,
+    tag: copy.tag,
+    preheader: copy.intro,
+    bodyHtml:
+      `<p style="margin:0 0 16px;">${escapeHtml(copy.greeting)}</p>` +
+      `<p style="margin:0 0 8px;">${escapeHtml(copy.intro)}</p>`,
+    button: { label: copy.button, url: ctx.resetUrl },
+    fallbackLinkLabel: copy.fallback,
+    footerText: copy.footer,
+  });
+
+  deliver(ctx.email, copy.subject, text, lang, html);
 }
